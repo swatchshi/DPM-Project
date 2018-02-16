@@ -1,0 +1,161 @@
+package ca.mcgill.ecse211.odometer;
+
+import ca.mcgill.ecse211.lab5.Lab5;
+import lejos.hardware.motor.EV3LargeRegulatedMotor;
+
+public class Odometer extends OdometerData implements Runnable {
+
+	  //  private OdometerData odoData;
+	  private static Odometer odo = null; // Returned as singleton
+	
+	  // Motors and related variables
+	  private int leftMotorTachoCount;
+	  private int rightMotorTachoCount;
+	  private int leftMotorLastTachoCount;
+	  private int rightMotorLastTachoCount;
+	  private EV3LargeRegulatedMotor leftMotor;
+	  private EV3LargeRegulatedMotor rightMotor;
+	  private Lab5.RobotConfig config;
+	
+	  private final double TRACK;
+	  private final double WHEEL_RAD;
+	
+	  private double[] position;
+	
+	
+	  private static final long ODOMETER_PERIOD = 25; // odometer update period in ms
+	
+	  /**
+	   * This is the default constructor of this class. It initiates all motors and variables once.It
+	   * cannot be accessed externally.
+	   * 
+	   * @param leftMotor
+	   * @param rightMotor
+	   * @param config The Lab5.RobotConfig, i.e. the wheel positioning
+	   * @throws OdometerExceptions
+	   */
+	  private Odometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor,
+	      final double TRACK, final double WHEEL_RAD, Lab5.RobotConfig config) throws OdometerExceptions {
+	                                                  // manipulation methods
+		  this.config=config;
+		  switch(config) {
+			case PROPULSION:
+			 	this.leftMotor = leftMotor;
+			    this.rightMotor = rightMotor;
+			    break;
+			case TRACTION:
+				this.leftMotor = rightMotor;
+			    this.rightMotor = leftMotor;
+			    break;
+		  }
+		    
+		  // Reset the values of x, y and z to 0
+		  setXYT(0, 0, 0);
+		  // tacho count initializations
+		  this.leftMotorLastTachoCount = 0;
+		  this.rightMotorLastTachoCount = 0;
+		  this.leftMotorTachoCount = 0;
+		  this.rightMotorTachoCount = 0;
+		
+		  this.TRACK = TRACK;
+		  this.WHEEL_RAD = WHEEL_RAD;
+	
+	  }
+	
+	  /**
+	   * This method is meant to ensure only one instance of the odometer is used throughout the code.
+	   * 
+	   * @param leftMotor
+	   * @param rightMotor
+	   * @param config The Lab5.RobotConfig, i.e. the wheel positioning
+	   * @return new or existing Odometer Object
+	   * @throws OdometerExceptions
+	   */
+	  public synchronized static Odometer getOdometer(EV3LargeRegulatedMotor leftMotor,
+	      EV3LargeRegulatedMotor rightMotor, final double TRACK, final double WHEEL_RAD, Lab5.RobotConfig config)
+	      throws OdometerExceptions {
+		  
+		    if (odo != null) { // Return existing object
+		      return odo;
+		    } else { // create object and return it
+		      odo = new Odometer(leftMotor, rightMotor, TRACK, WHEEL_RAD, config);
+		      return odo;
+		    }
+	  }
+	
+	  /**
+	   * This class is meant to return the existing Odometer Object. It is meant to be used only if an
+	   * odometer object has been created
+	   * 
+	   * @return error if no previous odometer exists
+	   */
+	  public synchronized static Odometer getOdometer() throws OdometerExceptions {
+	
+		    if (odo == null) {
+		      throw new OdometerExceptions("No previous Odometer exits.");
+		
+		    }
+		    return odo;
+	  }
+	
+	  /**
+	   * This method is where the logic for the odometer will run. Use the methods provided from the
+	   * OdometerData class to implement the odometer.
+	   */
+	  // run method (required for Thread)
+	  public void run() {
+		    long updateStart, updateEnd;
+		    double dX,dY,dTheta, distL, distR;
+		
+		    leftMotorLastTachoCount = leftMotor.getTachoCount();
+		    rightMotorLastTachoCount = rightMotor.getTachoCount();
+		    
+		    while (true) {
+			      updateStart = System.currentTimeMillis();
+			
+			      leftMotorTachoCount = leftMotor.getTachoCount();
+			      rightMotorTachoCount = rightMotor.getTachoCount();
+			
+			      // Calculate new robot position based on tachometer counts
+			      
+			      position=getXYT();	//get the coordinates
+			      
+			      distL=Math.PI*WHEEL_RAD*(leftMotorTachoCount-leftMotorLastTachoCount)/180; 	//convert left rotation to wheel displacement
+			      distR=Math.PI*WHEEL_RAD*(rightMotorTachoCount-rightMotorLastTachoCount)/180;	//convert right rotation to wheel displacement
+			      
+			      dTheta=(distL-distR)/TRACK; //Calculating the instantaneous rotation magnitude
+			      
+			      
+			      if(config==Lab5.RobotConfig.PROPULSION) {
+			    	  dTheta=-Math.toDegrees(dTheta); //conversion to degrees
+				      position[2]+=dTheta; 			//new temporary angle
+				      
+				      dX=-0.5*(distL+distR)*Math.sin(Math.toRadians(position[2])); //displacement in X with new angle
+				      dY=-0.5*(distL+distR)*Math.cos(Math.toRadians(position[2])); //displacement in Y with new angle
+			      } else { //TRACTION
+			    	  dTheta=Math.toDegrees(dTheta); //conversion to degrees
+			          position[2]+=dTheta; 			//new temporary angle
+			          
+			          dX=0.5*(distL+distR)*Math.sin(Math.toRadians(position[2])); //displacement in X with new angle
+			          dY=0.5*(distL+distR)*Math.cos(Math.toRadians(position[2])); //displacement in Y with new angle
+			      }
+			     
+			      
+			      leftMotorLastTachoCount=leftMotorTachoCount; 		//resets value of the left tachoCount
+			      rightMotorLastTachoCount=rightMotorTachoCount;	//resets value of the right tachoCount
+			      
+			      //Update odometer values with new calculated values
+			      update(dX, dY, dTheta); 
+			
+			      // this ensures that the odometer only runs once every period
+			      updateEnd = System.currentTimeMillis();
+			      if (updateEnd - updateStart < ODOMETER_PERIOD) {
+				        try {
+				          Thread.sleep(ODOMETER_PERIOD - (updateEnd - updateStart));
+				        } catch (InterruptedException e) {
+				          // there is nothing to be done
+				        }
+			      }
+		    }
+	  }
+}
