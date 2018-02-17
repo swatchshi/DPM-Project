@@ -18,13 +18,14 @@ public class Navigation {
 	 */
 	private static final int FORWARD_SPEED = 200;
 	private static final int ROTATE_SPEED = 75;
-	private static final int ERROR_DISTANCE = 0;
-	private static final double TILE_SIZE = 30.48;
+	private static final int ERROR_DISTANCE = 2;
+	public static final double TILE_SIZE = 30.48;
 	private Odometer odo;
 	private double lastX;
 	private double lastY;
 	private static boolean navigating=false;
 	private static boolean interrupt=false;
+	private final Thread odoCorrect;
 	
 	private static Navigation nav; //Holds the used instance of this class
 	private Lab5.RobotConfig config;
@@ -40,10 +41,12 @@ public class Navigation {
 	 * @param odo : Odometer used
 	 * @param us : UltrasonicPoller used
 	 * @param config The Lab5.RobotConfig, i.e. the wheel positioning
+	 * @param odoCor Thread instance of OdometerCorrection
 	 */
-	public Navigation(Odometer odo, Lab5.RobotConfig config) {
+	public Navigation(Odometer odo, Lab5.RobotConfig config, Thread odoCor) {
 		this.odo=odo;
 		this.config=config;
+		this.odoCorrect=odoCor;
 		nav=this;
 	}
 	
@@ -61,8 +64,8 @@ public class Navigation {
 	/**
 	 * Travels a certain amount of cm (with coordinates)
 	 * 
-	 * @param dX
-	 * @param dY
+	 * @param dX displacement in cm
+	 * @param dY displacement in cm
 	 */
 	public void travel(double dX, double dY) {
 		travelTo(odo.getX()+dX, odo.getY()+dY);
@@ -108,7 +111,8 @@ public class Navigation {
 		while(!interrupt)  {
 			dX= odo.getX()-lastX;
 			dY= odo.getY()-lastY;
-			if(dX*dX+dY*dY >= travelDistance*travelDistance+ ERROR_DISTANCE*ERROR_DISTANCE) { //reached goal coordinates
+			if(dX*dX+dY*dY >= travelDistance*travelDistance
+					+ ERROR_DISTANCE*ERROR_DISTANCE*Math.abs(Math.sin(2*odo.getTheta()))) { //reached goal coordinates
 				break;
 			}
 		}
@@ -121,6 +125,7 @@ public class Navigation {
 	 */
 	public void travelForward() {
 		navigating=true;
+		odoCorrect.notify();  //resume thread
 		Lab5.leftMotor.setSpeed(FORWARD_SPEED);
 		Lab5.rightMotor.setSpeed(FORWARD_SPEED);
 		Lab5.rightMotor.startSynchronization();
@@ -130,6 +135,65 @@ public class Navigation {
 				Lab5.leftMotor.backward();
 				break;
 			case TRACTION:
+				Lab5.rightMotor.forward();
+				Lab5.leftMotor.forward();
+				break;
+		}
+		Lab5.rightMotor.endSynchronization();
+	}
+	
+	/**
+	 * Backs up to a specific coordinate specified in cm
+	 * 
+	 * @param x coordinates in x (positive right)
+	 * @param y coordinates in y (positive up)
+	 */
+	public void backUpTo(double x, double y) {
+		double travelDistance=0;
+		
+		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {Lab5.leftMotor, Lab5.rightMotor}) {
+			motor.stop();
+			motor.setAcceleration(2000);
+		}
+		lastX=odo.getX();
+		lastY=odo.getY();
+		double dX= x-lastX;
+		double dY= y-lastY;
+	     
+		turnTo(Math.toDegrees(Math.atan2(dX, dY))+180); //turn to opposite direction
+		travelDistance=Math.sqrt(dX*dX+dY*dY);
+	     
+		
+		travelBackard();
+				 
+		while(!interrupt)  {
+			dX= odo.getX()-lastX;
+			dY= odo.getY()-lastY;
+			if(dX*dX+dY*dY >= travelDistance*travelDistance
+					+ ERROR_DISTANCE*ERROR_DISTANCE*Math.abs(Math.sin(2*odo.getTheta()))) { //reached goal coordinates
+				break;
+			}
+		}
+		
+		stopMotors();
+	} 
+	
+	
+	/**
+	 * Travels non stop backward
+	 */
+	public void travelBackard() {
+		navigating=true;
+		odoCorrect.notify();  //resume thread
+		Lab5.leftMotor.setSpeed(FORWARD_SPEED);
+		Lab5.rightMotor.setSpeed(FORWARD_SPEED);
+		Lab5.rightMotor.startSynchronization();
+		switch(config) {
+			case TRACTION:
+				Lab5.rightMotor.backward();
+				Lab5.leftMotor.backward();
+				break;
+			case PROPULSION:
 				Lab5.rightMotor.forward();
 				Lab5.leftMotor.forward();
 				break;
@@ -148,6 +212,11 @@ public class Navigation {
 		Lab5.leftMotor.stop(false);
 		Lab5.rightMotor.endSynchronization();
 		navigating=false;
+		try {
+			odoCorrect.wait(); //puts the thread on hold
+		}catch(InterruptedException e) {
+			//do nothing
+		}
 	}
 	
 		
@@ -182,17 +251,8 @@ public class Navigation {
 		navigating=true;
 		Lab5.leftMotor.setSpeed(ROTATE_SPEED);
 	    Lab5.rightMotor.setSpeed(ROTATE_SPEED);
-	    switch(config) {
-		    case PROPULSION:
-		    	Lab5.leftMotor.rotate(-convertAngle(Lab5.WHEEL_RAD, Lab5.TRACK, rotation), true);
-			    Lab5.rightMotor.rotate(convertAngle(Lab5.WHEEL_RAD, Lab5.TRACK, rotation), false);
-			    break;
-		    case TRACTION:
-		    	Lab5.leftMotor.rotate(convertAngle(Lab5.WHEEL_RAD, Lab5.TRACK, rotation), true);
-			    Lab5.rightMotor.rotate(-convertAngle(Lab5.WHEEL_RAD, Lab5.TRACK, rotation), false);
-			    break;
-	    }
-		
+	    Lab5.leftMotor.rotate(-convertAngle(Lab5.WHEEL_RAD, Lab5.TRACK, rotation), true);
+	    Lab5.rightMotor.rotate(convertAngle(Lab5.WHEEL_RAD, Lab5.TRACK, rotation), false);
 	    navigating=false;
 	}
 	
@@ -204,33 +264,17 @@ public class Navigation {
 		Lab5.leftMotor.setSpeed(ROTATE_SPEED);
 	    Lab5.rightMotor.setSpeed(ROTATE_SPEED);
 	    Lab5.rightMotor.startSynchronization();
-	    switch(config) {
-		    case PROPULSION:
-			    switch(direction) {
-					case CLOCK_WISE:
-						Lab5.rightMotor.forward();
-						Lab5.leftMotor.backward();
-						break;
-					case COUNTER_CLOCK_WISE:
-						Lab5.rightMotor.backward();
-						Lab5.leftMotor.forward();
-						break;
-			    }
-			    break;
-		    case TRACTION:
-		    	switch(direction) {
-					case CLOCK_WISE:
-						Lab5.rightMotor.backward();
-						Lab5.leftMotor.forward();
-						break;
-					case COUNTER_CLOCK_WISE:
-						Lab5.rightMotor.forward();
-						Lab5.leftMotor.backward();
-						break;
-				}
+	    switch(direction) {
+			case CLOCK_WISE:
+				Lab5.rightMotor.forward();
+				Lab5.leftMotor.backward();
+				break;
+			case COUNTER_CLOCK_WISE:
+				Lab5.rightMotor.backward();
+				Lab5.leftMotor.forward();
+				break;
 	    }
 	    Lab5.rightMotor.endSynchronization();
-		
 		navigating=false;
 	}
 	

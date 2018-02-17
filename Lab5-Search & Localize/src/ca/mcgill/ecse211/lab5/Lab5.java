@@ -42,7 +42,8 @@ public class Lab5 {
 	  public static final SensorModes ultraSSensor=new EV3UltrasonicSensor(LocalEV3.get().getPort("S4"));
 	  
 	  public static final RobotConfig CONFIG=RobotConfig.PROPULSION;
-	  
+	  public static final int X_GRID_LINES=8;
+	  public static final int Y_GRID_LINES=8;
 	  //free space between wheels: 13.7 cm
 	  //wheel width 2.2 (EACH)
 	  //wheel diameter: 4.4
@@ -57,12 +58,13 @@ public class Lab5 {
 		    SampleProvider us = ultraSSensor.getMode("Distance"); // usDistance provides samples from
 		                                                              // this instance
 		    float[] usData = new float[us.sampleSize()]; // usData is the buffer in which data are
-		   // UltrasonicPoller usPoller = null;													// returned
+		    ColorSensor cSensor=new ColorSensor(lightSensor);
+		    UltrasonicSensor ultraSensor=new UltrasonicSensor(ultraSSensor, usData);
 	
 		    // Odometer related objects
 		    rightMotor.synchronizeWith(new EV3LargeRegulatedMotor[] { leftMotor });  //to sync the wheels
 		    Odometer odometer = Odometer.getOdometer(leftMotor, rightMotor, TRACK, WHEEL_RAD, CONFIG); 
-		    
+		    OdometerCorrection odoCorrection=new OdometerCorrection(cSensor, odometer);
 		    Display odometryDisplay = new Display(lcd); // No need to change
 	
 	
@@ -93,7 +95,15 @@ public class Lab5 {
 		      odoThread.start();
 		      Thread odoDisplayThread = new Thread(odometryDisplay);
 		      odoDisplayThread.start();
-	
+		      try {
+		    	   odoDisplayThread.wait();
+				      
+		      }catch(InterruptedException e) {
+		    	  
+		      }
+		   
+		      odoDisplayThread.notify();
+		     
 		    } else {
 		      // clear the display
 		      lcd.clear();
@@ -139,12 +149,19 @@ public class Lab5 {
 		      odoThread.start();
 		      Thread odoDisplayThread = new Thread(odometryDisplay);
 		      odoDisplayThread.start();
-		      Navigation navigation=new Navigation(odometer, CONFIG);
+		      Thread odoCorThread=new Thread(odoCorrection);
+		      odoCorThread.start();
+		      try {
+		    	  odoCorThread.wait();
+		      }catch(InterruptedException e) {
+		    	  //do nothing
+		      }
+		      Navigation navigation=new Navigation(odometer, CONFIG, odoCorThread);
 		      
 		      ///////////////////////////////////////// CHANGE LAB PROCEDURE HERE ///////////////////////////////////////
 		      
 									      //Start US localization
-										  UltrasonicSensor ultraSensor=new UltrasonicSensor(ultraSSensor, usData);
+										 
 										  USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
 										  usLoc.doLocalization();
 										  
@@ -155,7 +172,7 @@ public class Lab5 {
 										 
 									   
 										  //Start Light localization
-										  ColorSensor cSensor=new ColorSensor(lightSensor);
+										 
 										  LightLocalizer lightLoc=new LightLocalizer(navigation, cSensor, odometer, CONFIG);
 										  lightLoc.doLocalization();
 										  

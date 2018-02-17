@@ -1,5 +1,8 @@
 package ca.mcgill.ecse211.localizer;
 
+import java.util.ArrayList;
+import java.util.Stack;
+
 import ca.mcgill.ecse211.lab5.*;
 import ca.mcgill.ecse211.odometer.*;
 
