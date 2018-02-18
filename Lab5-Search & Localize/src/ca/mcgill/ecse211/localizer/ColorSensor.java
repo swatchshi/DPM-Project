@@ -4,6 +4,7 @@ import ca.mcgill.ecse211.lab5.Navigation;
 import lejos.hardware.Sound;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.robotics.Color;
+import lejos.robotics.SampleProvider;
 import lejos.utility.Delay;
 
 /**
@@ -19,15 +20,46 @@ public class ColorSensor {
 	private EV3ColorSensor lightSensor;
 	private static final long PING_PERIOD = 5;
 	private float[] baseSample;
+	private static final int COLOR_FILTER=4;
+	private final static double RED_R_MEEN=0.12396416;
+	private final static double RED_G_MEEN=0.02064270;
+	private final static double RED_B_MEEN=0.01372543;
+	private final static double RED_R_STD=0.050752937;
+	private final static double RED_G_STD=0.007693734;
+	private final static double RED_B_STD=0.005220381;
+	
+	private final static double YELLOW_R_MEEN=0.215953659;
+	private final static double YELLOW_G_MEEN=0.12932264;
+	private final static double YELLOW_B_MEEN=0.022103387;
+	private final static double YELLOW_R_STD=0.089106906;
+	private final static double YELLOW_G_STD=0.060347026;
+	private final static double YELLOW_B_STD=0.009508931;
+	
+	private final static double WHITE_R_MEEN=0.18946119;
+	private final static double WHITE_G_MEEN=0.18917648;
+	private final static double WHITE_B_MEEN=0.12824939;
+	private final static double WHITE_R_STD=0.095847914;
+	private final static double WHITE_G_STD=0.089227586;
+	private final static double WHITE_B_STD=0.056484251;
+	
+	private final static double BLUE_R_MEEN=0.02340686;
+	private final static double BLUE_G_MEEN=0.04534314;
+	private final static double BLUE_B_MEEN=0.05202206;
+	private final static double BLUE_R_STD=0.018837398;
+	private final static double BLUE_G_STD=0.016473312;
+	private final static double BLUE_B_STD=0.016708785;
 	
 	
+	
+	public static enum BlockColor{
+		BLUE, RED, YELLOW, WHITE, NoColorFound
+	}
 	/**
 	 * Creates an instance of a lightSensor
 	 * @param lightSensor the EV3ColorSensor used
 	 */
 	public ColorSensor(EV3ColorSensor lightSensor) {
 		this.lightSensor=lightSensor;
-		lightSensor.setCurrentMode("Red");
 	}
 
 	/**
@@ -73,5 +105,64 @@ public class ColorSensor {
 			}
 	    }
 	    return lineSeen;   
+	}
+	
+	/**
+	 * Calls the calculation method to get the color and returns the filtered color seen by the sensor
+	 * @return The BlockColor seen by the ColorSensor
+	 */
+	public BlockColor getColorSeen() {
+		BlockColor color=BlockColor.NoColorFound, newColor;
+		int colorCount=0;
+		
+		while(colorCount<COLOR_FILTER) { //Checks if it is really the seen color
+			float[] rgb=getRGB();
+			
+			newColor= gaussianMehtod(rgb[0], rgb[1], rgb[2]);
+					
+			if(color==newColor) {
+				colorCount++;
+			}else {
+				colorCount=0;
+			}
+			color=newColor;
+		}
+		return color; //the real color as a string
+	}
+	
+	/**
+	 * Gaussian method of determining the color seen, takes the r g b values and computes what BlockColor is the closest
+	 * @param r the Red component between 0 and 1
+	 * @param g the Green component between 0 and 1
+	 * @param b the Blue component between 0 and 1
+	 * @return the BlockColor associated to these RGB values
+	 */
+	private BlockColor gaussianMehtod(double r, double g, double b) {
+		
+		if(Math.abs(r-RED_R_MEEN)<=2*RED_R_STD && Math.abs(g-RED_G_MEEN)<=2*RED_G_STD && Math.abs(b-RED_B_MEEN)<=2*RED_B_STD)
+			return BlockColor.RED;
+		else if(Math.abs(r-YELLOW_R_MEEN)<=2*YELLOW_R_STD && Math.abs(g-YELLOW_G_MEEN)<=2*YELLOW_G_STD && Math.abs(b-YELLOW_B_MEEN)<=2*YELLOW_B_STD)
+			return BlockColor.YELLOW;
+		else if(Math.abs(r-BLUE_R_MEEN)<=2*BLUE_R_STD && Math.abs(g-BLUE_G_MEEN)<=2*BLUE_G_STD && Math.abs(b-BLUE_B_MEEN)<=2*BLUE_B_STD)
+			return BlockColor.BLUE;
+		else if(Math.abs(r-WHITE_R_MEEN)<=2*WHITE_R_STD && Math.abs(g-WHITE_G_MEEN)<=2*WHITE_G_STD && Math.abs(b-WHITE_B_MEEN)<=2*WHITE_B_STD)
+			return BlockColor.WHITE;
+		else {
+			return BlockColor.NoColorFound;
+		}
+	}
+	
+	/**
+	 * Gets the rgb values of the color sensor
+	 * RGB values range between 0 and 1
+	 * @return a float array with the R at 0, G at 1 and B at 2
+	 */
+	public float[] getRGB() {
+		lightSensor.setCurrentMode("RGB");
+		SampleProvider colorSensor=lightSensor.getRGBMode();
+		float[] rgb=new float[colorSensor.sampleSize()];
+		colorSensor.fetchSample(rgb, 0);
+		
+		return rgb;
 	}
 }
