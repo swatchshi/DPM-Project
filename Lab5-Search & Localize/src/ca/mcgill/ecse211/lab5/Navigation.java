@@ -62,13 +62,32 @@ public class Navigation {
 	}
 	
 	/**
-	 * Travels a certain amount of cm (with coordinates)
+	 * Travels a certain amount of cm (with coordinates) 
+	 * Does not turn when given negative coordinates
 	 * 
-	 * @param dX displacement in cm
-	 * @param dY displacement in cm
+	 * @param dX absolute displacement in cm
+	 * @param dY absolute displacement in cm
 	 */
 	public void travel(double dX, double dY) {
-		travelTo(odo.getX()+dX, odo.getY()+dY);
+		double travelDistance=Math.sqrt(dX*dX+dY*dY);
+
+		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {Lab5.leftMotor, Lab5.rightMotor}) {
+			motor.stop();
+			motor.setAcceleration(2000);
+		}
+		
+		travelForward();
+		 
+		while(!interrupt)  {
+			dX=Math.abs(odo.getX()-lastX);
+			dY=Math.abs(odo.getY()-lastY);
+			if(dX*dX+dY*dY >= travelDistance*travelDistance
+					+ ERROR_DISTANCE*ERROR_DISTANCE*Math.abs(Math.sin(2*odo.getTheta()))) { //reached goal coordinates
+				break;
+			}
+		}
+		
+		stopMotors();
 	}
 	
 	
@@ -91,33 +110,15 @@ public class Navigation {
 	 * @param y coordinates in y (positive up)
 	 */
 	public void travelTo(double x, double y) {
-		double travelDistance=0;
 		
-		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {Lab5.leftMotor, Lab5.rightMotor}) {
-			motor.stop();
-			motor.setAcceleration(2000);
-		}
 		lastX=odo.getX();
 		lastY=odo.getY();
 		double dX= x-lastX;
 		double dY= y-lastY;
 	     
 		turnTo(Math.toDegrees(Math.atan2(dX, dY))); //turn to right direction
-		travelDistance=Math.sqrt(dX*dX+dY*dY);
-	     
 		
-		travelForward();
-				 
-		while(!interrupt)  {
-			dX= odo.getX()-lastX;
-			dY= odo.getY()-lastY;
-			if(dX*dX+dY*dY >= travelDistance*travelDistance
-					+ ERROR_DISTANCE*ERROR_DISTANCE*Math.abs(Math.sin(2*odo.getTheta()))) { //reached goal coordinates
-				break;
-			}
-		}
-		
-		stopMotors();
+		travel(dX, dY);
 	} 
 	
 	/**
