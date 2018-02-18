@@ -32,6 +32,7 @@ public class USLocalizer{
 	private boolean usLocalizerDone;
 	private boolean doneTurning;
 	private int filterControl;
+	private int corner;
 	
 	
 	/**
@@ -41,11 +42,12 @@ public class USLocalizer{
 	 * @param us UltrasonicSensor used
 	 * @param loc LocalizerType used
 	 */
-	public USLocalizer(Odometer odo, Navigation navigation, UltrasonicSensor us) {
+	public USLocalizer(Odometer odo, Navigation navigation, UltrasonicSensor us, int corner) {
 		this.odo = odo;
 		this.navigation = navigation;
 		this.usSensor = us;
 		filterControl=0;
+		this.corner=corner;
 		this.usLocalizerDone=true;
 		
 		if(usSensor.getDistance()<WALL_THRESHOLD) { //Deciding what localizer should be used
@@ -101,6 +103,7 @@ public class USLocalizer{
 			odo.setTheta(odo.getTheta() +225 - angle); //reset angle
 		}
 		
+		odo.setTheta(odo.getTheta()-90*corner);
 		//Finally turn to good 0 degrees
 		navigation.turnTo(0);
 		usLocalizerDone=true;

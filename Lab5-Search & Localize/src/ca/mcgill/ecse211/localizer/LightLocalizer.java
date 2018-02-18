@@ -22,6 +22,7 @@ public class LightLocalizer {
 		private final Odometer odo;
 		private final Lab5.RobotConfig config;
 		private boolean lightLocalizerDone; //tells when the localization is over
+		private int corner;
 		
 
 		/**
@@ -32,12 +33,13 @@ public class LightLocalizer {
 		 * @param odo Odometer used
 		 * @param config The Lab5.RobotConfig, i.e. the wheel positioning
 		 */
-		public LightLocalizer(Navigation navigation, ColorSensor lightSensor, Odometer odo, Lab5.RobotConfig config) {
+		public LightLocalizer(Navigation navigation, ColorSensor lightSensor, Odometer odo, Lab5.RobotConfig config, int corner) {
 			this.odo = odo;
 			this.navigation = navigation;
 			this.lightSensor = lightSensor;
 			this.lightLocalizerDone=false;
 			this.config=config;
+			this.corner=corner;
 		}
 
 		
@@ -50,7 +52,7 @@ public class LightLocalizer {
 			// travel to location
 			// cross a line and stop
 			Sound.beep();
-			navigation.turnTo(45);
+			navigation.turnTo((45-corner*90)%360);
 			navigation.travelForward();
 			if(lightSensor.lineCrossed()) { //wait to cross a line
 				navigation.stopMotors();

@@ -118,30 +118,25 @@ public class Lab5 {
 		      buttonChoice = Button.waitForAnyPress(); // Record choice (left,right press)
 	
 		     //localization choice
+		      int corner=0;
 		      
 		      switch(buttonChoice) {
 		      
-		      case Button.ID_UP:
-		    	  
-		    	  //TODO: CORNER 0
-		      		
-		      		break;
-		      	case Button.ID_LEFT:
-		      		
-		      	//TODO: CORNER 1
-		      		break;
-		      	case Button.ID_RIGHT:
-		      		
-		      	//TODO: CORNER 2
-		      		
-		      		break;
-		      	case Button.ID_DOWN:
-		      		
-		      	//TODO: CORNER 3
-		      		
-		      		break;
-		      	default: System.exit(0);
-		      		break;
+			      case Button.ID_UP:
+			    	  corner=0;
+			      		break;
+			      	case Button.ID_LEFT:
+			      		corner=1;
+			      		break;
+			      	case Button.ID_RIGHT:
+			      		corner=2;
+			      		break;
+			      	case Button.ID_DOWN:
+			      		corner=3;
+			      		break;
+			      	default: 
+			      		System.exit(0);
+			      		break;
 		      }
 		      
 		      // Start odometer and display threads
@@ -162,7 +157,7 @@ public class Lab5 {
 		      
 									      //Start US localization
 										 
-										  USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
+										  USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor, corner);
 										  usLoc.doLocalization();
 										  
 										  //wait for Button press
@@ -173,7 +168,7 @@ public class Lab5 {
 									   
 										  //Start Light localization
 										 
-										  LightLocalizer lightLoc=new LightLocalizer(navigation, cSensor, odometer, CONFIG);
+										  LightLocalizer lightLoc=new LightLocalizer(navigation, cSensor, odometer, CONFIG, corner);
 										  lightLoc.doLocalization();
 										  
 										  //Wait until done

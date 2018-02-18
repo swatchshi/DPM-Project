@@ -231,7 +231,7 @@ public class OdometerData {
     lock.lock();
     isReseting = true;
     try {
-      this.theta = theta;
+      this.theta = theta % 360;
       isReseting = false; // Done reseting
       doneReseting.signalAll(); // Let the other threads know that you are
                                 // done reseting
