@@ -57,11 +57,11 @@ public class LightLocalizer {
 			if(lightSensor.lineCrossed()) { //wait to cross a line
 				navigation.stopMotors();
 			}
-			
+			//travel to "center" the robot on the cross
+			navigation.travel(LIGHT_SENSOR_DISTANCE*Math.cos(Math.PI/4), LIGHT_SENSOR_DISTANCE*Math.cos(Math.PI/4));
 			switch(config) {
 				case PROPULSION:
-					//travel to "center" the robot on the cross
-					navigation.travel(LIGHT_SENSOR_DISTANCE*Math.cos(Math.PI/4), LIGHT_SENSOR_DISTANCE*Math.cos(Math.PI/4));
+					
 					
 					//Read in the angles		
 					for(int lineCounter=0; lineCounter<4; lineCounter++) {
@@ -72,20 +72,48 @@ public class LightLocalizer {
 						
 						if (lightSensor.lineCrossed()) { //wait to cross a line
 							navigation.stopMotors(); //stop
-							lineAngles[corner] = odo.getTheta(); //positive y[0], negative x[1], negative y[2], positive x [3] 
-							corner=(corner+1)%4;
+							int cornerTest = corner;
+							lineAngles[cornerTest] = odo.getTheta(); //positive y[0], negative x[1], negative y[2], positive x [3] 
+							cornerTest=(cornerTest+1)%4;
 						}
 					}
 					
+					switch(corner) {
 					//Angle and position calculation
-					thetaY = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[2]),Math.toRadians(lineAngles[0]));
-					x = LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2);
-					
-					thetaX = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[3]), Math.toRadians(lineAngles[1]));
-					y = LIGHT_SENSOR_DISTANCE * Math.cos(thetaX / 2);
-					
-					dTheta = Math.toDegrees(thetaY) / 2 + 270 - lineAngles[3];
-					break;
+					case 3:
+						thetaY = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[0]),Math.toRadians(lineAngles[2]));
+						x = - LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2) ;
+						
+						thetaX = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[1]), Math.toRadians(lineAngles[3]));
+						y = LIGHT_SENSOR_DISTANCE * Math.cos(thetaX / 2)+Lab5.Y_GRID_LINES*Navigation.TILE_SIZE;
+						break;
+					case 2:
+						thetaY = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[0]),Math.toRadians(lineAngles[2]));
+						x = LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2)+Lab5.X_GRID_LINES*Navigation.TILE_SIZE;
+						
+						thetaX = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[1]), Math.toRadians(lineAngles[3]));
+						y = LIGHT_SENSOR_DISTANCE * Math.cos(thetaX / 2)+Lab5.Y_GRID_LINES*Navigation.TILE_SIZE;
+						break;
+					case 1:
+						thetaY = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[0]),Math.toRadians(lineAngles[2]));
+						x = LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2)+Lab5.X_GRID_LINES*Navigation.TILE_SIZE;
+						
+						thetaX = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[1]), Math.toRadians(lineAngles[3]));
+						y = - LIGHT_SENSOR_DISTANCE * Math.cos(thetaX / 2);
+						break;
+					case 0:
+					default:
+						thetaY = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[0]),Math.toRadians(lineAngles[2]));
+						x =  LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2);
+							
+						thetaX = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[1]), Math.toRadians(lineAngles[3]));
+						y =  LIGHT_SENSOR_DISTANCE * Math.cos(thetaX / 2);
+						break;
+				}
+				
+				dTheta = Math.toDegrees(thetaY) / 2 + 270 - lineAngles[3]; ////////////////////////////////////////////////////////////COULD BE WRONG HERE
+				break;
+				
 				case TRACTION:
 					//travel back to "center" the robot on the cross
 					navigation.travel(-LIGHT_SENSOR_DISTANCE*Math.cos(Math.PI/4), -LIGHT_SENSOR_DISTANCE*Math.cos(Math.PI/4));
@@ -103,6 +131,7 @@ public class LightLocalizer {
 						}
 					}
 					
+				
 					switch(corner) {
 						//Angle and position calculation
 						case 3:
@@ -110,18 +139,18 @@ public class LightLocalizer {
 							x = - LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2) ;
 							
 							thetaX = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[0]), Math.toRadians(lineAngles[2]));
-							y = LIGHT_SENSOR_DISTANCE * Math.cos(thetaX / 2)*Lab5.Y_GRID_LINES+Navigation.TILE_SIZE;
+							y = LIGHT_SENSOR_DISTANCE * Math.cos(thetaX / 2)+Lab5.Y_GRID_LINES*Navigation.TILE_SIZE;
 							break;
 						case 2:
 							thetaY = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[1]),Math.toRadians(lineAngles[3]));
-							x = LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2)*Lab5.X_GRID_LINES+Navigation.TILE_SIZE;
+							x = LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2)+Lab5.X_GRID_LINES*Navigation.TILE_SIZE;
 							
 							thetaX = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[0]), Math.toRadians(lineAngles[2]));
-							y = LIGHT_SENSOR_DISTANCE * Math.cos(thetaX / 2)*Lab5.Y_GRID_LINES+Navigation.TILE_SIZE;
+							y = LIGHT_SENSOR_DISTANCE * Math.cos(thetaX / 2)+Lab5.Y_GRID_LINES*Navigation.TILE_SIZE;
 							break;
 						case 1:
 							thetaY = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[1]),Math.toRadians(lineAngles[3]));
-							x = LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2)*Lab5.X_GRID_LINES+Navigation.TILE_SIZE;
+							x = LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2)+Lab5.X_GRID_LINES*Navigation.TILE_SIZE;
 							
 							thetaX = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[0]), Math.toRadians(lineAngles[2]));
 							y = - LIGHT_SENSOR_DISTANCE * Math.cos(thetaX / 2);
@@ -129,14 +158,14 @@ public class LightLocalizer {
 						case 0:
 						default:
 							thetaY = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[1]),Math.toRadians(lineAngles[3]));
-							x = - LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2);
+							x =  LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2);
 								
 							thetaX = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[0]), Math.toRadians(lineAngles[2]));
-							y = - LIGHT_SENSOR_DISTANCE * Math.cos(thetaX / 2);
+							y =  LIGHT_SENSOR_DISTANCE * Math.cos(thetaX / 2);
 							break;
 					}
 					
-					dTheta = Math.toDegrees(thetaY) / 2 + 270- lineAngles[3]; ////////////////////////////////////////////////////////////COULD BE WRONG HERE
+					dTheta = Math.toDegrees(thetaY) / 2 + 270 - lineAngles[3]; ////////////////////////////////////////////////////////////COULD BE WRONG HERE
 					break;
 					
 			}
@@ -147,7 +176,7 @@ public class LightLocalizer {
 			switch(corner) {
 				//Angle and position calculation
 				case 3:
-					navigation.goToPoint(0, Lab5.Y_GRID_LINES);
+					navigation.goToPoint(0, Lab5.Y_GRID_LINES-1);
 					break;
 				case 2:
 					navigation.goToPoint(Lab5.X_GRID_LINES, Lab5.Y_GRID_LINES);

@@ -44,6 +44,8 @@ public class Lab5 {
 	  public static final RobotConfig CONFIG=RobotConfig.PROPULSION;
 	  public static final int X_GRID_LINES=8;
 	  public static final int Y_GRID_LINES=8;
+	  public static final int LOWER_LEFT=1;
+	  public static final int UPPER_RIGHT=3;
 	  //free space between wheels: 13.7 cm
 	  //wheel width 2.2 (EACH)
 	  //wheel diameter: 4.4
@@ -95,25 +97,18 @@ public class Lab5 {
 		      odoThread.start();
 		      Thread odoDisplayThread = new Thread(odometryDisplay);
 		      odoDisplayThread.start();
-		      try {
-		    	   odoDisplayThread.wait();
-				      
-		      }catch(InterruptedException e) {
-		    	  
-		      }
-		   
-		      odoDisplayThread.notify();
+		     
 		     
 		    } else {
 		      // clear the display
 		      lcd.clear();
 	
 		      // ask the user which start corner is used
-		      lcd.drawString("    ^^^^ CORNER 0 ^^^^   ", 0, 0);
-		      lcd.drawString("  < __________________ > ", 0, 1);
-		      lcd.drawString(" < CORNER 1 | CORNER 2 >", 0, 2);
-		      lcd.drawString("  <_________|__________> ", 0, 3);
-		      lcd.drawString("    vvvv CORNER 3 vvvv   ", 0, 4);
+		      lcd.drawString("  ^^ CORNER 0  ^^   ", 0, 0);
+		      lcd.drawString(" < _______________ >", 0, 1);
+		      lcd.drawString("< CORNER  | CORNER >", 0, 2);
+		      lcd.drawString(" <____1___|____2___>", 0, 3);
+		      lcd.drawString("  vv CORNER 3  vv   ", 0, 4);
 	
 		      buttonChoice = Button.waitForAnyPress(); // Record choice (left,right press)
 	
@@ -145,15 +140,12 @@ public class Lab5 {
 		      Thread odoDisplayThread = new Thread(odometryDisplay);
 		      odoDisplayThread.start();
 		      Thread odoCorThread=new Thread(odoCorrection);
-		      odoCorThread.start();
-		      try {
-		    	  odoCorThread.wait();
-		      }catch(InterruptedException e) {
-		    	  //do nothing
-		      }
+		      //odoCorThread.start();
+		      
 		      Navigation navigation=new Navigation(odometer, CONFIG, odoCorThread);
 		      
 		      ///////////////////////////////////////// CHANGE LAB PROCEDURE HERE ///////////////////////////////////////
+		      							navigation.goToPoint(2, 2);
 		      
 									      //Start US localization
 										 

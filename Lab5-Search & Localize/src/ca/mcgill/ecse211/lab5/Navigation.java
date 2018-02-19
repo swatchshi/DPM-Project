@@ -75,9 +75,11 @@ public class Navigation {
 			motor.stop();
 			motor.setAcceleration(2000);
 		}
-		
+		lastX=odo.getX();
+		lastY=odo.getY();
 		travelForward();
-		 
+		
+		
 		while(!interrupt)  {
 			dX=Math.abs(odo.getX()-lastX);
 			dY=Math.abs(odo.getY()-lastY);
@@ -87,7 +89,7 @@ public class Navigation {
 			}
 		}
 		
-		stopMotors();
+		stopMotors(); 
 	}
 	
 	
@@ -126,7 +128,6 @@ public class Navigation {
 	 */
 	public void travelForward() {
 		navigating=true;
-		odoCorrect.notify();  //resume thread
 		Lab5.leftMotor.setSpeed(FORWARD_SPEED);
 		Lab5.rightMotor.setSpeed(FORWARD_SPEED);
 		Lab5.rightMotor.startSynchronization();
@@ -139,7 +140,7 @@ public class Navigation {
 				Lab5.rightMotor.forward();
 				Lab5.leftMotor.forward();
 				break;
-		}
+		} 
 		Lab5.rightMotor.endSynchronization();
 	}
 	
@@ -185,7 +186,6 @@ public class Navigation {
 	 */
 	public void travelBackard() {
 		navigating=true;
-		odoCorrect.notify();  //resume thread
 		Lab5.leftMotor.setSpeed(FORWARD_SPEED);
 		Lab5.rightMotor.setSpeed(FORWARD_SPEED);
 		Lab5.rightMotor.startSynchronization();
@@ -213,11 +213,6 @@ public class Navigation {
 		Lab5.leftMotor.stop(false);
 		Lab5.rightMotor.endSynchronization();
 		navigating=false;
-		try {
-			odoCorrect.wait(); //puts the thread on hold
-		}catch(InterruptedException e) {
-			//do nothing
-		}
 	}
 	
 		
