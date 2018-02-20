@@ -35,8 +35,12 @@ public class Lab5 {
 	      new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
 	  public static final EV3LargeRegulatedMotor rightMotor =
 	      new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
-	 // public static final EV3MediumRegulatedMotor sensorMotor =
-	//	      new EV3MediumRegulatedMotor(LocalEV3.get().getPort("C"));
+	  public static final EV3MediumRegulatedMotor sensorMotor =
+		      new EV3MediumRegulatedMotor(LocalEV3.get().getPort("C"));
+	  public static final EV3MediumRegulatedMotor sensorMotor2 =
+		      new EV3MediumRegulatedMotor(LocalEV3.get().getPort("B"));
+	  
+	  
 	  public static final TextLCD lcd = LocalEV3.get().getTextLCD();
 	  public static final EV3ColorSensor lightSensor=new EV3ColorSensor(LocalEV3.get().getPort("S1"));
 	  public static final SensorModes ultraSSensor=new EV3UltrasonicSensor(LocalEV3.get().getPort("S4"));
