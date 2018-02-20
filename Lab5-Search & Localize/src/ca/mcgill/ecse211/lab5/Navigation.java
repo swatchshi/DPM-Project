@@ -16,8 +16,8 @@ public class Navigation {
 	/**
 	 * Variables for traveling
 	 */
-	private static final int FORWARD_SPEED = 200;
-	private static final int ROTATE_SPEED = 75;
+	private static final int FORWARD_SPEED = 250;
+	private static final int ROTATE_SPEED = 150;
 	private static final int ERROR_DISTANCE = 2;
 	public static final double TILE_SIZE = 30.48;
 	private Odometer odo;
@@ -130,7 +130,6 @@ public class Navigation {
 		navigating=true;
 		Lab5.leftMotor.setSpeed(FORWARD_SPEED);
 		Lab5.rightMotor.setSpeed(FORWARD_SPEED);
-		Lab5.rightMotor.startSynchronization();
 		switch(config) {
 			case PROPULSION:
 				Lab5.rightMotor.backward();
@@ -141,7 +140,6 @@ public class Navigation {
 				Lab5.leftMotor.forward();
 				break;
 		} 
-		Lab5.rightMotor.endSynchronization();
 	}
 	
 	/**
@@ -188,7 +186,6 @@ public class Navigation {
 		navigating=true;
 		Lab5.leftMotor.setSpeed(FORWARD_SPEED);
 		Lab5.rightMotor.setSpeed(FORWARD_SPEED);
-		Lab5.rightMotor.startSynchronization();
 		switch(config) {
 			case TRACTION:
 				Lab5.rightMotor.backward();
@@ -199,7 +196,6 @@ public class Navigation {
 				Lab5.leftMotor.forward();
 				break;
 		}
-		Lab5.rightMotor.endSynchronization();
 	}
 	
 	
@@ -208,10 +204,8 @@ public class Navigation {
 	 * Procedure to stop the motors at once
 	 */
 	public void stopMotors() {
-		Lab5.rightMotor.startSynchronization();
 		Lab5.rightMotor.stop(true);
 		Lab5.leftMotor.stop(false);
-		Lab5.rightMotor.endSynchronization();
 		navigating=false;
 	}
 	
@@ -259,7 +253,6 @@ public class Navigation {
 		navigating=true;
 		Lab5.leftMotor.setSpeed(ROTATE_SPEED);
 	    Lab5.rightMotor.setSpeed(ROTATE_SPEED);
-	    Lab5.rightMotor.startSynchronization();
 	    switch(direction) {
 			case CLOCK_WISE:
 				Lab5.rightMotor.forward();
@@ -270,7 +263,6 @@ public class Navigation {
 				Lab5.leftMotor.forward();
 				break;
 	    }
-	    Lab5.rightMotor.endSynchronization();
 		navigating=false;
 	}
 	
