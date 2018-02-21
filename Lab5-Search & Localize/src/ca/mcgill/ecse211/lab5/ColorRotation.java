@@ -12,50 +12,33 @@ import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
 
+public class ColorRotation {
 
+	private boolean status; // false: top position, true bot position
+	private EV3MediumRegulatedMotor rotateMotor;
 
+	public ColorRotation(EV3MediumRegulatedMotor rotateMotor) {
+		this.rotateMotor = rotateMotor;
 
-public class ColorRotation extends ColorSensor{
-	
-	private boolean status;         //false: top position, true bot position
-	private EV3MediumRegulatedMotor rotateMotor = Lab5.sensorMotor2;
-	
-	
-	rotateMotor.setSpeed(40);
-	
-	
-	
-	public ColorRotation(EV3ColorSensor lightSensor) {
-		super(lightSensor);
 		// TODO Auto-generated constructor stub
 	}
 
-
-
-
-	public void run (){
+	public void run() {
+		rotateMotor.setSpeed(40);
 		status = false;
 		rotate(status);
-		
+
 	}
-	
-	
-	public boolean rotate (boolean status) {
+
+	public boolean rotate(boolean status) {
 		if (status == true) {
 			rotateMotor.rotate(-135, true);
-			status = false; 
-		}
-		else {
+			status = false;
+		} else {
 			rotateMotor.rotate(135, true);
 			status = true;
 		}
 		return status;
 	}
-	
-	
-	
-	
-	}
 
-
-
+}
