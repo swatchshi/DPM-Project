@@ -15,10 +15,10 @@ import lejos.robotics.SampleProvider;
 
 
 
-public class ColorRotation extends ColorSensor implements Runnable {
+public class ColorRotation extends ColorSensor{
 	
 	private boolean status;         //false: top position, true bot position
-	private EV3MediumRegulatedMotor rotateMotor;
+	private EV3MediumRegulatedMotor rotateMotor = Lab5.sensorMotor2;
 	
 	
 	rotateMotor.setSpeed(40);

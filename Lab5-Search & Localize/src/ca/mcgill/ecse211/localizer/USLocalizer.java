@@ -42,12 +42,11 @@ public class USLocalizer{
 	 * @param us UltrasonicSensor used
 	 * @param loc LocalizerType used
 	 */
-	public USLocalizer(Odometer odo, Navigation navigation, UltrasonicSensor us, int corner) {
+	public USLocalizer(Odometer odo, Navigation navigation, UltrasonicSensor us) {
 		this.odo = odo;
 		this.navigation = navigation;
 		this.usSensor = us;
 		filterControl=0;
-		this.corner=corner;
 		this.usLocalizerDone=true;
 		
 		if(usSensor.getDistance()<WALL_THRESHOLD) { //Deciding what localizer should be used
@@ -72,8 +71,18 @@ public class USLocalizer{
 	
 	/**
 	 * Localization method for both falling edge and falling edge
+	 * Considers it is in the corner 0
 	 */
 	public void doLocalization() {
+		doLocalization(0); //do localization like it's in the corner 0
+	}
+	
+	/**
+	 * Localization method for both falling edge and falling edge
+	 * Considers it is in the corner specified
+	 * @param corner (int) the corner where the localization takes place
+	 */
+	public void doLocalization(int corner) {
 		usLocalizerDone=false;
 		if (loc == LocalizerType.FALLING_EDGE) {
 			
@@ -104,11 +113,12 @@ public class USLocalizer{
 		}
 		
 		odo.setTheta(odo.getTheta()-90*corner);
-		//Finally turn to good 0 degrees
+		//Finally turn to absolute 0 degrees
 		navigation.turnTo(0);
 		usLocalizerDone=true;
 	}
-
+	
+	
 	/**
 	 * Turns until the ultrasonic sensor reads distances less or equal than the WALL_THRESHOLD
 	 * 

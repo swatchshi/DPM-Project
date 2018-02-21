@@ -25,29 +25,36 @@ import lejos.robotics.SampleProvider;
  *
  */
 public class Lab5 {
-	public enum RobotConfig{
-		TRACTION,
-		PROPULSION
-	}
+      public enum RobotConfig{
+		  TRACTION,
+		  PROPULSION
+	  }
 	
 	// Motor Objects, and Robot related parameters
 	  public static final EV3LargeRegulatedMotor leftMotor =
 	      new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
 	  public static final EV3LargeRegulatedMotor rightMotor =
 	      new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
+
+
 	  public static final EV3MediumRegulatedMotor sensorMotor =
 		      new EV3MediumRegulatedMotor(LocalEV3.get().getPort("C"));
 	  public static final EV3MediumRegulatedMotor sensorMotor2 =
 		      new EV3MediumRegulatedMotor(LocalEV3.get().getPort("B"));
 	  
-	  
+
+	  public static final EV3MediumRegulatedMotor usSensorMotor =
+	      new EV3MediumRegulatedMotor(LocalEV3.get().getPort("C"));
+	  public static final EV3MediumRegulatedMotor cSensorMotor =
+		      new EV3MediumRegulatedMotor(LocalEV3.get().getPort("B"));
+
 	  public static final TextLCD lcd = LocalEV3.get().getTextLCD();
 	  public static final EV3ColorSensor lightSensor=new EV3ColorSensor(LocalEV3.get().getPort("S1"));
 	  public static final SensorModes ultraSSensor=new EV3UltrasonicSensor(LocalEV3.get().getPort("S4"));
 	  
 	  public static final RobotConfig CONFIG=RobotConfig.PROPULSION;
-	  public static final int X_GRID_LINES=8;
-	  public static final int Y_GRID_LINES=8;
+	  public static final int X_GRID_LINES=7; //doesn't consider the walls
+	  public static final int Y_GRID_LINES=7; //doesn't consider the walls
 	  public static final int LOWER_LEFT=1;
 	  public static final int UPPER_RIGHT=3;
 	  //free space between wheels: 13.7 cm
@@ -56,7 +63,7 @@ public class Lab5 {
 	  public static final double WHEEL_RAD = 2.2;
 	  public static final double TRACK = 16.0;  //adjust from 13.7 to 18.1
 	  
-	public static void main(String[] args) {
+	  public static void main(String[] args) {
 		int buttonChoice;
 	    try {
 		    //US related objects
@@ -68,7 +75,6 @@ public class Lab5 {
 		    UltrasonicSensor ultraSensor=new UltrasonicSensor(ultraSSensor, usData);
 	
 		    // Odometer related objects
-		    rightMotor.synchronizeWith(new EV3LargeRegulatedMotor[] { leftMotor });  //to sync the wheels
 		    Odometer odometer = Odometer.getOdometer(leftMotor, rightMotor, TRACK, WHEEL_RAD, CONFIG); 
 		    OdometerCorrection odoCorrection=new OdometerCorrection(cSensor, odometer);
 		    Display odometryDisplay = new Display(lcd); // No need to change
@@ -149,23 +155,18 @@ public class Lab5 {
 		      Navigation navigation=new Navigation(odometer, CONFIG, odoCorThread);
 		      
 		      ///////////////////////////////////////// CHANGE LAB PROCEDURE HERE ///////////////////////////////////////
-		      							navigation.goToPoint(2, 2);
+		      							
 		      
 									      //Start US localization
 										 
-										  USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor, corner);
+										  USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
 										  usLoc.doLocalization();
 										  
-										  //wait for Button press
-										  if(usLoc.isFinished())
-											  Button.waitForAnyPress();
-										  
-										 
-									   
+									  
 										  //Start Light localization
 										 
-										  LightLocalizer lightLoc=new LightLocalizer(navigation, cSensor, odometer, CONFIG, corner);
-										  lightLoc.doLocalization();
+										  LightLocalizer lightLoc=new LightLocalizer(navigation, cSensor, odometer, CONFIG);
+										  lightLoc.doLocalization(corner);
 										  
 										  //Wait until done
 										  if(lightLoc.isFinished())
@@ -176,6 +177,5 @@ public class Lab5 {
 		  }catch(OdometerExceptions exc) {
 			  //instance error, do nothing
 		  }	  
-	}
-
+	 }
 }
