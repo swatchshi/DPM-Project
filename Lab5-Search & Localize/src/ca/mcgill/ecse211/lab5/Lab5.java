@@ -51,8 +51,8 @@ public class Lab5 {
 	  //free space between wheels: 13.7 cm
 	  //wheel width 2.2 (EACH)
 	  //wheel diameter: 4.4
-	  public static final double WHEEL_RAD = 2.2;
-	  public static final double TRACK = 16.0;  //adjust from 13.7 to 18.1
+	  public static final double WHEEL_RAD = 2.12;
+	  public static final double TRACK = 16.7;  //adjust from 13.7 to 18.1
 	  
 	  public static void main(String[] args) {
 		int buttonChoice;
@@ -147,7 +147,7 @@ public class Lab5 {
 		      
 		      ///////////////////////////////////////// CHANGE LAB PROCEDURE HERE ///////////////////////////////////////
 		      							
-		      
+		   
 									      //Start US localization
 										 
 										  USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
@@ -157,7 +157,7 @@ public class Lab5 {
 										  //Start Light localization
 										 
 										  LightLocalizer lightLoc=new LightLocalizer(navigation, cSensor, odometer, CONFIG);
-										  lightLoc.doLocalization(corner);
+										  lightLoc.doLocalization(corner);										  
 										  
 										  //Wait until done
 										  if(lightLoc.isFinished())

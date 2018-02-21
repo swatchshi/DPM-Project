@@ -48,12 +48,6 @@ public class USLocalizer{
 		this.usSensor = us;
 		filterControl=0;
 		this.usLocalizerDone=true;
-		
-		if(usSensor.getDistance()<WALL_THRESHOLD) { //Deciding what localizer should be used
-			this.loc = LocalizerType.RISING_EDGE;
-		}else {
-			this.loc=LocalizerType.FALLING_EDGE;
-		}
 	}
 	
 	/**
@@ -84,6 +78,8 @@ public class USLocalizer{
 	 */
 	public void doLocalization(int corner) {
 		usLocalizerDone=false;
+		determineLocType();
+		
 		if (loc == LocalizerType.FALLING_EDGE) {
 			
 			turnToNoWall(Navigation.Turn.CLOCK_WISE);
@@ -182,5 +178,16 @@ public class USLocalizer{
 	public void setLocalizerType(LocalizerType loc) {
 		if(!usLocalizerDone)
 			this.loc=loc;
+	}
+	
+	/**
+	 * Determines the localizer type based on the distance seen
+	 */
+	public void determineLocType() {
+		if(usSensor.getDistance()<WALL_THRESHOLD) { //Deciding what localizer should be used
+			this.loc = LocalizerType.RISING_EDGE;
+		}else {
+			this.loc=LocalizerType.FALLING_EDGE;
+		}
 	}
 }

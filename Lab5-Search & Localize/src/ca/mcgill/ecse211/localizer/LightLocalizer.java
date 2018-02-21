@@ -45,77 +45,50 @@ public class LightLocalizer {
 		 * Perform localization
 		 */
 		public void doLocalization(int corner) {
-			double x=0,y=0,dTheta=0, thetaY, thetaX;
-			double[] lineAngles= new double[4];
-			// travel to location
-			// cross a line and stop
 			Sound.beep();
-			navigation.turnTo(45); //points to middle of map
+			navigation.turnTo(45);
 			navigation.travelForward();
 			if(lightSensor.lineCrossed()) { //wait to cross a line
 				navigation.stopMotors();
 			}
+			
 			//travel to "center" the robot on the cross
 			navigation.travel(LIGHT_SENSOR_DISTANCE*Math.cos(Math.PI/4), LIGHT_SENSOR_DISTANCE*Math.cos(Math.PI/4));
-			switch(config) {
-				case PROPULSION:
-					
-					//Read in the angles		
-					for(int lineCounter=0; lineCounter<4; lineCounter++) {
-						
-						navigation.rotate(Navigation.Turn.CLOCK_WISE);//Rotate
-						
-						Delay.msDelay(500); //wait for initialization to make sure not initializing on the line
-						
-						if (lightSensor.lineCrossed()) { //wait to cross a line
-							navigation.stopMotors(); //stop
-							lineAngles[lineCounter] = odo.getTheta(); //positive x[0], negative y[1], negative x[2], positive y [3] --relative to temporary 0 degrees
-						}
-					}
-					
-					thetaY = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[1]),Math.toRadians(lineAngles[3]));
-					x =  LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2) + Navigation.TILE_SIZE;
-						
-					thetaX = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[0]), Math.toRadians(lineAngles[2]));
-					y =  LIGHT_SENSOR_DISTANCE * Math.cos(thetaX / 2) + Navigation.TILE_SIZE;
-					
-				
-					dTheta = Math.toDegrees(thetaY) / 2 + 270 - lineAngles[3]; ////////////////////////////////////////////////////////////COULD BE WRONG HERE
-					break;
-				
-				case TRACTION:
-					//travel back to "center" the robot on the cross
-					navigation.travel(LIGHT_SENSOR_DISTANCE*Math.cos(Math.PI/4), LIGHT_SENSOR_DISTANCE*Math.cos(Math.PI/4));
-					
-					//Read in the angles
-					for(int lineCounter=0; lineCounter<4; lineCounter++) {
-						
-						navigation.rotate(Navigation.Turn.CLOCK_WISE);//Rotate
-						
-						Delay.msDelay(500); //wait for initialization to make sure not initializing on the line
-						
-						if (lightSensor.lineCrossed()) { //wait to cross a line
-							navigation.stopMotors(); //stop
-							lineAngles[lineCounter] = odo.getTheta(); //negative x, positive y, positve x, negative y
-						}
-					}
-					
-				
-					thetaY = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[0]),Math.toRadians(lineAngles[2]));
-					x = - LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2) + Navigation.TILE_SIZE;
-						
-					thetaX = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[1]), Math.toRadians(lineAngles[3]));
-					y = - LIGHT_SENSOR_DISTANCE * Math.cos(thetaX / 2) + Navigation.TILE_SIZE;
-					
-					
-					dTheta = Math.toDegrees(thetaY) / 2 + 270 - lineAngles[3]; ////////////////////////////////////////////////////////////COULD BE WRONG HERE
-					break;
-			}
-			odo.setXYT(x, y, odo.getTheta() + dTheta);
-			Sound.beep();
-			navigation.goToPoint(1, 1);  //does localizer like it's in the corner 0
-			navigation.turnTo(0); //turns to temporary 0
 			
+			
+			
+			//Read in the angles
+			double[] lineAngles = new double[4];
+			
+			for(int lineCounter=0; lineCounter<4; lineCounter++) {
+				
+				navigation.rotate(Navigation.Turn.CLOCK_WISE);//Rotate
+				
+				Delay.msDelay(500); //wait for initialization to make sure not initializing on the line
+				
+				if (lightSensor.lineCrossed()) { //wait to cross a line
+					navigation.stopMotors(); //stop
+					lineAngles[lineCounter] = odo.getTheta(); //positive x, negative y, negative x, positive y
+				}
+			}
+			
+			//Angle and position calculation
+			double thetaY = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[1]),Math.toRadians(lineAngles[3]));
+			double x = LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2)+Navigation.TILE_SIZE;
+			
+			double ThetaX = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[0]), Math.toRadians(lineAngles[2]));
+			double y = LIGHT_SENSOR_DISTANCE * Math.cos(ThetaX / 2)+Navigation.TILE_SIZE;
+			
+			double dTheta = Math.toDegrees(thetaY) / 2 + 270 - lineAngles[3];
+			
+			odo.setXYT(x, y, odo.getTheta() + dTheta);
+			
+			//Finally go to origin
+			navigation.goToPoint(1, 1);
+			navigation.turnTo(0);
+			
+			Delay.msDelay(30);
+		
 			switch(corner) {
 				//true position calculation
 				case 3:

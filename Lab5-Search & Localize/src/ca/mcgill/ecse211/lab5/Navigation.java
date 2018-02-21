@@ -16,9 +16,8 @@ public class Navigation {
 	/**
 	 * Variables for traveling
 	 */
-	private static final int FORWARD_SPEED = 250;
-	private static final int ROTATE_SPEED = 150;
-	private static final int ERROR_DISTANCE = 2;
+	private static final int FORWARD_SPEED = 200;
+	private static final int ROTATE_SPEED = 100;
 	public static final double TILE_SIZE = 30.48;
 	private Odometer odo;
 	private double lastX;
@@ -48,6 +47,10 @@ public class Navigation {
 		this.config=config;
 		this.odoCorrect=odoCor;
 		nav=this;
+		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {Lab5.leftMotor, Lab5.rightMotor}) {
+			motor.stop();
+			motor.setAcceleration(2000);
+		}
 	}
 	
 	/**
@@ -71,10 +74,7 @@ public class Navigation {
 	public void travel(double dX, double dY) {
 		double travelDistance=Math.sqrt(dX*dX+dY*dY);
 
-		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {Lab5.leftMotor, Lab5.rightMotor}) {
-			motor.stop();
-			motor.setAcceleration(2000);
-		}
+		
 		lastX=odo.getX();
 		lastY=odo.getY();
 		travelForward();
@@ -83,8 +83,7 @@ public class Navigation {
 		while(!interrupt)  {
 			dX=Math.abs(odo.getX()-lastX);
 			dY=Math.abs(odo.getY()-lastY);
-			if(dX*dX+dY*dY >= travelDistance*travelDistance
-					+ ERROR_DISTANCE*ERROR_DISTANCE*Math.abs(Math.sin(2*odo.getTheta()))) { //reached goal coordinates
+			if(dX*dX+dY*dY >= travelDistance*travelDistance) { //reached goal coordinates
 				break;
 			}
 		}
@@ -151,10 +150,6 @@ public class Navigation {
 	public void backUpTo(double x, double y) {
 		double travelDistance=0;
 		
-		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {Lab5.leftMotor, Lab5.rightMotor}) {
-			motor.stop();
-			motor.setAcceleration(2000);
-		}
 		lastX=odo.getX();
 		lastY=odo.getY();
 		double dX= x-lastX;
@@ -169,8 +164,7 @@ public class Navigation {
 		while(!interrupt)  {
 			dX= odo.getX()-lastX;
 			dY= odo.getY()-lastY;
-			if(dX*dX+dY*dY >= travelDistance*travelDistance
-					+ ERROR_DISTANCE*ERROR_DISTANCE*Math.abs(Math.sin(2*odo.getTheta()))) { //reached goal coordinates
+			if(dX*dX+dY*dY >= travelDistance*travelDistance) { //reached goal coordinates
 				break;
 			}
 		}
