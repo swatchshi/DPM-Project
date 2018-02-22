@@ -16,8 +16,8 @@ public class Navigation {
 	/**
 	 * Variables for traveling
 	 */
-	private static final int FORWARD_SPEED = 200;
-	private static final int ROTATE_SPEED = 100;
+	private static final int FORWARD_SPEED = 250;
+	private static final int ROTATE_SPEED = 150;
 	public static final double TILE_SIZE = 30.48;
 	private Odometer odo;
 	private double lastX;

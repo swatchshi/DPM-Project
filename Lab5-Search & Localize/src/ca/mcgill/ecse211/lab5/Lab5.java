@@ -19,7 +19,7 @@ import lejos.robotics.SampleProvider;
 
 
 /**
- * Main class of the Localizer Lab
+ * Main class of the Localizer Labs
  * @author Xavier Pellemans 260775554
  * @author Thomas Bahen 260675971
  *
@@ -52,7 +52,7 @@ public class Lab5 {
 	  //wheel width 2.2 (EACH)
 	  //wheel diameter: 4.4
 	  public static final double WHEEL_RAD = 2.12;
-	  public static final double TRACK = 16.7;  //adjust from 13.7 to 18.1
+	  public static final double TRACK = 16.0;  //adjust from 13.7 to 18.1
 	  
 	  public static void main(String[] args) {
 		int buttonChoice;

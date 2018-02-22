@@ -16,7 +16,7 @@ public class LightLocalizer {
 		/**
 		 * Variable for light localization
 		 */
-		private static final double LIGHT_SENSOR_DISTANCE = 6; //from 4 to 8
+		private static final double LIGHT_SENSOR_DISTANCE = 4; //from 4 to 8
 		private final Navigation navigation;
 		private final ColorSensor lightSensor;
 		private final Odometer odo;
@@ -79,7 +79,7 @@ public class LightLocalizer {
 			double ThetaX = USLocalizer.getDiffAngle(Math.toRadians(lineAngles[0]), Math.toRadians(lineAngles[2]));
 			double y = LIGHT_SENSOR_DISTANCE * Math.cos(ThetaX / 2)+Navigation.TILE_SIZE;
 			
-			double dTheta = Math.toDegrees(thetaY) / 2 + 270 - lineAngles[3];
+			double dTheta = Math.toDegrees(thetaY) / 2 + 280 - lineAngles[3]; //was always off by 5 degrees when adding 270 degrees
 			
 			odo.setXYT(x, y, odo.getTheta() + dTheta);
 			
