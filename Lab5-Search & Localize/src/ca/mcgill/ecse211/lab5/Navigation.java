@@ -57,9 +57,13 @@ public class Navigation {
 	   * This method is meant to ensure only one instance of the Navigator is used throughout the code.
 	   * 
 	   * @return new or existing Navigation Object
-	   * @throws OdometerExceptions
+	   * @throws OdometerExceptions when no Navigation instance is found
 	   */
 	public synchronized static Navigation getNavigation() throws OdometerExceptions {	
+
+	    if (nav == null) {
+	      throw new OdometerExceptions("No previous Odometer exits.");
+	    }
 	   // Return existing object
 	    return nav;
 	}
@@ -152,6 +156,7 @@ public class Navigation {
 		
 		lastX=odo.getX();
 		lastY=odo.getY();
+		
 		double dX= x-lastX;
 		double dY= y-lastY;
 	     

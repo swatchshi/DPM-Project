@@ -88,6 +88,7 @@ public class Odometer extends OdometerData implements Runnable {
 	   * odometer object has been created
 	   * 
 	   * @return error if no previous odometer exists
+	   * @throws OdometerException when no Odometer instance is found
 	   */
 	  public synchronized static Odometer getOdometer() throws OdometerExceptions {
 	
