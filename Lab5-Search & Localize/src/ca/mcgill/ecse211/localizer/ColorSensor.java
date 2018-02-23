@@ -21,30 +21,30 @@ public class ColorSensor {
 	private static final long PING_PERIOD = 5;
 	private float[] baseSample;
 	private static final int COLOR_FILTER=4;
-	private final static double RED_R_MEEN=0.12396416;
-	private final static double RED_G_MEEN=0.02064270;
-	private final static double RED_B_MEEN=0.01372543;
+	private final static double RED_R_MEAN=0.12396416;
+	private final static double RED_G_MEAN=0.02064270;
+	private final static double RED_B_MEAN=0.01372543;
 	private final static double RED_R_STD=0.050752937;
 	private final static double RED_G_STD=0.007693734;
 	private final static double RED_B_STD=0.005220381;
 	
-	private final static double YELLOW_R_MEEN=0.215953659;
-	private final static double YELLOW_G_MEEN=0.12932264;
-	private final static double YELLOW_B_MEEN=0.022103387;
+	private final static double YELLOW_R_MEAN=0.215953659;
+	private final static double YELLOW_G_MEAN=0.12932264;
+	private final static double YELLOW_B_MEAN=0.022103387;
 	private final static double YELLOW_R_STD=0.089106906;
 	private final static double YELLOW_G_STD=0.060347026;
 	private final static double YELLOW_B_STD=0.009508931;
 	
-	private final static double WHITE_R_MEEN=0.18946119;
-	private final static double WHITE_G_MEEN=0.18917648;
-	private final static double WHITE_B_MEEN=0.12824939;
+	private final static double WHITE_R_MEAN=0.18946119;
+	private final static double WHITE_G_MEAN=0.18917648;
+	private final static double WHITE_B_MEAN=0.12824939;
 	private final static double WHITE_R_STD=0.095847914;
 	private final static double WHITE_G_STD=0.089227586;
 	private final static double WHITE_B_STD=0.056484251;
 	
-	private final static double BLUE_R_MEEN=0.02340686;
-	private final static double BLUE_G_MEEN=0.04534314;
-	private final static double BLUE_B_MEEN=0.05202206;
+	private final static double BLUE_R_MEAN=0.02340686;
+	private final static double BLUE_G_MEAN=0.04534314;
+	private final static double BLUE_B_MEAN=0.05202206;
 	private final static double BLUE_R_STD=0.018837398;
 	private final static double BLUE_G_STD=0.016473312;
 	private final static double BLUE_B_STD=0.016708785;
@@ -104,6 +104,7 @@ public class ColorSensor {
 			    }
 			}
 	    }
+	    
 	    return lineSeen;   
 	}
 	
@@ -139,13 +140,13 @@ public class ColorSensor {
 	 */
 	private BlockColor gaussianMehtod(double r, double g, double b) {
 		
-		if(Math.abs(r-RED_R_MEEN)<=2*RED_R_STD && Math.abs(g-RED_G_MEEN)<=2*RED_G_STD && Math.abs(b-RED_B_MEEN)<=2*RED_B_STD)
+		if(Math.abs(r-RED_R_MEAN)<=2*RED_R_STD && Math.abs(g-RED_G_MEAN)<=2*RED_G_STD && Math.abs(b-RED_B_MEAN)<=2*RED_B_STD)
 			return BlockColor.RED;
-		else if(Math.abs(r-YELLOW_R_MEEN)<=2*YELLOW_R_STD && Math.abs(g-YELLOW_G_MEEN)<=2*YELLOW_G_STD && Math.abs(b-YELLOW_B_MEEN)<=2*YELLOW_B_STD)
+		else if(Math.abs(r-YELLOW_R_MEAN)<=2*YELLOW_R_STD && Math.abs(g-YELLOW_G_MEAN)<=2*YELLOW_G_STD && Math.abs(b-YELLOW_B_MEAN)<=2*YELLOW_B_STD)
 			return BlockColor.YELLOW;
-		else if(Math.abs(r-BLUE_R_MEEN)<=2*BLUE_R_STD && Math.abs(g-BLUE_G_MEEN)<=2*BLUE_G_STD && Math.abs(b-BLUE_B_MEEN)<=2*BLUE_B_STD)
+		else if(Math.abs(r-BLUE_R_MEAN)<=2*BLUE_R_STD && Math.abs(g-BLUE_G_MEAN)<=2*BLUE_G_STD && Math.abs(b-BLUE_B_MEAN)<=2*BLUE_B_STD)
 			return BlockColor.BLUE;
-		else if(Math.abs(r-WHITE_R_MEEN)<=2*WHITE_R_STD && Math.abs(g-WHITE_G_MEEN)<=2*WHITE_G_STD && Math.abs(b-WHITE_B_MEEN)<=2*WHITE_B_STD)
+		else if(Math.abs(r-WHITE_R_MEAN)<=2*WHITE_R_STD && Math.abs(g-WHITE_G_MEAN)<=2*WHITE_G_STD && Math.abs(b-WHITE_B_MEAN)<=2*WHITE_B_STD)
 			return BlockColor.WHITE;
 		else {
 			return BlockColor.NoColorFound;

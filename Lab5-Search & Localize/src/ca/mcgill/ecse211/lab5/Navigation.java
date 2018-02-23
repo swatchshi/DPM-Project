@@ -76,13 +76,19 @@ public class Navigation {
 	 * @param dY absolute displacement in cm
 	 */
 	public void travel(double dX, double dY) {
-		double travelDistance=Math.sqrt(dX*dX+dY*dY);
-
-		
+		travel(Math.sqrt(dX*dX+dY*dY));
+	}
+	
+	/**
+	 * Travels a certain amount of cm (with distance) 
+	 * 
+	 * @param travelDistance absolute displacement in cm
+	 */
+	public void travel(double travelDistance) {
+		double dX,dY;
 		lastX=odo.getX();
 		lastY=odo.getY();
 		travelForward();
-		
 		
 		while(!interrupt)  {
 			dX=Math.abs(odo.getX()-lastX);
@@ -164,7 +170,7 @@ public class Navigation {
 		travelDistance=Math.sqrt(dX*dX+dY*dY);
 	     
 		
-		travelBackard();
+		travelBackward();
 				 
 		while(!interrupt)  {
 			dX= odo.getX()-lastX;
@@ -177,11 +183,32 @@ public class Navigation {
 		stopMotors();
 	} 
 	
+	/**
+	 * Backs up a certain amount of cm (with distance) 
+	 * 
+	 * @param travelDistance absolute displacement in cm
+	 */
+	public void backUp(double travelDistance) {
+		double dX,dY;
+		lastX=odo.getX();
+		lastY=odo.getY();
+		travelBackward();
+		
+		while(!interrupt)  {
+			dX=Math.abs(odo.getX()-lastX);
+			dY=Math.abs(odo.getY()-lastY);
+			if(dX*dX+dY*dY >= travelDistance*travelDistance) { //reached goal coordinates
+				break;
+			}
+		}
+		stopMotors(); 
+	}
+	
 	
 	/**
 	 * Travels non stop backward
 	 */
-	public void travelBackard() {
+	public void travelBackward() {
 		navigating=true;
 		Lab5.leftMotor.setSpeed(FORWARD_SPEED);
 		Lab5.rightMotor.setSpeed(FORWARD_SPEED);

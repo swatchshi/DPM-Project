@@ -21,12 +21,17 @@ import lejos.robotics.SampleProvider;
 public class FlagFinding {
 	
 	
-	private static final int armRotationAmplitude=90;
-	private static final int usRotationAmplitude=90;
-	private boolean dirUlt=false;  // direction facing of the ultsensor, true = left, false = forward
-	private boolean armDown=false;
-	
-	private EV3MediumRegulatedMotor rotateUltMotor = Lab5.sensorMotor;
+	private static final int ARM_ROTATION_AMPLITUDE=90;
+	private static final int US_ROTATION_AMPLITUDE=90;
+	private static final int COLLISION_DISTANCE=10;
+	private static final int SUCCESSFUL_BEEPING=3;
+	private static final int FAILURE_BEEPING=6;
+	private static final int BLOCK_WIDTH = 10;
+	private double LLx,LLy,URx,URy;
+	private double xRange, yRange;
+	private boolean isBlockNear = false;
+	private boolean armDown=true;
+	private boolean headTurned=false;
 	private ColorSensor colorSensor;
 	private UltrasonicSensor usSensor;
 	private Navigation navigation;
@@ -35,44 +40,69 @@ public class FlagFinding {
 	private boolean flagFound;
 	
 	public static enum Side{
-		SIDE1,
-		SIDE2,
-		SIDE3,
-		SIDE4
+		BOTTOM,
+		RIGHT,
+		TOP,
+		LEFT
 		
 	}
 	
-	public FlagFinding(ColorSensor colorSensor, UltrasonicSensor usSensor, ColorSensor.BlockColor blockWanted) throws OdometerExceptions {
+	/**
+	 * Constructor of the FlagFinding class
+	 * @param colorSensor ColorSensor used
+	 * @param usSensor UltrasonicSensor used
+	 * @param blockWanted ColorSensor.BlockColor of the block wanted
+	 * @param LLx (int) X of the lower left corner of the search zone
+	 * @param LLy (int) Y of the lower left corner of the search zone
+	 * @param URx (int) X of the lower left corner of the search zone
+	 * @param URy (int) Y of the lower left corner of the search zone
+	 * @throws OdometerExceptions Throws an OdometerExceptions error back to the main if error in instances
+	 */
+	public FlagFinding(ColorSensor colorSensor, UltrasonicSensor usSensor, ColorSensor.BlockColor blockWanted, int LLx, int LLy, int URx, int URy) throws OdometerExceptions {
 		this.colorSensor=colorSensor;
 		this.usSensor=usSensor;
 		this.navigation=Navigation.getNavigation();
 		this.odo=Odometer.getOdometer();
 		this.blockWanted=blockWanted;
+		this.LLx=LLx*Navigation.TILE_SIZE;
+		this.LLy=LLy*Navigation.TILE_SIZE;
+		this.URx=URx*Navigation.TILE_SIZE;
+		this.URy=URy*Navigation.TILE_SIZE;
+		this.xRange=Math.abs(URx-LLx)*Navigation.TILE_SIZE;
+		this.yRange=Math.abs(URy-LLy)*Navigation.TILE_SIZE;
 	}
 	
 	
-	
-	public boolean rotateUltsenor (boolean dirUlt) {
+	/**
+	 * Method to turn the ultrasonic sensor to the left
+	 * @param usSensorTurned true if the ultrasonic sensor should turn to face left
+	 * @return true if the ultrasonic sensor faces left
+	 */
+	public boolean rotateUltrasonicSensor (boolean usSensorTurn) {
 		
-		if (dirUlt) { //
-			rotateUltMotor.rotate(-usRotationAmplitude, true);
-			dirUlt = true;
+		if (usSensorTurn && !headTurned) { //
+			Lab5.usSensorMotor.rotate(US_ROTATION_AMPLITUDE, true);
+			headTurned = true;
 		}
-		else  {
-			rotateUltMotor.rotate(usRotationAmplitude, true);
-			dirUlt = false;
+		else if(!usSensorTurn&& headTurned) {
+			Lab5.usSensorMotor.rotate(-US_ROTATION_AMPLITUDE, true);
+			headTurned = false;
 		}
-		return dirUlt;
+		return headTurned;
 	}
 	
-	
-	public boolean putArmDown(boolean armDown) {	
-		if (armDown) { //
-			rotateUltMotor.rotate(-armRotationAmplitude, true);
+	/**
+	 * Method to raise and lower the arm with the color sensor
+	 * @param putDown true if the arm should be down
+	 * @return true if the arm is down
+	 */
+	public boolean putArmDown(boolean putDown) {	
+		if (putDown && !armDown) { //put arm down and arm is not down yet
+			Lab5.armSensorMotor.rotate(ARM_ROTATION_AMPLITUDE, true);
 			armDown = true;
 		}
-		else  {
-			rotateUltMotor.rotate(armRotationAmplitude, true);
+		else  if(!putDown && armDown){ //put arm up and arm is not up yet
+			Lab5.armSensorMotor.rotate(-ARM_ROTATION_AMPLITUDE, true);
 			armDown = false;
 		}
 		return armDown;
@@ -83,166 +113,292 @@ public class FlagFinding {
 	 /**
 	  * Looks for the wanted block by sweeping the search area using the ultrasonicsensor 
 	  * and performing color detection using the light sensor
-	  * 
-	  * @param
+	  * Makes the robot circle the search area in a counter clockwise motion
+	  * @return true if the block was found
 	  */
-	 public void sweep() {			
-		int tempDistance = usSensor.getDistance();
-		double y = odo.getY();
+	 public boolean findBlock() {			
+		Sound.beep();
+		travelToLowerLeft();
+		Sound.beep();
 		int i = 0;
 
 		while (i < Side.values().length){ //if the robot has not detected 4 blocks on one side
 			
 			Side sideTest=Side.values()[i];
-		
+			
 			switch (sideTest){
 				
-				case SIDE1 : //x-axis
-					navigation.goToPoint(7, 3);
-					if (tempDistance <120){ //if the robot detects an object
-						// if do boolean block detection == true
-						navigation.stopMotors();
-						//rotate sensor 90 degrees facing front
-						navigation.turn(-90);
-						navigation.travelForward();
+				case BOTTOM : //x-axis
+					navigation.turnTo(90);
+					if (turnToCheck(yRange+Lab5.TRACK)){ 
 						
-						if (tempDistance < 10){ //when it comes close enough to the block to do colorID
-							navigation.stopMotors();
-							////////////arm down
-							
-							if (isColorCondition() == true){ //if the color detected is the one we are seeking
-								//////////////////arm up
-								navigation.backUpTo(0, -y);
-								navigation.turn(90);
-								///////////////////rotate sensor 90 degrees facing blocks
-								navigation.travelTo(7, 3);
-								navigation.turn(-90);
-								navigation.travelTo(7, 7);
-								i++;
-								
-							} else {
-								//arm up
-								//rotate sensor 90 degrees facing blocks
-								navigation.backUpTo(0, -y);
-								navigation.goToPoint(3, 3);
-							}
-							
-						}
-					
-					}
-					
-				case SIDE2: //y-axis
-					navigation.goToPoint(7, 7);
-					if (tempDistance <120){
-						// if do boolean block detection == true
-						navigation.stopMotors();
+						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
-						navigation.turn(-90);
-						navigation.travelForward();
+						navigation.turnTo(0);
+						navigation.travelForward(); //travel indefinitely
 						
-						if (tempDistance < 10){
-							navigation.stopMotors();
-							//arm down
-							
-							if (isColorCondition() == true){
-								//arm up
-								navigation.backUpTo(0, -y);
-								navigation.turn(90);
-								//rotate sensor 90 degrees facing blocks
-								navigation.travelTo(7, 7);		
-								i++;
-								
-							} else {
-								//arm up
-								//rotate sensor 90 degrees facing blocks
-								navigation.backUpTo(0, -y);
-								navigation.goToPoint(7, 7);
-							}
-							
+						while (usSensor.getDistance() < COLLISION_DISTANCE){ 
+							//when it comes close enough to the block to do colorID
 						}
-					
+						navigation.stopMotors(); //stop robot
+						
+						if(isDesiredBlock()) { //checks if it is of the right color
+							beepSequence(SUCCESSFUL_BEEPING); //plays the success sequence
+							
+							//go to UR corner of search zone
+							navigation.backUp(odo.getY()-LLy-Lab5.TRACK);
+							
+							rotateUltrasonicSensor(false);
+							travelToUpperRight();
+							return true; //return that you found the block
+						} else {
+							//continue searching
+							navigation.backUp(odo.getY()-LLy-Lab5.TRACK);
+							navigation.turnTo(90);
+						}
 					}
-				
-				case SIDE3: //x-axis on the top
-					navigation.goToPoint(3, 7);
-					if (tempDistance <120){
-						// if do boolean block detection == true
-						navigation.stopMotors();
+					if(odo.getX()>=URx+Lab5.TRACK) { //end of BOTTOM side
+						i++; //next side
+					}
+					break;
+				case RIGHT: //y-axis
+					navigation.turnTo(0);
+					if (turnToCheck(xRange+Lab5.TRACK)){ 
+						
+						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
-						navigation.turn(-90);
-						navigation.travelForward();
+						navigation.turnTo(270);
+						navigation.travelForward(); //travel indefinitely to go see block
 						
-						if (tempDistance < 10){
-							navigation.stopMotors();
-							//arm down
-							
-							if (isColorCondition() == true){
-								//arm up
-								navigation.backUpTo(0, y);
-								navigation.turn(-90);
-								//rotate sensor 90 degrees facing blocks
-								navigation.travelTo(7, 7);
-								i++;
-								
-							} else {
-								//arm up
-								//rotate sensor 90 degrees facing blocks
-								navigation.backUpTo(0, y);
-								navigation.goToPoint(3, 7);
-							}
+						while (usSensor.getDistance() < COLLISION_DISTANCE){ 
+							//when it comes close enough to the block to do colorID
 						}
-					
+						navigation.stopMotors(); //stop robot
+						
+						if(isDesiredBlock()) { //checks if it is of the right color
+							beepSequence(SUCCESSFUL_BEEPING); //plays the success sequence
+							
+							//go to UR corner of search zone
+							navigation.backUp(URx+Lab5.TRACK-odo.getX());
+							
+							rotateUltrasonicSensor(false);
+							travelToUpperRight();
+							return true; //return that you found the block
+							
+						} else {
+							//continue searching
+							navigation.backUp(URx+Lab5.TRACK-odo.getX());
+							navigation.turnTo(0);
+						}
 					}
-					
-				case SIDE4 : //y-axis back to starting point
-					navigation.goToPoint(3, 3);
-					if (tempDistance <120){
-						// if do boolean block detection == true
-						navigation.stopMotors();
+					if(odo.getY()>=URy+Lab5.TRACK) { //end of RIGHT side
+						i++; //next side
+					}
+					break;
+				case TOP: //x-axis on the top
+					navigation.turnTo(270);
+					if (turnToCheck(yRange+Lab5.TRACK)){ 
+						
+						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
-						navigation.turn(-90);
-						navigation.travelForward();
+						navigation.turnTo(180);
+						navigation.travelForward(); //travel indefinitely
 						
-						if (tempDistance < 10){
-							navigation.stopMotors();
-							//arm down
-							
-							if (isColorCondition()){
-								//arm up
-								navigation.backUpTo(0, y);
-								navigation.turn(-90);
-								//rotate sensor 90 degrees facing blocks
-								navigation.travelTo(3, 7);
-								navigation.turn(90);
-								navigation.travelTo(7, 7);
-								i++;
-								
-							} else {
-								//arm up
-								//rotate sensor 90 degrees facing blocks
-								navigation.backUpTo(0, y);
-								navigation.goToPoint(3, 3);
-							}
+						while (usSensor.getDistance() < COLLISION_DISTANCE){ 
+							//when it comes close enough to the block to do colorID
 						}
-					
+						navigation.stopMotors(); //stop robot
+						
+						if(isDesiredBlock()) { //checks if it is of the right color
+							beepSequence(SUCCESSFUL_BEEPING); //plays the success sequence
+							
+							//go to UR corner of search zone
+							navigation.backUp(LLy+Lab5.TRACK-odo.getY());
+							
+							rotateUltrasonicSensor(false);
+							travelToUpperRight();
+							return true; //return that you found the block
+							
+						} else {
+							//continue searching
+							navigation.backUp(LLy+Lab5.TRACK-odo.getY());
+							navigation.turnTo(270);
+						}
 					}
-
-				}
+					if(odo.getX()<=LLx-Lab5.TRACK) { //end of TOP side
+						i++; //next side
+					}
+					break;
+				case LEFT : //y-axis back to starting point
+					navigation.turnTo(180);
+					if (turnToCheck(xRange+Lab5.TRACK)){ 
+						
+						navigation.stopMotors(); //make sure the robot is stopped
+						//rotate sensor 90 degrees facing front
+						navigation.turnTo(90);
+						navigation.travelForward(); //travel indefinitely
+						
+						while (usSensor.getDistance() < COLLISION_DISTANCE){ 
+							//when it comes close enough to the block to do colorID
+						}
+						navigation.stopMotors(); //stop robot
+						
+						if(isDesiredBlock()) { //checks if it is of the right color
+							beepSequence(SUCCESSFUL_BEEPING); //plays the success sequence
+							
+							//go to UR corner of search zone
+							navigation.backUp(odo.getX()-LLx-Lab5.TRACK);
+							
+							rotateUltrasonicSensor(false);
+							travelToUpperRight();
+							return true; //return that you found the block
+							
+						} else {
+							//continue searching
+							navigation.backUp(odo.getX()-LLx-Lab5.TRACK);
+							navigation.turnTo(180);
+						}
+					}
+					if(odo.getY()<=LLy-Lab5.TRACK) { //end of LEFT side
+						i++; //next side
+					}
+					break;
+			}
 		}
-			
-			
+		
+		beepSequence(FAILURE_BEEPING);
+		return false;
 	}
 		
 
-	public boolean isColorCondition() {
-		
+	 /**
+	  * Gets if it is the flag is of the desired color
+	  * @return (boolean) true if the block color is of the desired color
+	  */
+	public boolean isDesiredBlock() {
+		putArmDown(true);
 		if (colorSensor.getColorSeen() == blockWanted){
 				Sound.beep();
 				flagFound = true;	
 		}
+		putArmDown(false);
 		return flagFound;
 	}
+	
+	/**
+	 * check whether there is block 
+	 */
+	public boolean turnToCheck(double range) {
+
+		boolean blockNear=true;
+		double distanceFirstBlock=usSensor.getDistance();
+		if (distanceFirstBlock <= range) {
+
+			Sound.beepSequenceUp();
+			// the block was seen
+			
+			// move 1.5 block ahead forward
+			navigation.travel(1.5*BLOCK_WIDTH);
+
+			//checks if there is a block ahead which would be hit
+			if (usSensor.getDistance() <= distanceFirstBlock) {
+				blockNear = true; //block will be hit
+			} else {				
+				blockNear = false; //no block to be hit
+			}
+		}
+		return (!blockNear); //tells if can go check colored block seen
+	}
+	
+	/**
+	 * Makes the EV3 beep a certain amount of beeps
+	 * @param numberBeeps number of beeps wanted
+	 */
+	public void beepSequence(int numberBeeps) {
+		for(int j=0; j<numberBeeps;j++) {
+			Sound.beep();
+		}
+	}
+	
+	/**
+	 * Makes the robot travel to the lower left corner of the search zone
+	 * @return true if it has reached the lower left corner
+	 */
+	public boolean travelToLowerLeft() {
+		Side side;
+		if(odo.getX()<=LLx) {
+			side=Side.LEFT;
+		}else if(odo.getX()<=URx) {
+			if(odo.getY()<=LLy) {
+				side=Side.BOTTOM;
+			}else if(odo.getY()>=URy){
+				side=Side.TOP;
+			}else{
+				//center of search zone
+				navigation.goToPoint(LLx, LLy);
+				return true;
+			}
+		}else {
+			side=Side.RIGHT;
+		}
+		
+		switch(side) {
+			case LEFT:
+				navigation.goToPoint(LLx, LLy);break;
+			case BOTTOM:
+				navigation.goToPoint(LLx, LLy);break;
+			case RIGHT:
+				navigation.goToPoint(URx+Lab5.TRACK, LLy-Lab5.TRACK);
+				navigation.goToPoint(LLx, LLy);
+				break;
+			case TOP:
+				navigation.goToPoint(LLx-Lab5.TRACK, URy+Lab5.TRACK);
+				navigation.goToPoint(LLx, LLy);
+				break;
+		}
+		return true;
+	}
+	
+	/**
+	 * Makes the robot travel to the upper right corner of the search zone
+	 * @return true if it has reached the upper right corner
+	 */
+	public boolean travelToUpperRight() {
+		Side side;
+		if(odo.getX()<=LLx) {
+			side=Side.LEFT;
+		}else if(odo.getX()<=URx) {
+			if(odo.getY()<=LLy) {
+				side=Side.BOTTOM;
+			}else if(odo.getY()>=URy){
+				side=Side.TOP;
+			}else{
+				//center of search zone
+				navigation.goToPoint(URx, URy);
+				return true;
+			}
+		}else {
+			side=Side.RIGHT;
+		}
+		
+		switch(side) {
+			case LEFT:
+				navigation.goToPoint(LLx-Lab5.TRACK, URy+Lab5.TRACK);
+				navigation.goToPoint(URx, URy);
+				
+				break;
+			case BOTTOM:
+				navigation.goToPoint(URx+Lab5.TRACK, LLy-Lab5.TRACK);
+				navigation.goToPoint(URx, URy);
+				break;
+			case RIGHT:
+				navigation.goToPoint(URx, URy);
+				break;
+			case TOP:
+				navigation.goToPoint(URx, URy);
+				break;
+		}
+		return true;
+	}
 }
-
-
 
