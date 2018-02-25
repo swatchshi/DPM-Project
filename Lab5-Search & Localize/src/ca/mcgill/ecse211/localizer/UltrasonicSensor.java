@@ -36,14 +36,16 @@ public class UltrasonicSensor {
 	 * @return the normalized distance seen (as an integer)
 	 */
 	public  int getDistance() {
-		int total=0;
+		int trueDistance =0;
 		for(int i=0;i<SAMPLE_SIZE;i++) {
 			us.fetchSample(usData, 0); // acquire data
-			total+=(int) (usData[0] * 100.0);// extract from buffer, cast to int and add to total
+			trueDistance=(int) (usData[0] * 100.0);// extract from buffer, cast to int and add to total
+			
+			
 			Delay.msDelay(30);
 		}
 		
-	    distance = (int) (total/SAMPLE_SIZE); //normalize
+	    distance = trueDistance; //normalize
 		return distance; 
 	}
 }

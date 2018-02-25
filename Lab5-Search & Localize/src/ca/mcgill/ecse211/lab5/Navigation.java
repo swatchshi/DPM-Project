@@ -75,8 +75,9 @@ public class Navigation {
 	 * @param dX absolute displacement in cm
 	 * @param dY absolute displacement in cm
 	 */
-	public void travel(double dX, double dY) {
-		travel(Math.sqrt(dX*dX+dY*dY));
+	public void travel(double totalX, double totalY) {
+		travel(Math.sqrt(totalX*totalX+totalY*totalY));
+	
 	}
 	
 	/**
@@ -111,6 +112,7 @@ public class Navigation {
 	 */
 	public void goToPoint(double x, double y) {
 		travelTo(x*TILE_SIZE, y*TILE_SIZE);
+		stopMotors();
 	}
 	
 	

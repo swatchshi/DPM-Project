@@ -121,7 +121,7 @@ public class FlagFinding {
 		travelToLowerLeft();
 		Sound.beep();
 		int i = 0;
-
+		rotateUltrasonicSensor(true);
 		while (i < Side.values().length){ //if the robot has not detected 4 blocks on one side
 			
 			Side sideTest=Side.values()[i];
@@ -130,7 +130,7 @@ public class FlagFinding {
 				
 				case BOTTOM : //x-axis
 					navigation.turnTo(90);
-					if (turnToCheck(yRange+Lab5.TRACK)){ 
+					if (turnToCheck(yRange+Lab5.TRACK, URx+Lab5.TRACK-odo.getX())){ 
 						
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
@@ -163,7 +163,7 @@ public class FlagFinding {
 					break;
 				case RIGHT: //y-axis
 					navigation.turnTo(0);
-					if (turnToCheck(xRange+Lab5.TRACK)){ 
+					if (turnToCheck(xRange+Lab5.TRACK, URy+Lab5.TRACK - odo.getY())){ 
 						
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
@@ -197,7 +197,7 @@ public class FlagFinding {
 					break;
 				case TOP: //x-axis on the top
 					navigation.turnTo(270);
-					if (turnToCheck(yRange+Lab5.TRACK)){ 
+					if (turnToCheck(yRange+Lab5.TRACK, odo.getX() - LLx -Lab5.TRACK)){ 
 						
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
@@ -231,7 +231,7 @@ public class FlagFinding {
 					break;
 				case LEFT : //y-axis back to starting point
 					navigation.turnTo(180);
-					if (turnToCheck(xRange+Lab5.TRACK)){ 
+					if (turnToCheck(xRange+Lab5.TRACK, odo.getY()-LLy-Lab5.TRACK)){ 
 						
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
@@ -288,11 +288,21 @@ public class FlagFinding {
 	/**
 	 * check whether there is block 
 	 */
-	public boolean turnToCheck(double range) {
+	public boolean turnToCheck(double range, double driveRange) {
 
 		boolean blockNear=true;
-		double distanceFirstBlock=usSensor.getDistance();
-		if (distanceFirstBlock <= range) {
+		navigation.travelForward();
+		double distanceFirstBlock, travelDistance,lastX, lastY;
+		lastX=odo.getX();
+		lastY=odo.getY();
+		do {
+			travelDistance=Math.sqrt((odo.getX()-lastX)*(odo.getX()-lastX)+(odo.getY()-lastY)*(odo.getY()-lastY));
+			
+			distanceFirstBlock=usSensor.getDistance();
+		}while(distanceFirstBlock <= range && travelDistance < driveRange);
+		navigation.stopMotors();
+		 
+		if(distanceFirstBlock <= range) {
 
 			Sound.beepSequenceUp();
 			// the block was seen
@@ -321,11 +331,13 @@ public class FlagFinding {
 	}
 	
 	/**
-	 * Makes the robot travel to the lower left corner of the search zone
+	 * Makes the robot travel to the lower left corner of the search zone by going around
+	 * Depending on where it is currently
 	 * @return true if it has reached the lower left corner
 	 */
 	public boolean travelToLowerLeft() {
 		Side side;
+		//determine the side of the of the search zone
 		if(odo.getX()<=LLx) {
 			side=Side.LEFT;
 		}else if(odo.getX()<=URx) {
@@ -335,36 +347,38 @@ public class FlagFinding {
 				side=Side.TOP;
 			}else{
 				//center of search zone
-				navigation.goToPoint(LLx, LLy);
+				navigation.travelTo(LLx, LLy);
 				return true;
 			}
 		}else {
 			side=Side.RIGHT;
 		}
-		
+		//goes around the search zone
 		switch(side) {
 			case LEFT:
-				navigation.goToPoint(LLx, LLy);break;
+			 navigation.travelTo(LLx, LLy);break;
 			case BOTTOM:
-				navigation.goToPoint(LLx, LLy);break;
+				navigation.travelTo(LLx, LLy);break;
 			case RIGHT:
-				navigation.goToPoint(URx+Lab5.TRACK, LLy-Lab5.TRACK);
-				navigation.goToPoint(LLx, LLy);
+				navigation.travelTo(URx+Lab5.TRACK, LLy-Lab5.TRACK);
+				navigation.travelTo(LLx, LLy);
 				break;
 			case TOP:
-				navigation.goToPoint(LLx-Lab5.TRACK, URy+Lab5.TRACK);
-				navigation.goToPoint(LLx, LLy);
+				navigation.travelTo(LLx-Lab5.TRACK, URy+Lab5.TRACK);
+				navigation.travelTo(LLx, LLy);
 				break;
 		}
 		return true;
 	}
 	
 	/**
-	 * Makes the robot travel to the upper right corner of the search zone
+	 * Makes the robot travel to the upper right corner of the search zone by going around
+	 * Depending on where it is currently
 	 * @return true if it has reached the upper right corner
 	 */
 	public boolean travelToUpperRight() {
 		Side side;
+		//determine the side of where the robot is
 		if(odo.getX()<=LLx) {
 			side=Side.LEFT;
 		}else if(odo.getX()<=URx) {
@@ -374,28 +388,29 @@ public class FlagFinding {
 				side=Side.TOP;
 			}else{
 				//center of search zone
-				navigation.goToPoint(URx, URy);
+				navigation.travelTo(URx, URy);
 				return true;
 			}
 		}else {
 			side=Side.RIGHT;
 		}
 		
+		//go around search zone
 		switch(side) {
 			case LEFT:
-				navigation.goToPoint(LLx-Lab5.TRACK, URy+Lab5.TRACK);
-				navigation.goToPoint(URx, URy);
+				navigation.travelTo(LLx-Lab5.TRACK, URy+Lab5.TRACK);
+				navigation.travelTo(URx, URy);
 				
 				break;
 			case BOTTOM:
-				navigation.goToPoint(URx+Lab5.TRACK, LLy-Lab5.TRACK);
-				navigation.goToPoint(URx, URy);
+				navigation.travelTo(URx+Lab5.TRACK, LLy-Lab5.TRACK);
+				navigation.travelTo(URx, URy);
 				break;
 			case RIGHT:
-				navigation.goToPoint(URx, URy);
+				navigation.travelTo(URx, URy);
 				break;
 			case TOP:
-				navigation.goToPoint(URx, URy);
+				navigation.travelTo(URx, URy);
 				break;
 		}
 		return true;

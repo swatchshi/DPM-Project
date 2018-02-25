@@ -8,6 +8,7 @@ import ca.mcgill.ecse211.odometer.*;
 import ca.mcgill.ecse211.lab5.*;
 import ca.mcgill.ecse211.localizer.*;
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -57,13 +58,13 @@ public class Lab5 {
 	  //wheel width 2.2 (EACH)
 	  //wheel diameter: 4.4
 	  public static final double WHEEL_RAD = 2.12;
-	  public static final double TRACK = 16.0;  //adjust from 13.7 to 18.1
+	  public static final double TRACK = 15.7;  //adjust from 13.7 to 18.1
 	  
-	  public static final int LLx=2;
-	  public static final int LLy=2;
-	  public static final int URx=4;
-	  public static final int URy=4;
-	  public static final ColorSensor.BlockColor blockWanted=ColorSensor.BlockColor.WHITE;
+	  public static final int LLx=1;
+	  public static final int LLy=1;
+	  public static final int URx=3;
+	  public static final int URy=3;
+	  public static final ColorSensor.BlockColor blockWanted=ColorSensor.BlockColor.YELLOW;
 	  
 	  public static void main(String[] args) {
 		  int buttonChoice;
@@ -110,14 +111,15 @@ public class Lab5 {
 			    	//shows color seen by the color sensor
 				    lcd.clear();
 			    	FlagFinding flagFinder=new FlagFinding(cSensor, ultraSensor, blockWanted, LLx, LLy, URx, URy);
-			    	flagFinder.putArmDown(false);
+			    	
 			    	Delay.msDelay(1000);
-			    	flagFinder.putArmDown(true);
+			    
 			    	
 			    	while(true) {
-			    		System.out.println(cSensor.getColorSeen());
+			    		
+			    		System.out.println(flagFinder.isDesiredBlock());
 			    		Delay.msDelay(1000);
-			    		flagFinder.rotateUltrasonicSensor(cSensor.getColorSeen()==blockWanted);
+			    		
 			    	}
 			     
 			     
@@ -163,14 +165,15 @@ public class Lab5 {
 				      odoDisplayThread.start();
 				      Thread odoCorThread=new Thread(odoCorrection);
 				      //odoCorThread.start();
-				      
+				      	
 				      Navigation navigation=new Navigation(odometer, CONFIG, odoCorThread);
-				      
+				      FlagFinding flagFinder=new FlagFinding(cSensor, ultraSensor, blockWanted, LLx, LLy, URx, URy);
+				    	
 				      ///////////////////////////////////////// CHANGE LAB PROCEDURE HERE ///////////////////////////////////////
 				      							
-				   
-											    /*
-												 
+				    
+											   
+												  flagFinder.putArmDown(false);
 												  USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
 												  usLoc.doLocalization();
 												  
@@ -184,12 +187,13 @@ public class Lab5 {
 												  if(lightLoc.isFinished()) {
 													  Button.waitForAnyPress(); 
 											      }
-				    							*/
-				    
-				    	FlagFinding flagFinder=new FlagFinding(cSensor, ultraSensor, blockWanted, LLx, LLy, URx, URy);
+				    							
+				   
+				    	
 				    	flagFinder.findBlock();
 				    	flagFinder.beepSequence(1);
-			    }
+				    
+			    } 
 			    
 			    
 		  }catch(OdometerExceptions exc) {
