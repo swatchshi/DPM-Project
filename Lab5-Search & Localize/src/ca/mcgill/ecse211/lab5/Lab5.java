@@ -60,11 +60,11 @@ public class Lab5 {
 	  public static final double WHEEL_RAD = 2.12;
 	  public static final double TRACK = 15.7;  //adjust from 13.7 to 18.1
 	  
-	  public static final int LLx=1;
-	  public static final int LLy=1;
-	  public static final int URx=3;
-	  public static final int URy=3;
-	  public static final ColorSensor.BlockColor blockWanted=ColorSensor.BlockColor.YELLOW;
+	  public static final int LLx=2;
+	  public static final int LLy=2;
+	  public static final int URx=4;
+	  public static final int URy=4;
+	  public static final ColorSensor.BlockColor blockWanted=ColorSensor.BlockColor.WHITE;
 	  
 	  public static void main(String[] args) {
 		  int buttonChoice;
@@ -80,8 +80,7 @@ public class Lab5 {
 		
 			    // Odometer related objects
 			    Odometer odometer = Odometer.getOdometer(leftMotor, rightMotor, TRACK, WHEEL_RAD, CONFIG); 
-			    OdometerCorrection odoCorrection=new OdometerCorrection(cSensor, odometer);
-			    Display odometryDisplay = new Display(lcd); // No need to change
+			    Display odometryDisplay = new Display(lcd, ultraSensor); 
 		
 		
 			    do {
@@ -103,10 +102,9 @@ public class Lab5 {
 				    odoThread.start();
 				    Thread odoDisplayThread = new Thread(odometryDisplay);
 				    odoDisplayThread.start();
-				    Thread odoCorThread=new Thread(odoCorrection);
-				    
+				   
 				      
-				    Navigation navigation=new Navigation(odometer, CONFIG, odoCorThread);
+				    Navigation navigation=new Navigation(odometer, CONFIG);
 				      
 			    	//shows color seen by the color sensor
 				    lcd.clear();
@@ -163,10 +161,8 @@ public class Lab5 {
 				      odoThread.start();
 				      Thread odoDisplayThread = new Thread(odometryDisplay);
 				      odoDisplayThread.start();
-				      Thread odoCorThread=new Thread(odoCorrection);
-				      //odoCorThread.start();
-				      	
-				      Navigation navigation=new Navigation(odometer, CONFIG, odoCorThread);
+				     	
+				      Navigation navigation=new Navigation(odometer, CONFIG);
 				      FlagFinding flagFinder=new FlagFinding(cSensor, ultraSensor, blockWanted, LLx, LLy, URx, URy);
 				    	
 				      ///////////////////////////////////////// CHANGE LAB PROCEDURE HERE ///////////////////////////////////////
@@ -174,7 +170,7 @@ public class Lab5 {
 				    
 											   
 												  flagFinder.putArmDown(false);
-												  USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
+											/*	  USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
 												  usLoc.doLocalization();
 												  
 											  
@@ -187,9 +183,9 @@ public class Lab5 {
 												  if(lightLoc.isFinished()) {
 													  Button.waitForAnyPress(); 
 											      }
-				    							
+				    							*/
 				   
-				    	
+				    	odometer.setXYT(Navigation.TILE_SIZE,Navigation.TILE_SIZE, 0);
 				    	flagFinder.findBlock();
 				    	flagFinder.beepSequence(1);
 				    

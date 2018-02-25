@@ -16,12 +16,13 @@ import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
+import lejos.utility.Delay;
 
 
 public class FlagFinding {
 	
 	
-	private static final int ARM_ROTATION_AMPLITUDE=90;
+	private static final int ARM_ROTATION_AMPLITUDE=75;
 	private static final int US_ROTATION_AMPLITUDE=90;
 	private static final int COLLISION_DISTANCE=10;
 	private static final int SUCCESSFUL_BEEPING=3;
@@ -120,8 +121,8 @@ public class FlagFinding {
 		Sound.beep();
 		travelToLowerLeft();
 		Sound.beep();
+		putArmDown(true);
 		int i = 0;
-		rotateUltrasonicSensor(true);
 		while (i < Side.values().length){ //if the robot has not detected 4 blocks on one side
 			
 			Side sideTest=Side.values()[i];
@@ -130,14 +131,17 @@ public class FlagFinding {
 				
 				case BOTTOM : //x-axis
 					navigation.turnTo(90);
-					if (turnToCheck(yRange+Lab5.TRACK, URx+Lab5.TRACK-odo.getX())){ 
+					rotateUltrasonicSensor(true);
+					navigation.travelForward();
+					if (checkForFlag(yRange+Lab5.TRACK, URx+Lab5.TRACK-odo.getX())){ 
 						
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
 						navigation.turnTo(0);
+						rotateUltrasonicSensor(false);
 						navigation.travelForward(); //travel indefinitely
 						
-						while (usSensor.getDistance() < COLLISION_DISTANCE){ 
+						while (usSensor.readDistance() < COLLISION_DISTANCE){ 
 							//when it comes close enough to the block to do colorID
 						}
 						navigation.stopMotors(); //stop robot
@@ -154,7 +158,6 @@ public class FlagFinding {
 						} else {
 							//continue searching
 							navigation.backUp(odo.getY()-LLy-Lab5.TRACK);
-							navigation.turnTo(90);
 						}
 					}
 					if(odo.getX()>=URx+Lab5.TRACK) { //end of BOTTOM side
@@ -163,14 +166,17 @@ public class FlagFinding {
 					break;
 				case RIGHT: //y-axis
 					navigation.turnTo(0);
-					if (turnToCheck(xRange+Lab5.TRACK, URy+Lab5.TRACK - odo.getY())){ 
+					rotateUltrasonicSensor(true);
+					navigation.travelForward();
+					if (checkForFlag(xRange+Lab5.TRACK, URy+Lab5.TRACK - odo.getY())){ 
 						
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
 						navigation.turnTo(270);
+						rotateUltrasonicSensor(false);
 						navigation.travelForward(); //travel indefinitely to go see block
 						
-						while (usSensor.getDistance() < COLLISION_DISTANCE){ 
+						while (usSensor.readDistance() < COLLISION_DISTANCE){ 
 							//when it comes close enough to the block to do colorID
 						}
 						navigation.stopMotors(); //stop robot
@@ -188,7 +194,6 @@ public class FlagFinding {
 						} else {
 							//continue searching
 							navigation.backUp(URx+Lab5.TRACK-odo.getX());
-							navigation.turnTo(0);
 						}
 					}
 					if(odo.getY()>=URy+Lab5.TRACK) { //end of RIGHT side
@@ -197,14 +202,17 @@ public class FlagFinding {
 					break;
 				case TOP: //x-axis on the top
 					navigation.turnTo(270);
-					if (turnToCheck(yRange+Lab5.TRACK, odo.getX() - LLx -Lab5.TRACK)){ 
+					rotateUltrasonicSensor(true);
+					navigation.travelForward();
+					if (checkForFlag(yRange+Lab5.TRACK, odo.getX() - LLx -Lab5.TRACK)){ 
 						
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
 						navigation.turnTo(180);
+						rotateUltrasonicSensor(false);
 						navigation.travelForward(); //travel indefinitely
 						
-						while (usSensor.getDistance() < COLLISION_DISTANCE){ 
+						while (usSensor.readDistance() < COLLISION_DISTANCE){ 
 							//when it comes close enough to the block to do colorID
 						}
 						navigation.stopMotors(); //stop robot
@@ -222,7 +230,6 @@ public class FlagFinding {
 						} else {
 							//continue searching
 							navigation.backUp(LLy+Lab5.TRACK-odo.getY());
-							navigation.turnTo(270);
 						}
 					}
 					if(odo.getX()<=LLx-Lab5.TRACK) { //end of TOP side
@@ -231,14 +238,17 @@ public class FlagFinding {
 					break;
 				case LEFT : //y-axis back to starting point
 					navigation.turnTo(180);
-					if (turnToCheck(xRange+Lab5.TRACK, odo.getY()-LLy-Lab5.TRACK)){ 
+					rotateUltrasonicSensor(true);
+					navigation.travelForward();
+					if (checkForFlag(xRange+Lab5.TRACK, odo.getY()-LLy-Lab5.TRACK)){ 
 						
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
 						navigation.turnTo(90);
+						rotateUltrasonicSensor(false);
 						navigation.travelForward(); //travel indefinitely
 						
-						while (usSensor.getDistance() < COLLISION_DISTANCE){ 
+						while (usSensor.readDistance() < COLLISION_DISTANCE){ 
 							//when it comes close enough to the block to do colorID
 						}
 						navigation.stopMotors(); //stop robot
@@ -256,7 +266,6 @@ public class FlagFinding {
 						} else {
 							//continue searching
 							navigation.backUp(odo.getX()-LLx-Lab5.TRACK);
-							navigation.turnTo(180);
 						}
 					}
 					if(odo.getY()<=LLy-Lab5.TRACK) { //end of LEFT side
@@ -276,45 +285,38 @@ public class FlagFinding {
 	  * @return (boolean) true if the block color is of the desired color
 	  */
 	public boolean isDesiredBlock() {
-		putArmDown(true);
+		
 		if (colorSensor.getColorSeen() == blockWanted){
 				Sound.beep();
 				flagFound = true;	
 		}
-		putArmDown(false);
 		return flagFound;
 	}
 	
 	/**
 	 * check whether there is block 
 	 */
-	public boolean turnToCheck(double range, double driveRange) {
+	public boolean checkForFlag(double range, double driveRange) {
 
 		boolean blockNear=true;
-		navigation.travelForward();
-		double distanceFirstBlock, travelDistance,lastX, lastY;
-		lastX=odo.getX();
-		lastY=odo.getY();
-		do {
-			travelDistance=Math.sqrt((odo.getX()-lastX)*(odo.getX()-lastX)+(odo.getY()-lastY)*(odo.getY()-lastY));
-			
-			distanceFirstBlock=usSensor.getDistance();
-		}while(distanceFirstBlock <= range && travelDistance < driveRange);
-		navigation.stopMotors();
+		
+		double distanceFirstBlock=usSensor.readDistance();
 		 
 		if(distanceFirstBlock <= range) {
-
-			Sound.beepSequenceUp();
+			
+			
+			navigation.stopMotors();
 			// the block was seen
 			
 			// move 1.5 block ahead forward
 			navigation.travel(1.5*BLOCK_WIDTH);
 
 			//checks if there is a block ahead which would be hit
-			if (usSensor.getDistance() <= distanceFirstBlock) {
+			if (usSensor.readDistance() <= distanceFirstBlock) {
 				blockNear = true; //block will be hit
 			} else {				
 				blockNear = false; //no block to be hit
+				Sound.beepSequenceUp();
 			}
 		}
 		return (!blockNear); //tells if can go check colored block seen
@@ -347,7 +349,7 @@ public class FlagFinding {
 				side=Side.TOP;
 			}else{
 				//center of search zone
-				navigation.travelTo(LLx, LLy);
+				navigation.travelTo(LLx-Lab5.TRACK, LLy-Lab5.TRACK);
 				return true;
 			}
 		}else {
@@ -356,16 +358,18 @@ public class FlagFinding {
 		//goes around the search zone
 		switch(side) {
 			case LEFT:
-			 navigation.travelTo(LLx, LLy);break;
+			 navigation.travelTo(LLx-Lab5.TRACK, LLy-Lab5.TRACK);
+			 break;
 			case BOTTOM:
-				navigation.travelTo(LLx, LLy);break;
+				navigation.travelTo(LLx-Lab5.TRACK, LLy-Lab5.TRACK);
+				break;
 			case RIGHT:
 				navigation.travelTo(URx+Lab5.TRACK, LLy-Lab5.TRACK);
-				navigation.travelTo(LLx, LLy);
+				navigation.travelTo(LLx-Lab5.TRACK, LLy-Lab5.TRACK);
 				break;
 			case TOP:
 				navigation.travelTo(LLx-Lab5.TRACK, URy+Lab5.TRACK);
-				navigation.travelTo(LLx, LLy);
+				navigation.travelTo(LLx-Lab5.TRACK, LLy-Lab5.TRACK);
 				break;
 		}
 		return true;

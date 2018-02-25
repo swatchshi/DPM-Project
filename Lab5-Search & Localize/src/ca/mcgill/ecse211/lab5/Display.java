@@ -1,6 +1,8 @@
 package ca.mcgill.ecse211.lab5;
 
 import java.text.DecimalFormat;
+
+import ca.mcgill.ecse211.localizer.UltrasonicSensor;
 import ca.mcgill.ecse211.odometer.Odometer;
 import ca.mcgill.ecse211.odometer.OdometerExceptions;
 import lejos.hardware.lcd.TextLCD;
@@ -11,6 +13,7 @@ import lejos.hardware.lcd.TextLCD;
 public class Display implements Runnable {
 
   private Odometer odo;
+  private UltrasonicSensor us;
   private TextLCD lcd;
   private double[] position;
   private final long DISPLAY_PERIOD = 25;
@@ -22,9 +25,10 @@ public class Display implements Runnable {
    * @param odoData
    * @throws OdometerExceptions 
    */
-  public Display(TextLCD lcd) throws OdometerExceptions {
+  public Display(TextLCD lcd, UltrasonicSensor us) throws OdometerExceptions {
     odo = Odometer.getOdometer();
     this.lcd = lcd;
+    this.us=us;
   }
 
   /**
@@ -61,7 +65,8 @@ public class Display implements Runnable {
       lcd.drawString("X: " + numberFormat.format(position[0]), 0, 0);
       lcd.drawString("Y: " + numberFormat.format(position[1]), 0, 1);
       lcd.drawString("T: " + numberFormat.format(position[2]), 0, 2);
-    
+      lcd.drawString("U: " + us.getDistance(), 0, 3);
+      
       }catch(Exception e) {}
       
       // this ensures that the data is updated only once every period
