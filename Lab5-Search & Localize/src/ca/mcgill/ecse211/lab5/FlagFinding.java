@@ -137,7 +137,7 @@ public class FlagFinding {
 					rotateUltrasonicSensor(true);
 					navigation.travelForward();
 					while(usSensor.readDistance()>yRange+Lab5.TRACK && odo.getX()<URx+Lab5.TRACK) {
-						//continue going forward
+						//continue going forward until end of search zone
 					}
 					navigation.stopMotors(); //stop robot
 					if (checkForFlag(yRange+Lab5.TRACK)){ 
@@ -150,8 +150,8 @@ public class FlagFinding {
 						Delay.msDelay(500);
 						navigation.travelForward(); //travel indefinitely
 						
-						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound){ 
-							//when it comes close enough to the block to do colorID
+						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound && odo.getY()>URy){ 
+							//when it comes close enough to the block to do colorID or too far
 						}
 						navigation.stopMotors(); //stop robot
 						
@@ -187,7 +187,7 @@ public class FlagFinding {
 					rotateUltrasonicSensor(true);
 					navigation.travelForward();
 					while(usSensor.readDistance()>xRange+Lab5.TRACK && odo.getY()<URy+Lab5.TRACK) {
-						//continue going forward
+						//continue going forward until end of search zone
 					}
 					navigation.stopMotors(); //stop robot
 					if (checkForFlag(xRange+Lab5.TRACK)){ 
@@ -200,8 +200,8 @@ public class FlagFinding {
 						Delay.msDelay(500);
 						navigation.travelForward(); //travel indefinitely to go see block
 						
-						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound){ 
-							//when it comes close enough to the block to do colorID
+						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound && odo.getX()<LLx){ 
+							//when it comes close enough to the block to do colorID or too far
 						}
 						navigation.stopMotors(); //stop robot
 						
@@ -238,7 +238,7 @@ public class FlagFinding {
 					rotateUltrasonicSensor(true);
 					navigation.travelForward();
 					while(usSensor.readDistance()>yRange+Lab5.TRACK && odo.getX()>LLx-Lab5.TRACK) {
-						//continue going forward
+						//continue going forward until end of search zone
 					}
 					navigation.stopMotors(); //stop robot
 					if (checkForFlag(yRange+Lab5.TRACK)){ 
@@ -251,8 +251,8 @@ public class FlagFinding {
 						Delay.msDelay(500);
 						navigation.travelForward(); //travel indefinitely
 						
-						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound){ 
-							//when it comes close enough to the block to do colorID
+						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound && odo.getY()<LLy){ 
+							//when it comes close enough to the block to do colorID or too far
 						}
 						navigation.stopMotors(); //stop robot
 						
@@ -289,7 +289,7 @@ public class FlagFinding {
 					rotateUltrasonicSensor(true);
 					navigation.travelForward();
 					while(usSensor.readDistance()>xRange+Lab5.TRACK && odo.getY()>LLy-Lab5.TRACK) {
-						//continue going forward
+						//continue going forward until end of search zone
 					}
 					navigation.stopMotors(); //stop robot
 					if (checkForFlag(xRange+Lab5.TRACK)){ 
@@ -302,8 +302,8 @@ public class FlagFinding {
 						Delay.msDelay(500);
 						navigation.travelForward(); //travel indefinitely
 						
-						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound){ 
-							//when it comes close enough to the block to do colorID
+						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound && odo.getX()>URx){ 
+							//when it comes close enough to the block to do colorID or too far
 						}
 						navigation.stopMotors(); //stop robot
 						
