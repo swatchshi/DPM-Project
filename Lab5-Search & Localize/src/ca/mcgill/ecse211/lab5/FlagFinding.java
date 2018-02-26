@@ -150,7 +150,7 @@ public class FlagFinding {
 						Delay.msDelay(500);
 						navigation.travelForward(); //travel indefinitely
 						
-						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound && odo.getY()>URy){ 
+						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound && odo.getY()<URy){ 
 							//when it comes close enough to the block to do colorID or too far
 						}
 						navigation.stopMotors(); //stop robot
@@ -200,7 +200,7 @@ public class FlagFinding {
 						Delay.msDelay(500);
 						navigation.travelForward(); //travel indefinitely to go see block
 						
-						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound && odo.getX()<LLx){ 
+						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound && odo.getX()>LLx){ 
 							//when it comes close enough to the block to do colorID or too far
 						}
 						navigation.stopMotors(); //stop robot
@@ -251,7 +251,7 @@ public class FlagFinding {
 						Delay.msDelay(500);
 						navigation.travelForward(); //travel indefinitely
 						
-						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound && odo.getY()<LLy){ 
+						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound && odo.getY()>LLy){ 
 							//when it comes close enough to the block to do colorID or too far
 						}
 						navigation.stopMotors(); //stop robot
@@ -302,7 +302,7 @@ public class FlagFinding {
 						Delay.msDelay(500);
 						navigation.travelForward(); //travel indefinitely
 						
-						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound && odo.getX()>URx){ 
+						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound && odo.getX()<URx){ 
 							//when it comes close enough to the block to do colorID or too far
 						}
 						navigation.stopMotors(); //stop robot
