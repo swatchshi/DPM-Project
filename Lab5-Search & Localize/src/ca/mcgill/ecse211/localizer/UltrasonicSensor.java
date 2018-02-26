@@ -1,6 +1,5 @@
 package ca.mcgill.ecse211.localizer;
 
-import ca.mcgill.ecse211.lab5.*;
 import lejos.robotics.SampleProvider;
 import lejos.utility.Delay;
 
@@ -49,7 +48,6 @@ public class UltrasonicSensor {
 				filterCount=0;
 			}
 			distance=newDistance;
-			Delay.msDelay(30);
 		}
 		return distance; 
 	}

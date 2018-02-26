@@ -1,21 +1,12 @@
 package ca.mcgill.ecse211.lab5;
 
 
-import java.util.*;
-import ca.mcgill.ecse211.*;
+
 import ca.mcgill.ecse211.localizer.ColorSensor;
-import ca.mcgill.ecse211.localizer.ColorSensor.BlockColor;
 import ca.mcgill.ecse211.localizer.UltrasonicSensor;
 import ca.mcgill.ecse211.odometer.Odometer;
 import ca.mcgill.ecse211.odometer.OdometerExceptions;
-import lejos.ev3.*;
 import lejos.hardware.*;
-import lejos.hardware.motor.EV3LargeRegulatedMotor;
-import lejos.hardware.motor.EV3MediumRegulatedMotor;
-import lejos.hardware.sensor.EV3ColorSensor;
-import lejos.hardware.sensor.EV3UltrasonicSensor;
-import lejos.hardware.sensor.SensorModes;
-import lejos.robotics.SampleProvider;
 import lejos.utility.Delay;
 
 
@@ -28,9 +19,9 @@ public class FlagFinding {
 	private static final int SUCCESSFUL_BEEPING=3;
 	private static final int FAILURE_BEEPING=6;
 	private static final int BLOCK_WIDTH = 10;
+	private static final long MAX_SEARCH_TIME=270000; //4.5 min  is 270 000 ms
 	private double LLx,LLy,URx,URy;
 	private double xRange, yRange;
-	private boolean isBlockNear = false;
 	private boolean armDown=true;
 	private boolean headTurned=false;
 	private ColorSensor colorSensor;
@@ -39,6 +30,8 @@ public class FlagFinding {
 	private Odometer odo;
 	private ColorSensor.BlockColor blockWanted;
 	private boolean flagFound;
+	private long searchStart; //start time
+	  
 	
 	public static enum Side{
 		BOTTOM,
@@ -71,6 +64,7 @@ public class FlagFinding {
 		this.URy=URy*Navigation.TILE_SIZE;
 		this.xRange=Math.abs(URx-LLx)*Navigation.TILE_SIZE;
 		this.yRange=Math.abs(URy-LLy)*Navigation.TILE_SIZE;
+		this.searchStart=System.currentTimeMillis();
 	}
 	
 	
@@ -123,13 +117,14 @@ public class FlagFinding {
 		Sound.beep();
 		putArmDown(true);
 		int i = 0;
-		while (i < Side.values().length){ //if the robot has not detected 4 blocks on one side
+		while (i < Side.values().length && timeElapsed()<MAX_SEARCH_TIME){ //if the robot has not detected 4 blocks on one side and still some time left
 			
 			Side sideTest=Side.values()[i];
 			
 			switch (sideTest){
 				
 				case BOTTOM : //x-axis
+					Delay.msDelay(500);
 					navigation.turnTo(90);
 					rotateUltrasonicSensor(true);
 					navigation.travelForward();
@@ -138,10 +133,11 @@ public class FlagFinding {
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
 						navigation.turnTo(0);
-						rotateUltrasonicSensor(false);
+						navigation.stopMotors();
+						Delay.msDelay(500);
 						navigation.travelForward(); //travel indefinitely
 						
-						while (usSensor.readDistance() < COLLISION_DISTANCE){ 
+						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound){ 
 							//when it comes close enough to the block to do colorID
 						}
 						navigation.stopMotors(); //stop robot
@@ -150,14 +146,18 @@ public class FlagFinding {
 							beepSequence(SUCCESSFUL_BEEPING); //plays the success sequence
 							
 							//go to UR corner of search zone
-							navigation.backUp(odo.getY()-LLy-Lab5.TRACK);
-							
+							navigation.backUpTo(odo.getX(),LLy-Lab5.TRACK);
+							navigation.stopMotors();
 							rotateUltrasonicSensor(false);
 							travelToUpperRight();
 							return true; //return that you found the block
 						} else {
 							//continue searching
-							navigation.backUp(odo.getY()-LLy-Lab5.TRACK);
+							navigation.backUpTo(odo.getX(),LLy-Lab5.TRACK);
+							navigation.stopMotors();
+							Delay.msDelay(500);
+							navigation.turnTo(90);
+							navigation.travel(BLOCK_WIDTH);
 						}
 					}
 					if(odo.getX()>=URx+Lab5.TRACK) { //end of BOTTOM side
@@ -165,6 +165,7 @@ public class FlagFinding {
 					}
 					break;
 				case RIGHT: //y-axis
+					Delay.msDelay(500);
 					navigation.turnTo(0);
 					rotateUltrasonicSensor(true);
 					navigation.travelForward();
@@ -173,10 +174,11 @@ public class FlagFinding {
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
 						navigation.turnTo(270);
-						rotateUltrasonicSensor(false);
+						navigation.stopMotors();
+						Delay.msDelay(500);
 						navigation.travelForward(); //travel indefinitely to go see block
 						
-						while (usSensor.readDistance() < COLLISION_DISTANCE){ 
+						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound){ 
 							//when it comes close enough to the block to do colorID
 						}
 						navigation.stopMotors(); //stop robot
@@ -185,15 +187,19 @@ public class FlagFinding {
 							beepSequence(SUCCESSFUL_BEEPING); //plays the success sequence
 							
 							//go to UR corner of search zone
-							navigation.backUp(URx+Lab5.TRACK-odo.getX());
-							
+							navigation.backUpTo(URx+Lab5.TRACK,odo.getY());
+							navigation.stopMotors();
 							rotateUltrasonicSensor(false);
 							travelToUpperRight();
 							return true; //return that you found the block
 							
 						} else {
 							//continue searching
-							navigation.backUp(URx+Lab5.TRACK-odo.getX());
+							navigation.backUpTo(URx+Lab5.TRACK,odo.getY());
+							navigation.stopMotors();
+							Delay.msDelay(500);
+							navigation.turnTo(0);
+							navigation.travel(BLOCK_WIDTH);
 						}
 					}
 					if(odo.getY()>=URy+Lab5.TRACK) { //end of RIGHT side
@@ -201,6 +207,7 @@ public class FlagFinding {
 					}
 					break;
 				case TOP: //x-axis on the top
+					Delay.msDelay(500);
 					navigation.turnTo(270);
 					rotateUltrasonicSensor(true);
 					navigation.travelForward();
@@ -209,10 +216,11 @@ public class FlagFinding {
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
 						navigation.turnTo(180);
-						rotateUltrasonicSensor(false);
+						navigation.stopMotors();
+						Delay.msDelay(500);
 						navigation.travelForward(); //travel indefinitely
 						
-						while (usSensor.readDistance() < COLLISION_DISTANCE){ 
+						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound){ 
 							//when it comes close enough to the block to do colorID
 						}
 						navigation.stopMotors(); //stop robot
@@ -221,15 +229,19 @@ public class FlagFinding {
 							beepSequence(SUCCESSFUL_BEEPING); //plays the success sequence
 							
 							//go to UR corner of search zone
-							navigation.backUp(LLy+Lab5.TRACK-odo.getY());
-							
+							navigation.backUpTo(odo.getX(), URy+Lab5.TRACK);
+							navigation.stopMotors();
 							rotateUltrasonicSensor(false);
 							travelToUpperRight();
 							return true; //return that you found the block
 							
 						} else {
 							//continue searching
-							navigation.backUp(LLy+Lab5.TRACK-odo.getY());
+							navigation.backUpTo(odo.getX(), URy+Lab5.TRACK);
+							navigation.stopMotors();
+							Delay.msDelay(500);
+							navigation.turnTo(270);
+							navigation.travel(BLOCK_WIDTH);
 						}
 					}
 					if(odo.getX()<=LLx-Lab5.TRACK) { //end of TOP side
@@ -237,6 +249,7 @@ public class FlagFinding {
 					}
 					break;
 				case LEFT : //y-axis back to starting point
+					Delay.msDelay(500);
 					navigation.turnTo(180);
 					rotateUltrasonicSensor(true);
 					navigation.travelForward();
@@ -245,10 +258,11 @@ public class FlagFinding {
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
 						navigation.turnTo(90);
-						rotateUltrasonicSensor(false);
+						navigation.stopMotors();
+						Delay.msDelay(500);
 						navigation.travelForward(); //travel indefinitely
 						
-						while (usSensor.readDistance() < COLLISION_DISTANCE){ 
+						while (colorSensor.getColorSeen() == ColorSensor.BlockColor.NoColorFound){ 
 							//when it comes close enough to the block to do colorID
 						}
 						navigation.stopMotors(); //stop robot
@@ -257,15 +271,19 @@ public class FlagFinding {
 							beepSequence(SUCCESSFUL_BEEPING); //plays the success sequence
 							
 							//go to UR corner of search zone
-							navigation.backUp(odo.getX()-LLx-Lab5.TRACK);
-							
+							navigation.backUpTo(LLx-Lab5.TRACK, odo.getY());
+							navigation.stopMotors();
 							rotateUltrasonicSensor(false);
 							travelToUpperRight();
 							return true; //return that you found the block
 							
 						} else {
 							//continue searching
-							navigation.backUp(odo.getX()-LLx-Lab5.TRACK);
+							navigation.backUpTo(LLx-Lab5.TRACK, odo.getY());
+							navigation.stopMotors();
+							Delay.msDelay(500);
+							navigation.turnTo(180);
+							navigation.travel(BLOCK_WIDTH);
 						}
 					}
 					if(odo.getY()<=LLy-Lab5.TRACK) { //end of LEFT side
@@ -276,6 +294,7 @@ public class FlagFinding {
 		}
 		
 		beepSequence(FAILURE_BEEPING);
+		travelToUpperRight();
 		return false;
 	}
 		
@@ -303,14 +322,16 @@ public class FlagFinding {
 		double distanceFirstBlock=usSensor.readDistance();
 		 
 		if(distanceFirstBlock <= range) {
-			
-			
-			navigation.stopMotors();
 			// the block was seen
+			navigation.stopMotors();
+			Sound.beepSequence();
+			
+			
+			
 			
 			// move 1.5 block ahead forward
-			navigation.travel(1.5*BLOCK_WIDTH);
-
+			navigation.travel(1.0*BLOCK_WIDTH);
+			navigation.stopMotors();
 			//checks if there is a block ahead which would be hit
 			if (usSensor.readDistance() <= distanceFirstBlock) {
 				blockNear = true; //block will be hit
@@ -418,6 +439,14 @@ public class FlagFinding {
 				break;
 		}
 		return true;
+	}
+	
+	/**
+	 * Gets the time elapsed in milliseconds
+	 * @return the number of milliseconds elapse since the start of the creation of this FLagFinding instance
+	 */
+	public long timeElapsed() {
+		return (System.currentTimeMillis()-searchStart);
 	}
 }
 

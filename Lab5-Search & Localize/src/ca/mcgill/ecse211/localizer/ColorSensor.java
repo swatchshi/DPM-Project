@@ -1,11 +1,8 @@
 package ca.mcgill.ecse211.localizer;
 
-import ca.mcgill.ecse211.lab5.Navigation;
 import lejos.hardware.Sound;
 import lejos.hardware.sensor.EV3ColorSensor;
-import lejos.robotics.Color;
 import lejos.robotics.SampleProvider;
-import lejos.utility.Delay;
 
 /**
  * Class for handling the light sensor sampling

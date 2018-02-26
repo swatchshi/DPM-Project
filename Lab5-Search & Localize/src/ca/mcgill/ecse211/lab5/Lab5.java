@@ -5,10 +5,8 @@ package ca.mcgill.ecse211.lab5;
  * imports
  */
 import ca.mcgill.ecse211.odometer.*;
-import ca.mcgill.ecse211.lab5.*;
 import ca.mcgill.ecse211.localizer.*;
 import lejos.hardware.Button;
-import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -62,8 +60,8 @@ public class Lab5 {
 	  
 	  public static final int LLx=2;
 	  public static final int LLy=2;
-	  public static final int URx=4;
-	  public static final int URy=4;
+	  public static final int URx=3;
+	  public static final int URy=3;
 	  public static final ColorSensor.BlockColor blockWanted=ColorSensor.BlockColor.WHITE;
 	  
 	  public static void main(String[] args) {
@@ -115,7 +113,7 @@ public class Lab5 {
 			    	
 			    	while(true) {
 			    		
-			    		System.out.println(flagFinder.isDesiredBlock());
+			    		System.out.println(cSensor.getColorSeen());
 			    		Delay.msDelay(1000);
 			    		
 			    	}

@@ -110,7 +110,6 @@ public class Navigation {
 	 */
 	public void goToPoint(double x, double y) {
 		travelTo(x*TILE_SIZE, y*TILE_SIZE);
-		stopMotors();
 	}
 	
 	
