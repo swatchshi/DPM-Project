@@ -9,13 +9,20 @@ import ca.mcgill.ecse211.odometer.OdometerExceptions;
 import lejos.hardware.*;
 import lejos.utility.Delay;
 
-
+/**
+ * Class for finding the desired colored flag 
+ * @author Xavier Pellemans
+ * @author Thomas Bahen
+ * @author Zhang Guangyi
+ * @author Zhang Cara
+ * @author Shi WenQi
+ *
+ */
 public class FlagFinding {
 	
 	
 	private static final int ARM_ROTATION_AMPLITUDE=75;
 	private static final int US_ROTATION_AMPLITUDE=90;
-	private static final int COLLISION_DISTANCE=10;
 	private static final int SUCCESSFUL_BEEPING=3;
 	private static final int FAILURE_BEEPING=6;
 	private static final int BLOCK_WIDTH = 10;
@@ -109,6 +116,7 @@ public class FlagFinding {
 	  * Looks for the wanted block by sweeping the search area using the ultrasonicsensor 
 	  * and performing color detection using the light sensor
 	  * Makes the robot circle the search area in a counter clockwise motion
+	  * Delays are included to prevent motor interruption
 	  * @return true if the block was found
 	  */
 	 public boolean findBlock() {			
@@ -128,10 +136,15 @@ public class FlagFinding {
 					navigation.turnTo(90);
 					rotateUltrasonicSensor(true);
 					navigation.travelForward();
-					if (checkForFlag(yRange+Lab5.TRACK, URx+Lab5.TRACK-odo.getX())){ 
+					while(usSensor.readDistance()>yRange+Lab5.TRACK && odo.getX()<URx+Lab5.TRACK) {
+						//continue going forward
+					}
+					navigation.stopMotors(); //stop robot
+					if (checkForFlag(yRange+Lab5.TRACK)){ 
 						
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
+						Delay.msDelay(500);
 						navigation.turnTo(0);
 						navigation.stopMotors();
 						Delay.msDelay(500);
@@ -146,6 +159,7 @@ public class FlagFinding {
 							beepSequence(SUCCESSFUL_BEEPING); //plays the success sequence
 							
 							//go to UR corner of search zone
+							Delay.msDelay(500);
 							navigation.backUpTo(odo.getX(),LLy-Lab5.TRACK);
 							navigation.stopMotors();
 							rotateUltrasonicSensor(false);
@@ -153,10 +167,13 @@ public class FlagFinding {
 							return true; //return that you found the block
 						} else {
 							//continue searching
+							Delay.msDelay(500);
 							navigation.backUpTo(odo.getX(),LLy-Lab5.TRACK);
 							navigation.stopMotors();
 							Delay.msDelay(500);
 							navigation.turnTo(90);
+							navigation.stopMotors();
+							Delay.msDelay(500);
 							navigation.travel(BLOCK_WIDTH);
 						}
 					}
@@ -169,10 +186,15 @@ public class FlagFinding {
 					navigation.turnTo(0);
 					rotateUltrasonicSensor(true);
 					navigation.travelForward();
-					if (checkForFlag(xRange+Lab5.TRACK, URy+Lab5.TRACK - odo.getY())){ 
+					while(usSensor.readDistance()>xRange+Lab5.TRACK && odo.getY()<URy+Lab5.TRACK) {
+						//continue going forward
+					}
+					navigation.stopMotors(); //stop robot
+					if (checkForFlag(xRange+Lab5.TRACK)){ 
 						
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
+						Delay.msDelay(500);
 						navigation.turnTo(270);
 						navigation.stopMotors();
 						Delay.msDelay(500);
@@ -187,6 +209,7 @@ public class FlagFinding {
 							beepSequence(SUCCESSFUL_BEEPING); //plays the success sequence
 							
 							//go to UR corner of search zone
+							Delay.msDelay(500);
 							navigation.backUpTo(URx+Lab5.TRACK,odo.getY());
 							navigation.stopMotors();
 							rotateUltrasonicSensor(false);
@@ -195,10 +218,13 @@ public class FlagFinding {
 							
 						} else {
 							//continue searching
+							Delay.msDelay(500);
 							navigation.backUpTo(URx+Lab5.TRACK,odo.getY());
 							navigation.stopMotors();
 							Delay.msDelay(500);
 							navigation.turnTo(0);
+							navigation.stopMotors();
+							Delay.msDelay(500);
 							navigation.travel(BLOCK_WIDTH);
 						}
 					}
@@ -211,10 +237,15 @@ public class FlagFinding {
 					navigation.turnTo(270);
 					rotateUltrasonicSensor(true);
 					navigation.travelForward();
-					if (checkForFlag(yRange+Lab5.TRACK, odo.getX() - LLx -Lab5.TRACK)){ 
+					while(usSensor.readDistance()>yRange+Lab5.TRACK && odo.getX()>LLx-Lab5.TRACK) {
+						//continue going forward
+					}
+					navigation.stopMotors(); //stop robot
+					if (checkForFlag(yRange+Lab5.TRACK)){ 
 						
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
+						Delay.msDelay(500);
 						navigation.turnTo(180);
 						navigation.stopMotors();
 						Delay.msDelay(500);
@@ -229,6 +260,7 @@ public class FlagFinding {
 							beepSequence(SUCCESSFUL_BEEPING); //plays the success sequence
 							
 							//go to UR corner of search zone
+							Delay.msDelay(500);
 							navigation.backUpTo(odo.getX(), URy+Lab5.TRACK);
 							navigation.stopMotors();
 							rotateUltrasonicSensor(false);
@@ -237,10 +269,13 @@ public class FlagFinding {
 							
 						} else {
 							//continue searching
+							Delay.msDelay(500);
 							navigation.backUpTo(odo.getX(), URy+Lab5.TRACK);
 							navigation.stopMotors();
 							Delay.msDelay(500);
 							navigation.turnTo(270);
+							navigation.stopMotors();
+							Delay.msDelay(500);
 							navigation.travel(BLOCK_WIDTH);
 						}
 					}
@@ -253,10 +288,15 @@ public class FlagFinding {
 					navigation.turnTo(180);
 					rotateUltrasonicSensor(true);
 					navigation.travelForward();
-					if (checkForFlag(xRange+Lab5.TRACK, odo.getY()-LLy-Lab5.TRACK)){ 
+					while(usSensor.readDistance()>xRange+Lab5.TRACK && odo.getY()>LLy-Lab5.TRACK) {
+						//continue going forward
+					}
+					navigation.stopMotors(); //stop robot
+					if (checkForFlag(xRange+Lab5.TRACK)){ 
 						
 						navigation.stopMotors(); //make sure the robot is stopped
 						//rotate sensor 90 degrees facing front
+						Delay.msDelay(500);
 						navigation.turnTo(90);
 						navigation.stopMotors();
 						Delay.msDelay(500);
@@ -271,6 +311,7 @@ public class FlagFinding {
 							beepSequence(SUCCESSFUL_BEEPING); //plays the success sequence
 							
 							//go to UR corner of search zone
+							Delay.msDelay(500);
 							navigation.backUpTo(LLx-Lab5.TRACK, odo.getY());
 							navigation.stopMotors();
 							rotateUltrasonicSensor(false);
@@ -279,10 +320,13 @@ public class FlagFinding {
 							
 						} else {
 							//continue searching
+							Delay.msDelay(500);
 							navigation.backUpTo(LLx-Lab5.TRACK, odo.getY());
 							navigation.stopMotors();
 							Delay.msDelay(500);
 							navigation.turnTo(180);
+							navigation.stopMotors();
+							Delay.msDelay(500);
 							navigation.travel(BLOCK_WIDTH);
 						}
 					}
@@ -313,9 +357,9 @@ public class FlagFinding {
 	}
 	
 	/**
-	 * check whether there is block 
+	 * check whether there is a block 
 	 */
-	public boolean checkForFlag(double range, double driveRange) {
+	public boolean checkForFlag(double range) {
 
 		boolean blockNear=true;
 		
@@ -327,13 +371,11 @@ public class FlagFinding {
 			Sound.beepSequence();
 			
 			
-			
-			
 			// move 1.5 block ahead forward
 			navigation.travel(1.0*BLOCK_WIDTH);
 			navigation.stopMotors();
 			//checks if there is a block ahead which would be hit
-			if (usSensor.readDistance() <= distanceFirstBlock) {
+			if (usSensor.readDistance() <= distanceFirstBlock-UltrasonicSensor.US_ERROR) {
 				blockNear = true; //block will be hit
 			} else {				
 				blockNear = false; //no block to be hit

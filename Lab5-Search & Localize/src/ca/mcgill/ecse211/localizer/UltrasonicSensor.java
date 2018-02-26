@@ -16,7 +16,7 @@ public class UltrasonicSensor {
 	private SampleProvider us;
 	private float[] usData;
 	private static final int US_FILTER=2;
-	private static final int US_ERROR=5;
+	public static final int US_ERROR=10;
 	private int distance=0;
 
 
@@ -51,6 +51,19 @@ public class UltrasonicSensor {
 		}
 		return distance; 
 	}
+	
+	/**
+	 * Gets the raw distance seen by the US
+	 * @return the normalized distance seen (as an integer)
+	 */
+	public  int rawDistance() {
+		int filterCount = 0;
+		us.fetchSample(usData, 0); // acquire data
+		distance=(int) (usData[0] * 100.0);// extract from buffer, cast to int and add to total
+			
+		return distance; 
+	}
+	
 	
 	
 	
