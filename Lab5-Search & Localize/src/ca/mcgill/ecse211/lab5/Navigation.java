@@ -22,6 +22,7 @@ public class Navigation {
 	private Odometer odo;
 	private double lastX;
 	private double lastY;
+	private TrackExpansion dynamicTrack;
 	private static boolean navigating=false;
 	private static boolean interrupt=false;
 	
@@ -41,9 +42,11 @@ public class Navigation {
 	 * @param config The Lab5.RobotConfig, i.e. the wheel positioning
 	 * @param odoCor Thread instance of OdometerCorrection
 	 */
-	public Navigation(Odometer odo, Lab5.RobotConfig config) {
+	public Navigation(Odometer odo, TrackExpansion dynamicTrack, Lab5.RobotConfig config) {
 		this.odo=odo;
+		this.dynamicTrack=dynamicTrack;
 		this.config=config;
+		
 		nav=this;
 		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {Lab5.leftMotor, Lab5.rightMotor}) {
 			motor.stop();
@@ -266,8 +269,8 @@ public class Navigation {
 		navigating=true;
 		Lab5.leftMotor.setSpeed(ROTATE_SPEED);
 	    Lab5.rightMotor.setSpeed(ROTATE_SPEED);
-	    Lab5.leftMotor.rotate(-convertAngle(Lab5.WHEEL_RAD, Lab5.TRACK, rotation), true);
-	    Lab5.rightMotor.rotate(convertAngle(Lab5.WHEEL_RAD, Lab5.TRACK, rotation), false);
+	    Lab5.leftMotor.rotate(-convertAngle(TrackExpansion.WHEEL_RAD, dynamicTrack.getTrack(), rotation), true);
+	    Lab5.rightMotor.rotate(convertAngle(TrackExpansion.WHEEL_RAD, dynamicTrack.getTrack(), rotation), false);
 	    navigating=false;
 	}
 	
@@ -345,7 +348,7 @@ public class Navigation {
 	   * 
 	   * @param radius
 	   * @param distance
-	   * @return
+	   * @return rotation in degrees
 	   */
 	 public static int convertDistance(double radius, double distance) {
 	    return (int) ((180.0 * distance) / (Math.PI * radius));
@@ -357,7 +360,7 @@ public class Navigation {
 	  * @param radius of the wheels
 	  * @param width of the wheel base
 	  * @param angle rotation of the robot
-	  * @return
+	  * @return 
 	  */
 	 public static int convertAngle(double radius, double width, double angle) {
 	    return convertDistance(radius, Math.PI * width * angle / 360.0);
@@ -389,5 +392,7 @@ public class Navigation {
 	public static void setInterrupt(boolean interrupt) {
 	   Navigation.interrupt=interrupt;
 	}
+	
+	
 	
 }

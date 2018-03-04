@@ -6,6 +6,7 @@ package ca.mcgill.ecse211.lab5;
 import ca.mcgill.ecse211.odometer.*;
 import ca.mcgill.ecse211.localizer.*;
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -32,10 +33,8 @@ public class Lab5 {
 	public static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
 	public static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
 
-	public static final EV3MediumRegulatedMotor usSensorMotor = new EV3MediumRegulatedMotor(
-			LocalEV3.get().getPort("C"));
-	public static final EV3MediumRegulatedMotor armSensorMotor = new EV3MediumRegulatedMotor(
-			LocalEV3.get().getPort("B"));
+	public static final EV3MediumRegulatedMotor usSensorMotor = new EV3MediumRegulatedMotor(LocalEV3.get().getPort("C"));
+	public static final EV3MediumRegulatedMotor trackExpansionMotor = new EV3MediumRegulatedMotor(LocalEV3.get().getPort("B"));
 
 	public static final TextLCD lcd = LocalEV3.get().getTextLCD();
 	public static final EV3ColorSensor lightSensor = new EV3ColorSensor(LocalEV3.get().getPort("S1"));
@@ -46,17 +45,33 @@ public class Lab5 {
 	public static final int X_GRID_LINES = 7; // doesn't consider the walls
 	public static final int Y_GRID_LINES = 7; // doesn't consider the walls
 
-	// free space between wheels: 13.7 cm
-	// wheel width 2.2 (EACH)
-	// wheel diameter: 4.4
-	public static final double WHEEL_RAD = 2.12;
-	public static final double TRACK = 15.7; // adjust from 13.7 to 18.1
+	
 
-	public static final int LLx = 2;
-	public static final int LLy = 2;
-	public static final int URx = 5;
-	public static final int URy = 5;
-	public static final ColorSensor.BlockColor blockWanted = ColorSensor.BlockColor.YELLOW;
+	public static final int SR_LLx = 1;
+	public static final int SR_LLy = 2;
+	public static final int SR_URx = 3;
+	public static final int SR_URy = 3;
+	public static final int SG_LLx = 4;
+	public static final int SG_LLy = 6;
+	public static final int SG_URx = 6;
+	public static final int SG_URy = 7;
+	public static final int RZ_LLx = 0;
+	public static final int RZ_LLy = 0;
+	public static final int RZ_URx = 4;
+	public static final int RZ_URy = 4;
+	public static final int GZ_LLx = 2;
+	public static final int GZ_LLy = 5;
+	public static final int GZ_URx = 8;
+	public static final int GZ_URy = 8;
+	public static final int BR_LLx = 3;
+	public static final int BR_LLy = 4;
+	public static final int BR_URx = 4;
+	public static final int BR_URy = 5;
+	public static final int TN_LLx = 2;
+	public static final int TN_LLy = 4;
+	public static final int TN_URx = 3;
+	public static final int TN_URy = 5;
+	public static final ColorSensor.BlockColor blockWanted = ColorSensor.BlockColor.RED;
 
 	public static void main(String[] args) {
 		int buttonChoice;
@@ -71,7 +86,8 @@ public class Lab5 {
 			UltrasonicSensor ultraSensor = new UltrasonicSensor(us, usData);
 
 			// Odometer related objects
-			Odometer odometer = Odometer.getOdometer(leftMotor, rightMotor, TRACK, WHEEL_RAD, CONFIG);
+			TrackExpansion dynamicTrack=new TrackExpansion();
+			Odometer odometer = Odometer.getOdometer(leftMotor, rightMotor, dynamicTrack , CONFIG);
 			Display odometryDisplay = new Display(lcd, ultraSensor);
 
 			do {
@@ -81,8 +97,8 @@ public class Lab5 {
 				// ask the user whether the motors should drive in a square or float
 				lcd.drawString("< Left | Right >", 0, 0);
 				lcd.drawString("       |        ", 0, 1);
-				lcd.drawString(" Color | Local- ", 0, 2);
-				lcd.drawString("  Seen | ization", 0, 3);
+				lcd.drawString(" Red   | Green  ", 0, 2);
+				lcd.drawString(" Team  | Team   ", 0, 3);
 				lcd.drawString("       |        ", 0, 4);
 
 				buttonChoice = Button.waitForAnyPress(); // Record choice (left or right press)
@@ -94,11 +110,12 @@ public class Lab5 {
 				Thread odoDisplayThread = new Thread(odometryDisplay);
 				odoDisplayThread.start();
 
-				Navigation navigation = new Navigation(odometer, CONFIG);
+				Navigation navigation = new Navigation(odometer, dynamicTrack, CONFIG);
 
 				// shows color seen by the color sensor
 				lcd.clear();
-				FlagFinding flagFinder = new FlagFinding(cSensor, ultraSensor, blockWanted, LLx, LLy, URx, URy);
+				FlagFinding flagFinder = new FlagFinding(dynamicTrack, cSensor, ultraSensor, blockWanted, SR_LLx, SR_LLy, SR_URx,
+						SR_URy);
 
 				Delay.msDelay(1000);
 
@@ -149,18 +166,18 @@ public class Lab5 {
 				odoThread.start();
 				Thread odoDisplayThread = new Thread(odometryDisplay);
 				odoDisplayThread.start();
+				Navigation navigation = new Navigation(odometer, dynamicTrack, CONFIG);
+				FlagFinding flagFinder = new FlagFinding(dynamicTrack, cSensor, ultraSensor, blockWanted, SR_LLx, SR_LLy, SR_URx, SR_URy);
 
-				Navigation navigation = new Navigation(odometer, CONFIG);
-				FlagFinding flagFinder = new FlagFinding(cSensor, ultraSensor, blockWanted, LLx, LLy, URx, URy);
-
-
-				flagFinder.putArmDown(false);
+				// Localization
+				
 				USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
 				usLoc.doLocalization();
 
 				LightLocalizer lightLoc = new LightLocalizer(navigation, lSensor, odometer, CONFIG);
 				lightLoc.doLocalization(corner);
 
+				// Block finding
 				flagFinder.findBlock();
 				flagFinder.beepSequence(1);
 				System.exit(0);
@@ -168,6 +185,10 @@ public class Lab5 {
 
 		} catch (OdometerExceptions exc) {
 			// instance error, do nothing
+		} catch (Exception e) {
+			// Other error
+			Sound.buzz();
+			System.err.println("Error: " + e.getMessage());
 		}
 	}
 }

@@ -16,7 +16,7 @@ public class LightLocalizer {
 		/**
 		 * Variable for light localization
 		 */
-		private static final double LIGHT_SENSOR_DISTANCE = 6; //from 4 to 8
+		public static final double LIGHT_SENSOR_DISTANCE = 6; //from 4 to 8
 		private final Navigation navigation;
 		private final ColorSensor lightSensor;
 		private final Odometer odo;

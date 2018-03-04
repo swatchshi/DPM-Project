@@ -1,6 +1,7 @@
 package ca.mcgill.ecse211.odometer;
 
 import ca.mcgill.ecse211.lab5.Lab5;
+import ca.mcgill.ecse211.lab5.TrackExpansion;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 public class Odometer extends OdometerData implements Runnable {
@@ -17,8 +18,7 @@ public class Odometer extends OdometerData implements Runnable {
 	  private EV3LargeRegulatedMotor rightMotor;
 	  private Lab5.RobotConfig config;
 	
-	  private final double TRACK;
-	  private final double WHEEL_RAD;
+	  private TrackExpansion dynamicTrack;
 	
 	  private double[] position;
 	
@@ -35,7 +35,7 @@ public class Odometer extends OdometerData implements Runnable {
 	   * @throws OdometerExceptions
 	   */
 	  private Odometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor,
-	      final double TRACK, final double WHEEL_RAD, Lab5.RobotConfig config) throws OdometerExceptions {
+	      TrackExpansion dynamicTrack, Lab5.RobotConfig config) throws OdometerExceptions {
 	                                                  // manipulation methods
 		  this.config=config;
 		  switch(config) {
@@ -57,8 +57,7 @@ public class Odometer extends OdometerData implements Runnable {
 		  this.leftMotorTachoCount = 0;
 		  this.rightMotorTachoCount = 0;
 		
-		  this.TRACK = TRACK;
-		  this.WHEEL_RAD = WHEEL_RAD;
+		  this.dynamicTrack=dynamicTrack;
 	
 	  }
 	
@@ -72,13 +71,13 @@ public class Odometer extends OdometerData implements Runnable {
 	   * @throws OdometerExceptions
 	   */
 	  public synchronized static Odometer getOdometer(EV3LargeRegulatedMotor leftMotor,
-	      EV3LargeRegulatedMotor rightMotor, final double TRACK, final double WHEEL_RAD, Lab5.RobotConfig config)
+	      EV3LargeRegulatedMotor rightMotor, TrackExpansion dynamicTrack, Lab5.RobotConfig config)
 	      throws OdometerExceptions {
 		  
 		    if (odo != null) { // Return existing object
 		      return odo;
 		    } else { // create object and return it
-		      odo = new Odometer(leftMotor, rightMotor, TRACK, WHEEL_RAD, config);
+		      odo = new Odometer(leftMotor, rightMotor, dynamicTrack, config);
 		      return odo;
 		    }
 	  }
@@ -121,10 +120,10 @@ public class Odometer extends OdometerData implements Runnable {
 			      
 			      position=getXYT();	//get the coordinates
 			      
-			      distL=Math.PI*WHEEL_RAD*(leftMotorTachoCount-leftMotorLastTachoCount)/180; 	//convert left rotation to wheel displacement
-			      distR=Math.PI*WHEEL_RAD*(rightMotorTachoCount-rightMotorLastTachoCount)/180;	//convert right rotation to wheel displacement
+			      distL=Math.PI*TrackExpansion.WHEEL_RAD*(leftMotorTachoCount-leftMotorLastTachoCount)/180; 	//convert left rotation to wheel displacement
+			      distR=Math.PI*TrackExpansion.WHEEL_RAD*(rightMotorTachoCount-rightMotorLastTachoCount)/180;	//convert right rotation to wheel displacement
 			      
-			      dTheta=(distL-distR)/TRACK; //Calculating the instantaneous rotation magnitude
+			      dTheta=(distL-distR)/dynamicTrack.getTrack(); //Calculating the instantaneous rotation magnitude
 			      
 			      
 			      if(config==Lab5.RobotConfig.PROPULSION) {
