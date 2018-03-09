@@ -36,9 +36,7 @@ import ca.mcgill.ecse211.localizer.ColorSensor;
  */
 public class EV3WifiClient {
 	public enum CoordParameter {
-		Red_LL_x, Red_LL_y, Red_UR_x, Red_UR_y, Green_LL_x, Green_LL_y, Green_UR_x, Green_UR_y,
-		SR_LL_x, SR_LL_y, SR_UR_x, SR_UR_y, SG_LL_x, SG_LL_y, SG_UR_x, SG_UR_y,
-		BR_LL_x, BR_LL_y, BR_UR_x, BR_UR_y, TN_LL_x, TN_LL_y, TN_UR_x, TN_UR_y,
+		Red_LL_x, Red_LL_y, Red_UR_x, Red_UR_y, Green_LL_x, Green_LL_y, Green_UR_x, Green_UR_y, SR_LL_x, SR_LL_y, SR_UR_x, SR_UR_y, SG_LL_x, SG_LL_y, SG_UR_x, SG_UR_y, BR_LL_x, BR_LL_y, BR_UR_x, BR_UR_y, TN_LL_x, TN_LL_y, TN_UR_x, TN_UR_y,
 	}
 
 	public enum QualParameter {
@@ -53,6 +51,8 @@ public class EV3WifiClient {
 	private static final String SERVER_IP = "192.168.1.104"; // put your ipv4 here (go to cmd and write ipconfig)
 	// "192.168.2.3"
 	private static final int TEAM_NUMBER = 1; // Best team ever, will definitely win the competition
+	public static final int X_GRID_LINES = 8; // according to predefined convention for x
+	public static final int Y_GRID_LINES = 8; // according to predefined convention for y
 
 	// Enable/disable printing of debug info from the WiFi class
 	private static final boolean ENABLE_DEBUG_WIFI_PRINT = false;
@@ -60,26 +60,25 @@ public class EV3WifiClient {
 	private Map data;
 	private TeamColor teamColor;
 
-	
 	/**
-	 * Constructor of the wifi client
-	 * Waits to receive the values from the EV3 server 
-	 * and stores them in a map
+	 * Constructor of the wifi client Waits to receive the values from the EV3
+	 * server and stores them in a map
 	 * 
-	 * @throws Exception if it can't connect
-	 * to the server (e.g. wrong IP address, server not running on laptop, not
-	 * connected to WiFi router, etc.). It will also throw an exception if it
-	 * connects but receives corrupted data or a message from the server saying
-	 * something went wrong
+	 * @throws Exception
+	 *             if it can't connect to the server (e.g. wrong IP address, server
+	 *             not running on laptop, not connected to WiFi router, etc.). It
+	 *             will also throw an exception if it connects but receives
+	 *             corrupted data or a message from the server saying something went
+	 *             wrong
 	 */
-	public EV3WifiClient() throws Exception{
+	public EV3WifiClient() throws Exception {
 		System.out.println("Running..");
 
 		// Initialize WifiConnection class
 		WifiConnection conn = new WifiConnection(SERVER_IP, TEAM_NUMBER, ENABLE_DEBUG_WIFI_PRINT);
 
 		// Connect to server and get the data, catching any errors that might occur
-		
+
 		/*
 		 * getData() will connect to the server and wait until the user/TA presses the
 		 * "Start" button in the GUI on their laptop with the data filled in. Once it's
@@ -94,7 +93,10 @@ public class EV3WifiClient {
 		 * letting you know.
 		 */
 		data = conn.getData();
+		validateData();
 	}
+
+	
 
 	/**
 	 * Gets the color of this Robot's team according to the team number and the
@@ -124,128 +126,294 @@ public class EV3WifiClient {
 		}
 	}
 
-	
-	
 	/**
 	 * Gets the desired coordinate parameter representing the desired grid
 	 * coordinate specified to this method
 	 * 
-	 * @param the CoordParameter desired
+	 * @param the
+	 *            CoordParameter desired
 	 * @return the desired coordinate parameter (as an int)
 	 * 
-	 * This method only accepts name of variables contained in the CoordParameter
-	 * enum in this class Here is the description of each: 
+	 *         This method only accepts name of variables contained in the
+	 *         CoordParameter enum in this class Here is the description of each:
 	 * 
-	 * Red_LL_x, Red_LL_y: lower left grid coordinates of the Red zone with respect to the 0,0
+	 *         Red_LL_x, Red_LL_y: lower left grid coordinates of the Red zone with
+	 *         respect to the 0,0
 	 * 
-	 * Red_UR_x, Red_UR_y: upper right grid coordinates of the Red zone with respect to the 0,0
+	 *         Red_UR_x, Red_UR_y: upper right grid coordinates of the Red zone with
+	 *         respect to the 0,0
 	 * 
-	 * Green_LL_x, Green_LL_y: lower left grid coordinates of the Green zone with respect to the 0,0
+	 *         Green_LL_x, Green_LL_y: lower left grid coordinates of the Green zone
+	 *         with respect to the 0,0
 	 * 
-	 * Green_UR_x, Green_UR_y: upper right grid coordinates of the Green zone with respect to the 0,0
+	 *         Green_UR_x, Green_UR_y: upper right grid coordinates of the Green
+	 *         zone with respect to the 0,0
 	 * 
-	 * SR_LL_x,  SR_LL_y: lower left grid coordinates of the Red search zone with respect to the 0,0
+	 *         SR_LL_x, SR_LL_y: lower left grid coordinates of the Red search zone
+	 *         with respect to the 0,0
 	 * 
-	 * SR_UR_x, SR_UR_y: upper right grid coordinates of the Red search zone with respect to the 0,0
+	 *         SR_UR_x, SR_UR_y: upper right grid coordinates of the Red search zone
+	 *         with respect to the 0,0
 	 * 
-	 * SG_LL_x, SG_LL_y: lower left grid coordinates of the Green search zone with respect to the 0,0
+	 *         SG_LL_x, SG_LL_y: lower left grid coordinates of the Green search
+	 *         zone with respect to the 0,0
 	 * 
-	 * SG_UR_x, SG_UR_y: upper right grid coordinates of the Green search zone with respect to the 0,0
+	 *         SG_UR_x, SG_UR_y: upper right grid coordinates of the Green search
+	 *         zone with respect to the 0,0
 	 * 
-	 * BR_LL_x, BR_LL_y: lower left grid coordinates of the bridge with respect to the 0,0
+	 *         BR_LL_x, BR_LL_y: lower left grid coordinates of the bridge with
+	 *         respect to the 0,0
 	 * 
-	 * BR_UR_x, BR_UR_y: upper right grid coordinates of the bridge zone with respect to the 0,0
+	 *         BR_UR_x, BR_UR_y: upper right grid coordinates of the bridge zone
+	 *         with respect to the 0,0
 	 * 
-	 * TN_LL_x, TN_LL_y: lower left grid coordinates of the tunnel with respect to the 0,0
+	 *         TN_LL_x, TN_LL_y: lower left grid coordinates of the tunnel with
+	 *         respect to the 0,0
 	 * 
-	 * TN_UR_x, TN_UR_y: upper right grid coordinates of the tunnel with respect to the 0,0
+	 *         TN_UR_x, TN_UR_y: upper right grid coordinates of the tunnel with
+	 *         respect to the 0,0
 	 * 
 	 */
 	public int getCoordParam(CoordParameter param) {
 		return ((Long) data.get(param.toString())).intValue();
 	}
-	
-	
+
 	/**
 	 * Gets the starting corner of this robot based on it's team color
 	 * 
-	 * @return the starting corner between 0 and 3
-	 * 0: lower left
-	 * 1: lower right
-	 * 2: upper right
-	 * 3: upper left
-	 * @throws Exception Throws this general exception with a personalized message
-	 * 					when the robot is not in one of the two teams, thus should not
-	 * 					start in a corner
+	 * @return the starting corner between 0 and 3 0: lower left 1: lower right 2:
+	 *         upper right 3: upper left
+	 * @throws Exception
+	 *             Throws this general exception with a personalized message when
+	 *             the robot is not in one of the two teams, thus should not start
+	 *             in a corner
 	 */
 	public int getStartingCorner() throws Exception {
-		TeamColor teamColor=getTeamColor();
-		if(teamColor==teamColor.RED) {
-			//Red team
+		TeamColor teamColor = getTeamColor();
+		if (teamColor == teamColor.RED) {
+			// Red team
 			return ((Long) data.get(QualParameter.RedCorner)).intValue();
-		}else {
-			//Green team
+		} else {
+			// Green team
 			return ((Long) data.get(QualParameter.GreenCorner)).intValue();
+		}
+	}
+
+	/**
+	 * Gets the block color of the flag which the robot has to find It is usually
+	 * the oponent's flag
+	 * 
+	 * @return the desired BlockColor (enum in ColorSensor class) Possible values
+	 *         are listed as follows: RED (1) BLUE (2) YELLOW (3) WHITE (4)
+	 * 
+	 * @throws Exception
+	 *             Throws this general exception with a personalized message when
+	 *             the robot is not in one of the two teams, thus should not start
+	 *             in a corner, or if the color of the oponent's flag is not defined
+	 *             correctly
+	 */
+	public ColorSensor.BlockColor getFlagColor() throws Exception {
+		TeamColor teamColor = getTeamColor();
+		if (teamColor == teamColor.RED) {
+			// Red team
+			// looks for flag of green team
+			switch (((Long) data.get(QualParameter.OG)).intValue()) {
+			case 1:
+				// Red
+				return ColorSensor.BlockColor.RED;
+			case 2:
+				// Blue
+				return ColorSensor.BlockColor.BLUE;
+			case 3:
+				// Yellow
+				return ColorSensor.BlockColor.YELLOW;
+			case 4:
+				// White
+				return ColorSensor.BlockColor.WHITE;
+			default:
+				throw new Exception("Unspecified/Erroneous green flag color");
+			}
+		} else {
+			// Green team
+			// looks for flag of red team
+			switch (((Long) data.get(QualParameter.OR)).intValue()) {
+			case 1:
+				// Red
+				return ColorSensor.BlockColor.RED;
+			case 2:
+				// Blue
+				return ColorSensor.BlockColor.BLUE;
+			case 3:
+				// Yellow
+				return ColorSensor.BlockColor.YELLOW;
+			case 4:
+				// White
+				return ColorSensor.BlockColor.WHITE;
+			default:
+				throw new Exception("Unspecified/Erroneous red flag color");
+			}
 		}
 	}
 	
 	
 	/**
-	 * Gets the block color of the flag which the robot has to find
-	 * It is usually the oponent's flag
+	 * Method for the validation of the server user input Checks every parameter and
+	 * makes sure it is plausible
 	 * 
-	 * @return the desired BlockColor (enum in ColorSensor class)
-	 * Possible values are listed as follows:
-	 * RED		(1)
-	 * BLUE		(2)
-	 * YELLOW	(3)
-	 * WHITE	(4)
-	 * 
-	 * @throws Exception Throws this general exception with a personalized message
-	 * 					when the robot is not in one of the two teams, thus should not
-	 * 					start in a corner, or if the color of the oponent's flag is not
-	 * 					defined correctly
+	 * @throws Exception
+	 *             throws a generalized Exception containing specific message on
+	 *             what parameter is not correct
 	 */
-	public ColorSensor.BlockColor getFlagColor() throws Exception{
-		TeamColor teamColor=getTeamColor();
-		if(teamColor==teamColor.RED) {
-			//Red team
-			//looks for flag of green team
-			switch(((Long) data.get(QualParameter.OG)).intValue()) {
-				case 1:
-					//Red
-					return ColorSensor.BlockColor.RED;
-				case 2:
-					//Blue
-					return ColorSensor.BlockColor.BLUE;
-				case 3:
-					//Yellow
-					return ColorSensor.BlockColor.YELLOW;
-				case 4:
-					//White
-					return ColorSensor.BlockColor.WHITE;
-				default:
-					throw new Exception("Unspecified/Erroneous green flag color");
+	private void validateData() throws Exception {
+		int param; // place holder for the data checked
+		// Coordinate parameters
+		for (int i = 0; i < CoordParameter.values().length; i++) {
+			switch (CoordParameter.values()[i]) {
+			case BR_LL_x:
+			case BR_UR_x:
+			case TN_LL_x:
+			case TN_UR_x:
+			case Green_LL_x:
+			case Green_UR_x:
+			case Red_LL_x:
+			case Red_UR_x:
+			case SG_LL_x:
+			case SG_UR_x:
+			case SR_LL_x:
+			case SR_UR_x:
+				param = ((Long) data.get(CoordParameter.values()[i].toString())).intValue();
+				if (param < 0 || param > X_GRID_LINES) {
+					throw new Exception("Parameter " + CoordParameter.values()[i].toString() + " out of bounds");
+				}
+				break;
+
+			case BR_LL_y:
+			case BR_UR_y:
+			case TN_LL_y:
+			case TN_UR_y:
+			case Green_LL_y:
+			case Green_UR_y:
+			case Red_LL_y:
+			case Red_UR_y:
+			case SG_LL_y:
+			case SG_UR_y:
+			case SR_LL_y:
+			case SR_UR_y:
+				param = ((Long) data.get(CoordParameter.values()[i].toString())).intValue();
+				if (param < 0 || param > Y_GRID_LINES) {
+					throw new Exception("Parameter " + CoordParameter.values()[i].toString() + " out of bounds");
+				}
+				break;
 			}
-		}else {
-			//Green team
-			//looks for flag of red team
-			switch(((Long) data.get(QualParameter.OR)).intValue()) {
-				case 1:
-					//Red
-					return ColorSensor.BlockColor.RED;
-				case 2:
-					//Blue
-					return ColorSensor.BlockColor.BLUE;
-				case 3:
-					//Yellow
-					return ColorSensor.BlockColor.YELLOW;
-				case 4:
-					//White
-					return ColorSensor.BlockColor.WHITE;
-				default:
-					throw new Exception("Unspecified/Erroneous red flag color");
+		}
+
+		// Qualitative parameters
+		for (int i = 0; i < QualParameter.values().length; i++) {
+			switch (QualParameter.values()[i]) {
+			case GreenTeam:
+			case RedTeam:
+				param = ((Long) data.get(CoordParameter.values()[i].toString())).intValue();
+				if (param < 1 || param > 20) {
+					throw new Exception("Parameter " + QualParameter.values()[i].toString() + " out of bounds");
+				}
+				break;
+			case GreenCorner:
+			case RedCorner:
+				param = ((Long) data.get(CoordParameter.values()[i].toString())).intValue();
+				if (param < 0 || param > 4) {
+					throw new Exception("Parameter " + QualParameter.values()[i].toString() + " out of bounds");
+				}
+				break;
+			case OG:
+			case OR:
+				param = ((Long) data.get(CoordParameter.values()[i].toString())).intValue();
+				if (param < 1 || param > 4) {
+					throw new Exception("Parameter " + QualParameter.values()[i].toString() + " out of bounds");
+				}
+				break;
 			}
+		}
+
+		// Bridge in x
+		param = ((Long) data.get(CoordParameter.BR_UR_x.toString())).intValue()
+				- ((Long) data.get(CoordParameter.BR_LL_x.toString())).intValue();
+		if (param < 1 || param > 2) {
+			throw new Exception("Bridge length in x out of bounds");
+		}
+
+		// Bridge in y
+		param = ((Long) data.get(CoordParameter.BR_UR_y.toString())).intValue()
+				- ((Long) data.get(CoordParameter.BR_LL_y.toString())).intValue();
+		if (param < 1 || param > 2) {
+			throw new Exception("Bridge length in y out of bounds");
+		}
+
+		// Tunnel in x
+		param = ((Long) data.get(CoordParameter.TN_UR_x.toString())).intValue()
+				- ((Long) data.get(CoordParameter.TN_LL_x.toString())).intValue();
+		if (param < 1 || param > 2) {
+			throw new Exception("Tunnel length in x out of bounds");
+		}
+
+		// Tunnel in y
+		param = ((Long) data.get(CoordParameter.TN_UR_y.toString())).intValue()
+				- ((Long) data.get(CoordParameter.TN_LL_y.toString())).intValue();
+		if (param < 1 || param > 2) {
+			throw new Exception("Tunnel length in y out of bounds");
+		}
+
+		// Green zone in x
+		param = ((Long) data.get(CoordParameter.Green_LL_x.toString())).intValue()
+				- ((Long) data.get(CoordParameter.Green_LL_x.toString())).intValue();
+		if (param < 2 || param > 10) {
+			throw new Exception("Green zone length in x out of bounds");
+		}
+
+		// Green zone in y
+		param = ((Long) data.get(CoordParameter.Green_UR_y.toString())).intValue()
+				- ((Long) data.get(CoordParameter.Green_LL_y.toString())).intValue();
+		if (param < 2 || param > 10) {
+			throw new Exception("Green zone length in y out of bounds");
+		}
+		// Red zone in x
+		param = ((Long) data.get(CoordParameter.Red_LL_x.toString())).intValue()
+				- ((Long) data.get(CoordParameter.Red_LL_x.toString())).intValue();
+		if (param < 2 || param > 10) {
+			throw new Exception("Red zone length in x out of bounds");
+		}
+
+		// Red zone in y
+		param = ((Long) data.get(CoordParameter.Red_UR_y.toString())).intValue()
+				- ((Long) data.get(CoordParameter.Red_LL_y.toString())).intValue();
+		if (param < 2 || param > 10) {
+			throw new Exception("Red zone length in y out of bounds");
+		}
+
+		// Green search zone in x
+		param = ((Long) data.get(CoordParameter.SG_LL_x.toString())).intValue()
+				- ((Long) data.get(CoordParameter.SG_LL_x.toString())).intValue();
+		if (param < 2 || param > 10) {
+			throw new Exception("Green search zone length in x out of bounds");
+		}
+
+		// Green search zone in y
+		param = ((Long) data.get(CoordParameter.SG_UR_y.toString())).intValue()
+				- ((Long) data.get(CoordParameter.SG_LL_y.toString())).intValue();
+		if (param < 2 || param > 10) {
+			throw new Exception("Green search zone length in y out of bounds");
+		}
+		// Red search zone in x
+		param = ((Long) data.get(CoordParameter.SR_LL_x.toString())).intValue()
+				- ((Long) data.get(CoordParameter.SR_LL_x.toString())).intValue();
+		if (param < 2 || param > 10) {
+			throw new Exception("Red search zone length in x out of bounds");
+		}
+
+		// Red search zone in y
+		param = ((Long) data.get(CoordParameter.SR_UR_y.toString())).intValue()
+				- ((Long) data.get(CoordParameter.SR_LL_y.toString())).intValue();
+		if (param < 2 || param > 10) {
+			throw new Exception("Red search zone length in y out of bounds");
 		}
 	}
 }

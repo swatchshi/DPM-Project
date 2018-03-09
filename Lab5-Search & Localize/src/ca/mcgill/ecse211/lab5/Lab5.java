@@ -42,8 +42,7 @@ public class Lab5 {
 	public static final SensorModes ultraSSensor = new EV3UltrasonicSensor(LocalEV3.get().getPort("S4"));
 
 	public static final RobotConfig CONFIG = RobotConfig.PROPULSION;
-	public static final int X_GRID_LINES = 7; // doesn't consider the walls
-	public static final int Y_GRID_LINES = 7; // doesn't consider the walls
+	
 
 	
 
@@ -175,7 +174,8 @@ public class Lab5 {
 				usLoc.doLocalization();
 
 				LightLocalizer lightLoc = new LightLocalizer(navigation, lSensor, odometer, CONFIG);
-				lightLoc.doLocalization(corner);
+				//////////////////////////////////////////////////////////////////////////////////////////////////
+				lightLoc.doLocalization(1, 1, 0);
 
 				// Block finding
 				flagFinder.findBlock();
