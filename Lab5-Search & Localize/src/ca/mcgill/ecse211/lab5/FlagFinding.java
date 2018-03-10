@@ -30,7 +30,6 @@ public class FlagFinding {
 	private static final long MAX_SEARCH_TIME=270000; //4.5 min  is 270 000 ms
 	private double LLx,LLy,URx,URy;
 	private double xRange, yRange;
-	private boolean armDown=true;
 	private boolean headTurned=false;
 	private TrackExpansion dynamicTrack;
 	private ColorSensor colorSensor;
@@ -86,11 +85,11 @@ public class FlagFinding {
 	public boolean rotateUltrasonicSensor (boolean usSensorTurn) {
 		
 		if (usSensorTurn && !headTurned) { //
-			Lab5.usSensorMotor.rotate(US_ROTATION_AMPLITUDE, true);
+			GamePlan.usSensorMotor.rotate(US_ROTATION_AMPLITUDE, true);
 			headTurned = true;
 		}
 		else if(!usSensorTurn&& headTurned) {
-			Lab5.usSensorMotor.rotate(-US_ROTATION_AMPLITUDE, true);
+			GamePlan.usSensorMotor.rotate(-US_ROTATION_AMPLITUDE, true);
 			headTurned = false;
 		}
 		return headTurned;

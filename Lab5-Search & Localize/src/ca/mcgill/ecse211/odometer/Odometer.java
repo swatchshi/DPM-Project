@@ -1,5 +1,6 @@
 package ca.mcgill.ecse211.odometer;
 
+import ca.mcgill.ecse211.lab5.GamePlan;
 import ca.mcgill.ecse211.lab5.Lab5;
 import ca.mcgill.ecse211.lab5.TrackExpansion;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -16,7 +17,7 @@ public class Odometer extends OdometerData implements Runnable {
 	  private int rightMotorLastTachoCount;
 	  private EV3LargeRegulatedMotor leftMotor;
 	  private EV3LargeRegulatedMotor rightMotor;
-	  private Lab5.RobotConfig config;
+	  private GamePlan.RobotConfig config;
 	
 	  private TrackExpansion dynamicTrack;
 	
@@ -35,7 +36,7 @@ public class Odometer extends OdometerData implements Runnable {
 	   * @throws OdometerExceptions
 	   */
 	  private Odometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor,
-	      TrackExpansion dynamicTrack, Lab5.RobotConfig config) throws OdometerExceptions {
+	      TrackExpansion dynamicTrack, GamePlan.RobotConfig config) throws OdometerExceptions {
 	                                                  // manipulation methods
 		  this.config=config;
 		  switch(config) {
@@ -71,7 +72,7 @@ public class Odometer extends OdometerData implements Runnable {
 	   * @throws OdometerExceptions
 	   */
 	  public synchronized static Odometer getOdometer(EV3LargeRegulatedMotor leftMotor,
-	      EV3LargeRegulatedMotor rightMotor, TrackExpansion dynamicTrack, Lab5.RobotConfig config)
+	      EV3LargeRegulatedMotor rightMotor, TrackExpansion dynamicTrack, GamePlan.RobotConfig config)
 	      throws OdometerExceptions {
 		  
 		    if (odo != null) { // Return existing object
@@ -126,7 +127,7 @@ public class Odometer extends OdometerData implements Runnable {
 			      dTheta=(distL-distR)/dynamicTrack.getTrack(); //Calculating the instantaneous rotation magnitude
 			      
 			      
-			      if(config==Lab5.RobotConfig.PROPULSION) {
+			      if(config==GamePlan.RobotConfig.PROPULSION) {
 			    	  dTheta=-Math.toDegrees(dTheta); //conversion to degrees
 				      position[2]+=dTheta; 			//new temporary angle
 				      

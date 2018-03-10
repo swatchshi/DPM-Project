@@ -20,7 +20,7 @@ public class LightLocalizer {
 	private final Navigation navigation;
 	private final ColorSensor lightSensor;
 	private final Odometer odo;
-	private final Lab5.RobotConfig config;
+	private final GamePlan.RobotConfig config;
 	private boolean lightLocalizerDone; // tells when the localization is over
 
 	/**
@@ -35,7 +35,7 @@ public class LightLocalizer {
 	 * @param config
 	 *            The Lab5.RobotConfig, i.e. the wheel positioning
 	 */
-	public LightLocalizer(Navigation navigation, ColorSensor lightSensor, Odometer odo, Lab5.RobotConfig config) {
+	public LightLocalizer(Navigation navigation, ColorSensor lightSensor, Odometer odo, GamePlan.RobotConfig config) {
 		this.odo = odo;
 		this.navigation = navigation;
 		this.lightSensor = lightSensor;

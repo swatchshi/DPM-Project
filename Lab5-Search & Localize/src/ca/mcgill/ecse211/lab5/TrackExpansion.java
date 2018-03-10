@@ -1,6 +1,7 @@
 package ca.mcgill.ecse211.lab5;
 
 import lejos.hardware.Button;
+import lejos.hardware.lcd.TextLCD;
 
 public class TrackExpansion {
 
@@ -36,10 +37,10 @@ public class TrackExpansion {
 		int initialTachoCount,finalTachoCount;
 		if(!expanded) {
 			//Expand
-			Lab5.trackExpansionMotor.setSpeed(SCREW_SPEED);
-			initialTachoCount=Lab5.trackExpansionMotor.getTachoCount();
-			Lab5.trackExpansionMotor.rotate(convertExpansion(MAX_TRACK-track)); //Rotate to expand
-			finalTachoCount=Lab5.trackExpansionMotor.getTachoCount();
+			GamePlan.trackExpansionMotor.setSpeed(SCREW_SPEED);
+			initialTachoCount=GamePlan.trackExpansionMotor.getTachoCount();
+			GamePlan.trackExpansionMotor.rotate(convertExpansion(MAX_TRACK-track)); //Rotate to expand
+			finalTachoCount=GamePlan.trackExpansionMotor.getTachoCount();
 			
 			track+=convertRotation(Math.abs(finalTachoCount-initialTachoCount)); //calculate the real track
 			expanded=true;
@@ -58,10 +59,10 @@ public class TrackExpansion {
 		int initialTachoCount,finalTachoCount;
 		if(expanded) {
 			//Retrack
-			Lab5.trackExpansionMotor.setSpeed(SCREW_SPEED);
-			initialTachoCount=Lab5.trackExpansionMotor.getTachoCount();
-			Lab5.trackExpansionMotor.rotate(-convertExpansion(track-MIN_TRACK)); //Rotate to expand
-			finalTachoCount=Lab5.trackExpansionMotor.getTachoCount();
+			GamePlan.trackExpansionMotor.setSpeed(SCREW_SPEED);
+			initialTachoCount=GamePlan.trackExpansionMotor.getTachoCount();
+			GamePlan.trackExpansionMotor.rotate(-convertExpansion(track-MIN_TRACK)); //Rotate to expand
+			finalTachoCount=GamePlan.trackExpansionMotor.getTachoCount();
 			
 			track-=convertRotation(Math.abs(finalTachoCount-initialTachoCount)); //calculate the real track
 			expanded=false;
@@ -75,34 +76,72 @@ public class TrackExpansion {
 	 * Procedure to adjust the track to its minimum manually
 	 * The track will start to slowly retract
 	 * Waits for the user to press any button when the minimum track has been reached
+	 * Cancel option included
 	 */
-	public void adjustToMin() {
-		Lab5.trackExpansionMotor.setSpeed(MAINTENANCE_SPEED);
-		Lab5.lcd.clear();
-		Lab5.lcd.drawString("Adjust to Min Track", 0, 0);
-		Lab5.lcd.drawString("Press any button when reached", 0, 1);
-		Lab5.trackExpansionMotor.backward();
-		Button.waitForAnyPress();
-		Lab5.trackExpansionMotor.stop();
-		Lab5.lcd.clear();
-		track=MIN_TRACK;
+	public void adjustToMin(TextLCD lcd) {
+		int buttonID;
+		do {
+			// clear the display
+			lcd.clear();
+
+			// ask the user whether the motors should drive in a square or float
+			lcd.drawString("Screw Maintenance", 0, 0);
+			lcd.drawString(" Press enter to ", 0, 1);
+			lcd.drawString(" start min set  ", 0, 2);
+			lcd.drawString(" Press back     ", 0, 3);
+			lcd.drawString(" to skip min set", 0, 4);
+			buttonID=Button.waitForAnyPress();
+
+		}while(buttonID==Button.ID_ENTER || buttonID==Button.ID_ESCAPE);
+		
+		if(buttonID==Button.ID_ENTER) {
+			GamePlan.trackExpansionMotor.setSpeed(MAINTENANCE_SPEED);
+			lcd.clear();
+			lcd.drawString("Adjust to Min Track", 0, 0);
+			lcd.drawString("Press any button   ", 0, 1);
+			lcd.drawString(" when reached      ", 0, 2);
+			GamePlan.trackExpansionMotor.backward();
+			Button.waitForAnyPress();
+			GamePlan.trackExpansionMotor.stop();
+			lcd.clear();
+			track=MIN_TRACK;
+		}
 	}
 	
 	/**
 	 * Procedure to adjust the track to its maximum manually
 	 * The track will start to slowly expand
 	 * Waits for the user to press any button when the maximum track has been reached
+	 * Cancel option included
 	 */
-	public void adjustToMax() {
-		Lab5.trackExpansionMotor.setSpeed(MAINTENANCE_SPEED);
-		Lab5.lcd.clear();
-		Lab5.lcd.drawString("Adjust to Max Track", 0, 0);
-		Lab5.lcd.drawString("Press any button when reached", 0, 1);
-		Lab5.trackExpansionMotor.forward();
-		Button.waitForAnyPress();
-		Lab5.trackExpansionMotor.stop();
-		Lab5.lcd.clear();
-		track=MIN_TRACK;
+	public void adjustToMax(TextLCD lcd) {
+		int buttonID;
+		do {
+			// clear the display
+			lcd.clear();
+
+			// ask the user whether the motors should drive in a square or float
+			lcd.drawString("Screw Maintenance", 0, 0);
+			lcd.drawString(" Press enter to ", 0, 1);
+			lcd.drawString(" start max set  ", 0, 2);
+			lcd.drawString(" Press back     ", 0, 3);
+			lcd.drawString(" to skip max set", 0, 4);
+			buttonID=Button.waitForAnyPress();
+
+		}while(buttonID==Button.ID_ENTER || buttonID==Button.ID_ESCAPE);
+		
+		if(buttonID==Button.ID_ENTER) {
+			GamePlan.trackExpansionMotor.setSpeed(MAINTENANCE_SPEED);
+			lcd.clear();
+			lcd.drawString("Adjust to Max Track", 0, 0);
+			lcd.drawString("Press any button   ", 0, 1);
+			lcd.drawString(" when reached      ", 0, 2);
+			GamePlan.trackExpansionMotor.forward();
+			Button.waitForAnyPress();
+			GamePlan.trackExpansionMotor.stop();
+			lcd.clear();
+			track=MIN_TRACK;
+		}
 	}
 	
 	

@@ -27,7 +27,7 @@ public class Navigation {
 	private static boolean interrupt=false;
 	
 	private static Navigation nav; //Holds the used instance of this class
-	private Lab5.RobotConfig config;
+	private GamePlan.RobotConfig config;
 	
 	public static enum Turn{
 		CLOCK_WISE, 
@@ -42,13 +42,13 @@ public class Navigation {
 	 * @param config The Lab5.RobotConfig, i.e. the wheel positioning
 	 * @param odoCor Thread instance of OdometerCorrection
 	 */
-	public Navigation(Odometer odo, TrackExpansion dynamicTrack, Lab5.RobotConfig config) {
+	public Navigation(Odometer odo, TrackExpansion dynamicTrack, GamePlan.RobotConfig config) {
 		this.odo=odo;
 		this.dynamicTrack=dynamicTrack;
 		this.config=config;
 		
 		nav=this;
-		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {Lab5.leftMotor, Lab5.rightMotor}) {
+		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {GamePlan.leftMotor, GamePlan.rightMotor}) {
 			motor.stop();
 			motor.setAcceleration(2000);
 		}
@@ -139,16 +139,16 @@ public class Navigation {
 	 */
 	public void travelForward() {
 		navigating=true;
-		Lab5.leftMotor.setSpeed(FORWARD_SPEED);
-		Lab5.rightMotor.setSpeed(FORWARD_SPEED);
+		GamePlan.leftMotor.setSpeed(FORWARD_SPEED);
+		GamePlan.rightMotor.setSpeed(FORWARD_SPEED);
 		switch(config) {
 			case PROPULSION:
-				Lab5.rightMotor.backward();
-				Lab5.leftMotor.backward();
+				GamePlan.rightMotor.backward();
+				GamePlan.leftMotor.backward();
 				break;
 			case TRACTION:
-				Lab5.rightMotor.forward();
-				Lab5.leftMotor.forward();
+				GamePlan.rightMotor.forward();
+				GamePlan.leftMotor.forward();
 				break;
 		} 
 	}
@@ -212,16 +212,16 @@ public class Navigation {
 	 */
 	public void travelBackward() {
 		navigating=true;
-		Lab5.leftMotor.setSpeed(FORWARD_SPEED);
-		Lab5.rightMotor.setSpeed(FORWARD_SPEED);
+		GamePlan.leftMotor.setSpeed(FORWARD_SPEED);
+		GamePlan.rightMotor.setSpeed(FORWARD_SPEED);
 		switch(config) {
 			case TRACTION:
-				Lab5.rightMotor.backward();
-				Lab5.leftMotor.backward();
+				GamePlan.rightMotor.backward();
+				GamePlan.leftMotor.backward();
 				break;
 			case PROPULSION:
-				Lab5.rightMotor.forward();
-				Lab5.leftMotor.forward();
+				GamePlan.rightMotor.forward();
+				GamePlan.leftMotor.forward();
 				break;
 		}
 	}
@@ -232,8 +232,8 @@ public class Navigation {
 	 * Procedure to stop the motors at once
 	 */
 	public void stopMotors() {
-		Lab5.rightMotor.stop(true);
-		Lab5.leftMotor.stop(false);
+		GamePlan.rightMotor.stop(true);
+		GamePlan.leftMotor.stop(false);
 		navigating=false;
 	}
 	
@@ -267,10 +267,10 @@ public class Navigation {
 	 */
 	public void turn(double rotation) {
 		navigating=true;
-		Lab5.leftMotor.setSpeed(ROTATE_SPEED);
-	    Lab5.rightMotor.setSpeed(ROTATE_SPEED);
-	    Lab5.leftMotor.rotate(-convertAngle(TrackExpansion.WHEEL_RAD, dynamicTrack.getTrack(), rotation), true);
-	    Lab5.rightMotor.rotate(convertAngle(TrackExpansion.WHEEL_RAD, dynamicTrack.getTrack(), rotation), false);
+		GamePlan.leftMotor.setSpeed(ROTATE_SPEED);
+	    GamePlan.rightMotor.setSpeed(ROTATE_SPEED);
+	    GamePlan.leftMotor.rotate(-convertAngle(TrackExpansion.WHEEL_RAD, dynamicTrack.getTrack(), rotation), true);
+	    GamePlan.rightMotor.rotate(convertAngle(TrackExpansion.WHEEL_RAD, dynamicTrack.getTrack(), rotation), false);
 	    navigating=false;
 	}
 	
@@ -279,16 +279,16 @@ public class Navigation {
 	 */
 	public void rotate(Turn direction) {
 		navigating=true;
-		Lab5.leftMotor.setSpeed(ROTATE_SPEED);
-	    Lab5.rightMotor.setSpeed(ROTATE_SPEED);
+		GamePlan.leftMotor.setSpeed(ROTATE_SPEED);
+	    GamePlan.rightMotor.setSpeed(ROTATE_SPEED);
 	    switch(direction) {
 			case CLOCK_WISE:
-				Lab5.rightMotor.forward();
-				Lab5.leftMotor.backward();
+				GamePlan.rightMotor.forward();
+				GamePlan.leftMotor.backward();
 				break;
 			case COUNTER_CLOCK_WISE:
-				Lab5.rightMotor.backward();
-				Lab5.leftMotor.forward();
+				GamePlan.rightMotor.backward();
+				GamePlan.leftMotor.forward();
 				break;
 	    }
 		navigating=false;

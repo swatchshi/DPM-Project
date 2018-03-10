@@ -47,6 +47,10 @@ public class EV3WifiClient {
 		RED, GREEN
 	}
 
+	public enum Zone {
+		RED, GREEN, WATER, BRIDGE, TUNNEL
+	}
+
 	// ** Set these as appropriate for your team and current situation **
 	private static final String SERVER_IP = "192.168.1.104"; // put your ipv4 here (go to cmd and write ipconfig)
 	// "192.168.2.3"
@@ -95,8 +99,6 @@ public class EV3WifiClient {
 		data = conn.getData();
 		validateData();
 	}
-
-	
 
 	/**
 	 * Gets the color of this Robot's team according to the team number and the
@@ -201,7 +203,7 @@ public class EV3WifiClient {
 
 	/**
 	 * Gets the block color of the flag which the robot has to find It is usually
-	 * the oponent's flag
+	 * the oponent's flag.
 	 * 
 	 * @return the desired BlockColor (enum in ColorSensor class) Possible values
 	 *         are listed as follows: RED (1) BLUE (2) YELLOW (3) WHITE (4)
@@ -254,6 +256,106 @@ public class EV3WifiClient {
 			}
 		}
 	}
+
+	
+	/**
+	 * Gets the zone which contains the specified line coordinates
+	 * Default zone is WATER
+	 * 
+	 * @param x Line number in x (0, 1, ..., X_GRID_LINES)
+	 * @param y Line number in y (0, 1, ..., Y_GRID_LINES)
+	 * @return The Zone where the coordinates are
+	 */
+	public Zone getZone(int x, int y) {
+		return getZone(x*Navigation.TILE_SIZE, y*Navigation.TILE_SIZE);
+	}
+	
+	/**
+	 * Gets the zone which contains the specified odometer coordinates.
+	 * Default zone is WATER
+	 * 
+	 * @param x Coordinate in x (as a double)
+	 * @param y Coordinate in y (as a double)
+	 * @return The Zone where the coordinates are
+	 */
+	public Zone getZone(double x, double y) {
+		for(Zone zone: Zone.values()) { 
+			if(isInZone(x, y, zone)) {//Checks every zone until it finds the right zone
+				return zone;
+			}
+		}
+		return Zone.WATER; //default value
+	}
+	
+	/**
+	 * Gets if the specified line coordinates 
+	 * are in the specified zone.
+	 * 
+	 * @param targetX Line number in x (0, 1, ..., X_GRID_LINES)
+	 * @param targetY Line number in y (0, 1, ..., Y_GRID_LINES)
+	 * @param zone Zone which needs to be checked.
+	 * @return True if the coordinates are in the zone.
+	 */
+	public boolean isInZone(int targetX, int targetY, Zone zone) {
+		return isInZone(targetX*Navigation.TILE_SIZE, targetY*Navigation.TILE_SIZE, zone);
+	}
+
+	
+	
+	/**
+	 * Gets if the specified odometer coordinates 
+	 * are in the specified zone.
+	 * 
+	 * @param targetX Coordinate in x (as a double)
+	 * @param targetY Coordinate in y (as a double)
+	 * @param zone Zone which needs to be checked
+	 * @return True if the coordinates are in the zone
+	 */
+	public boolean isInZone(double targetX, double targetY, Zone zone) {
+		switch (zone) {
+		case RED:
+			if (targetX <= getCoordParam(CoordParameter.Red_UR_x) * Navigation.TILE_SIZE
+					&& targetX >= getCoordParam(CoordParameter.Red_LL_x) * Navigation.TILE_SIZE
+					&& targetY <= getCoordParam(CoordParameter.Red_UR_y) * Navigation.TILE_SIZE
+					&& targetY >= getCoordParam(CoordParameter.Red_LL_y) * Navigation.TILE_SIZE) {
+				return true;
+			}
+			break;
+		case GREEN:
+			if (targetX <= getCoordParam(CoordParameter.Green_UR_x) * Navigation.TILE_SIZE
+					&& targetX >= getCoordParam(CoordParameter.Green_LL_x) * Navigation.TILE_SIZE
+					&& targetY <= getCoordParam(CoordParameter.Green_UR_y) * Navigation.TILE_SIZE
+					&& targetY >= getCoordParam(CoordParameter.Green_LL_y) * Navigation.TILE_SIZE) {
+				return true;
+			}
+			break;
+		case BRIDGE:
+			if (targetX < getCoordParam(CoordParameter.BR_UR_x) * Navigation.TILE_SIZE
+					&& targetX > getCoordParam(CoordParameter.BR_LL_x) * Navigation.TILE_SIZE
+					&& targetY < getCoordParam(CoordParameter.BR_UR_y) * Navigation.TILE_SIZE
+					&& targetY > getCoordParam(CoordParameter.BR_LL_y) * Navigation.TILE_SIZE) {
+				return true;
+			}
+			break;
+		case TUNNEL:
+			if (targetX < getCoordParam(CoordParameter.TN_UR_x) * Navigation.TILE_SIZE
+					&& targetX > getCoordParam(CoordParameter.TN_LL_x) * Navigation.TILE_SIZE
+					&& targetY < getCoordParam(CoordParameter.TN_UR_y) * Navigation.TILE_SIZE
+					&& targetY > getCoordParam(CoordParameter.TN_LL_y) * Navigation.TILE_SIZE) {
+				return true;
+			}
+			break;
+		case WATER:
+			//if is not in any of the zones above
+			if (!isInZone(targetX, targetY, Zone.GREEN) && !isInZone(targetX, targetY, Zone.RED)
+					&& !isInZone(targetX, targetY, Zone.TUNNEL) && !isInZone(targetX, targetY, Zone.BRIDGE)) {
+				return true;
+			}
+			break;
+		}
+		return false;
+	}
+
 	
 	
 	/**
