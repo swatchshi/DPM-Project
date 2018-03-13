@@ -8,7 +8,7 @@ import ca.mcgill.ecse211.odometer.OdometerExceptions;
 import lejos.hardware.lcd.TextLCD;
 
 /**
- * This class is used to display the content of the odometer variables (x, y, Theta)
+ * This class is used to display the content of the odometer variables (x, y, Theta) and ultrasonic distance.
  */
 public class Display implements Runnable {
 
@@ -20,10 +20,11 @@ public class Display implements Runnable {
   private long timeout = Long.MAX_VALUE;
 
   /**
-   * This is the class constructor
+   * Constructor of the Display
    * 
-   * @param odoData
-   * @throws OdometerExceptions 
+   * @param lcd The screen used to display
+   * @param us The UltrasonicSensor which will fetch the data
+   * @throws OdometerExceptions if there is a problem with Odometer instances
    */
   public Display(TextLCD lcd, UltrasonicSensor us) throws OdometerExceptions {
     odo = Odometer.getOdometer();
@@ -34,17 +35,21 @@ public class Display implements Runnable {
   /**
    * This is the overloaded class constructor
    * 
-   * @param odoData
-   * @throws OdometerExceptions 
+   * @param lcd The screen used to display
+   * @param us The UltrasonicSensor which will fetch the data
+   * @param timeout The maximal time for display
+   * @throws OdometerExceptions
    */
-  public Display(TextLCD lcd, long timeout) throws OdometerExceptions {
+  
+  public Display(TextLCD lcd, UltrasonicSensor us, long timeout) throws OdometerExceptions {
     odo = Odometer.getOdometer();
     this.timeout = timeout;
     this.lcd = lcd;
+    this.us=us;
   }
 
   /**
-   * Threading method for the display
+   * Threading method for the display of odometer variables
    */
   public void run() {
     

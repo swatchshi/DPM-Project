@@ -6,14 +6,9 @@ import ca.mcgill.ecse211.WiFiClient.WifiConnection;
 import ca.mcgill.ecse211.localizer.ColorSensor;
 
 /**
- * Example class using WifiConnection to communicate with a server and receive
+ * Class using WifiConnection to communicate with a server and receive
  * data concerning the competition such as the starting corner the robot is
  * placed in.
- * 
- * Keep in mind that this class is an **example** of how to use the WiFi code;
- * you must use the WifiConnection class yourself in your own code as
- * appropriate. In this example, we simply show how to get and process different
- * types of data.
  * 
  * There are two variables you **MUST** set manually before trying to use this
  * code.

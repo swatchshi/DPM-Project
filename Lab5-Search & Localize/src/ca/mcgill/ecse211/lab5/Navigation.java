@@ -7,7 +7,8 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.robotics.SampleProvider;
 
 /**
- * Class to navigate to way points
+ * Class to navigate with the robot on the map
+ * Holds every method for wheel control
  * @author Xavier Pellemans
  * @author Thomas Bahen
  *
@@ -40,7 +41,6 @@ public class Navigation {
 	 * @param odo : Odometer used
 	 * @param us : UltrasonicPoller used
 	 * @param config The Lab5.RobotConfig, i.e. the wheel positioning
-	 * @param odoCor Thread instance of OdometerCorrection
 	 */
 	public Navigation(Odometer odo, TrackExpansion dynamicTrack, GamePlan.RobotConfig config) {
 		this.odo=odo;
@@ -55,11 +55,11 @@ public class Navigation {
 	}
 	
 	/**
-	   * This method is meant to ensure only one instance of the Navigator is used throughout the code.
-	   * 
-	   * @return new or existing Navigation Object
-	   * @throws OdometerExceptions when no Navigation instance is found
-	   */
+	 * This method is meant to ensure only one instance of the Navigator is used throughout the code.
+	 * 
+	 * @return new or existing Navigation Object
+	 * @throws OdometerExceptions when no Navigation instance is found
+	 */
 	public synchronized static Navigation getNavigation() throws OdometerExceptions {	
 
 	    if (nav == null) {
@@ -276,6 +276,10 @@ public class Navigation {
 	
 	/**
 	 * Rotate continuously in one direction
+	 * 
+	 * @param direction Direction which the robot needs to turn 
+	 * (CLOCK_WISE, COUNTER_CLOCK_WISE)
+	 * 
 	 */
 	public void rotate(Turn direction) {
 		navigating=true;
@@ -304,15 +308,7 @@ public class Navigation {
 		return navigating;
 	}
 	
-	/**
-	 * Gets if the navigation is interrupted
-	 * 
-	 * @return if it is interrupted (boolean)
-	 */
-	public static boolean getInterrrupt() {
-		// TODO Auto-generated method stub
-		return interrupt;
-	}
+	
 	
 	/**
 	 * Gets if interrupted navigation
@@ -355,12 +351,12 @@ public class Navigation {
 	 }
 
 	 /**
-	  * Converts angle into distance for the wheels
+	  * Converts robot angle rotation into wheel rotations
 	  * 
 	  * @param radius of the wheels
 	  * @param width of the wheel base
 	  * @param angle rotation of the robot
-	  * @return 
+	  * @return the wheel rotation needed to make the robot turn
 	  */
 	 public static int convertAngle(double radius, double width, double angle) {
 	    return convertDistance(radius, Math.PI * width * angle / 360.0);
@@ -392,7 +388,5 @@ public class Navigation {
 	public static void setInterrupt(boolean interrupt) {
 	   Navigation.interrupt=interrupt;
 	}
-	
-	
 	
 }

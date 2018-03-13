@@ -9,7 +9,13 @@ public class OdometerCorrection extends Thread{
 	private final ColorSensor lightSensor;
 	private Odometer odo;
 	
-	
+	/**
+	 * Constructor of the OdometerCorrection class.
+	 * Initialises the odometer correction.
+	 * 
+	 * @param sensor ColorSensor in red mode.
+	 * @param odo Odometer used by the robot's navigation system.
+	 */
 	public OdometerCorrection(ColorSensor sensor, Odometer odo) {
 		this.lightSensor=sensor;
 		this.odo=odo;
@@ -29,7 +35,7 @@ public class OdometerCorrection extends Thread{
 	public void run() {
 		double x,y,theta,lineX, lineY;
 		while(true){
-			if(lightSensor.lineCrossed()) {
+			if(lightSensor.lineCrossed()) { //does not return until a line is crossed
 				x=odo.getX();
 				y=odo.getY();
 				theta=odo.getTheta(); 

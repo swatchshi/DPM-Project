@@ -13,7 +13,7 @@ import lejos.robotics.SampleProvider;
 
 /**
  * Class responsible for the game play. This class creates instances of a game,
- * which will make the proper procedure calls and decide the behaviour of the
+ * which will make the proper procedure calls and decide the behavior of the
  * robot.
  * 
  * @author Xavier Pellemans
@@ -51,18 +51,18 @@ public class GamePlan {
 	private ColorSensor cSensor;
 	private ColorSensor lSensor;
 	private UltrasonicSensor ultraSensor;
-
+	private EV3WifiClient serverData;
+	private Display odometryDisplay;
+	private OdometerCorrection odoCorrect;
 	/**
 	 * Creates an object of the GamePlan class. Initializes all instances needed in
 	 * the game
 	 * 
 	 * @param lcd
 	 *            TextLCD used for output on the EV3 brick
-	 * @throws OdometerExceptions
-	 *             when an error occurs with the creation of Odometer related
-	 *             objects
+	 * @throws Exception error with Odometer instances or with data server retreival
 	 */
-	public GamePlan(TextLCD lcd) throws OdometerExceptions {
+	public GamePlan(TextLCD lcd) throws Exception {
 		this.lcd = lcd;
 		// US related objects
 		@SuppressWarnings("resource") // Because we don't bother to close this resource
@@ -76,8 +76,11 @@ public class GamePlan {
 		// Odometer related objects
 		dynamicTrack = new TrackExpansion();
 		odometer = Odometer.getOdometer(leftMotor, rightMotor, dynamicTrack, CONFIG);
-		Display odometryDisplay = new Display(lcd, ultraSensor);
+		odometryDisplay = new Display(lcd, ultraSensor);
+		odoCorrect=new OdometerCorrection(lSensor, odometer);
+		
 		navigation = new Navigation(odometer, dynamicTrack, CONFIG);
+		serverData=new EV3WifiClient();
 	}
 
 	/**
@@ -89,11 +92,31 @@ public class GamePlan {
 		dynamicTrack.adjustToMin(lcd);
 	}
 
+	
+	
 	/**
 	 * Procedure to determine what Team color plan should be followed
+	 * 
+	 * @throws Exceptiion Exception thrown if the robot is not playing
 	 */
-	public void play() {
-
+	public void play() throws Exception {
+		Thread odoThread = new Thread(odometer);
+		odoThread.start();
+		Thread odoDisplayThread = new Thread(odometryDisplay);
+		odoDisplayThread.start();
+		Thread odoCorrectionThread=new Thread(odoCorrect);
+		odoCorrectionThread.start();
+		
+		switch(serverData.getTeamColor()) {
+		case RED:
+			redPlan();
+			break;
+		case GREEN:
+			greenPlan();
+			break;
+		}
+		
+		//TODO victory tune
 	}
 
 	/**
@@ -107,7 +130,7 @@ public class GamePlan {
 	 * 7- Crosses the tunnel
 	 * 8- finishes in its starting corner
 	 */
-	private void RedPlan() {
+	private void redPlan() {
 		// TODO call the procedure for the red team
 
 	}
@@ -123,7 +146,7 @@ public class GamePlan {
 	 * 7- Crosses the bridge
 	 * 8- finishes in its starting corner
 	 */
-	private void GreenPlan() {
+	private void greenPlan() {
 		// TODO call the procedure for the green team
 	}
 
@@ -171,5 +194,40 @@ public class GamePlan {
 		//TODO look at the team color and check around the tunnel
 		return Direction.EAST;
 	}
-
+	
+	
+	/**
+	 * Procedure method to avoid the search zone and water areas 
+	 * and go to the specified side of the bridge.
+	 * 
+	 * @param direction Direction (side) of the bridge entry
+	 * @return True when reached
+	 */
+	private boolean goToBridge(Direction direction) {
+		//TODO code the maneuver
+		return true;
+	}
+	
+	/**
+	 * Procedure method to avoid the search zone and water areas 
+	 * and go to the specified side of the tunnel.
+	 * 
+	 * @param direction Direction (side) of the tunnel entry
+	 * @return True when reached
+	 */
+	private boolean goToTunnel(Direction direction) {
+		//TODO code the maneuver
+		return true;
+	}
+	
+	/**
+	 * Procedure method to avoid the search zone and water areas 
+	 * and go to the starting corner.
+	 * 
+	 * @return True when reached
+	 */
+	private boolean goToStartingCorner() {
+		//TODO code the maneuver
+		return true;
+	}
 }

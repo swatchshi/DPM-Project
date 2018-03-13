@@ -29,6 +29,17 @@ public class Lab5 {
 
 	public static final TextLCD lcd = LocalEV3.get().getTextLCD();
 	
+	
+	/**
+	 * Main method of the program. Creates the initial menu displayed on EV3, 
+	 * Manages the choices made by the user, 
+	 * Creates instances of the main procedure classes,
+	 * Give options to tune the robot's systems 
+	 * And starts the game when the user is ready.
+	 * Catches any error thrown by the program.
+	 * 
+	 * @param args Compiler arguments
+	 */
 	public static void main(String[] args) {
 		int buttonChoice;
 		try {
@@ -48,40 +59,17 @@ public class Lab5 {
 				lcd.drawString("       |        ", 0, 4);
 
 				buttonChoice = Button.waitForAnyPress(); // Record choice (left or right press)
-			} while (buttonChoice != Button.ID_LEFT && buttonChoice != Button.ID_RIGHT);
-
-			if (buttonChoice == Button.ID_LEFT) {
 				
-				
-				
-				game.trackAdjust();
-				
-				
-				
-				/*
-				Thread odoThread = new Thread(odometer);
-				odoThread.start();
-				Thread odoDisplayThread = new Thread(odometryDisplay);
-				odoDisplayThread.start();
-
-				
-
-				// shows color seen by the color sensor
-				lcd.clear();
-				FlagFinding flagFinder = new FlagFinding(dynamicTrack, cSensor, ultraSensor, blockWanted, SR_LLx, SR_LLy, SR_URx,
-						SR_URy);
-
-				Delay.msDelay(1000);
-
-				while (true) {
-
-					System.out.println(cSensor.getColorSeen());
-					Delay.msDelay(1000);
-
+				if (buttonChoice == Button.ID_LEFT) {
+					
+					game.trackAdjust();
+					
 				}
-				*/
-
-			} else {
+			} while (buttonChoice != Button.ID_RIGHT);
+			
+			
+			game.play();
+			
 				/*
 
 				// Start odometer and display threads
@@ -106,8 +94,7 @@ public class Lab5 {
 				flagFinder.beepSequence(1);
 				System.exit(0);
 				*/
-			}
-
+			
 		} catch (OdometerExceptions exc) {
 			// instance error, do nothing
 		} catch (Exception e) {

@@ -3,6 +3,11 @@ package ca.mcgill.ecse211.lab5;
 import lejos.hardware.Button;
 import lejos.hardware.lcd.TextLCD;
 
+/**
+ * Class responsible for expanding the track and providing methods to regulate the width of the robot.
+ * @author Xavier Pellemans
+ *
+ */
 public class TrackExpansion {
 
 	// free space between wheels: 13.7 cm
@@ -19,7 +24,7 @@ public class TrackExpansion {
 	private boolean expanded=false;
 
 	/**
-	 * Cconstructor of the TrackExpansion
+	 * Constructor of the TrackExpansion
 	 * Considers the initial track to be at its minimum when starting
 	 */
 	public TrackExpansion() {
