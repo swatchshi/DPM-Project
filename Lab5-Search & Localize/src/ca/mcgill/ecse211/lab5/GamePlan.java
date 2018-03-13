@@ -2,6 +2,7 @@ package ca.mcgill.ecse211.lab5;
 
 import ca.mcgill.ecse211.localizer.*;
 import ca.mcgill.ecse211.odometer.*;
+import lejos.ev3.tools.EV3ConnectionState;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -132,7 +133,6 @@ public class GamePlan {
 	 */
 	private void redPlan() {
 		// TODO call the procedure for the red team
-
 	}
 
 	/**
@@ -179,7 +179,7 @@ public class GamePlan {
 	 * 			robot needs to enter the bridge
 	 */
 	private Direction getBridgeEntry() {
-		//TODO look at the team color and check around the bridge
+		//TODO look at the team color and check around the bridge for the right zone
 		return Direction.EAST;
 	}
 
