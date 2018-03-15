@@ -8,6 +8,7 @@ import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.sensor.EV3ColorSensor;
+import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.hardware.sensor.SensorModes;
 import lejos.robotics.SampleProvider;
@@ -22,9 +23,24 @@ import lejos.robotics.SampleProvider;
  */
 public class GamePlan {
 
+	/**
+	 * Enum for the wheel configuration of the robot
+	 * TRACTION: wheels are in front of the robot
+	 * PROPULSION: wheels are at the back of the robot (motor.backward() is forward)
+	 */
 	public enum RobotConfig {
 		TRACTION, PROPULSION
 	}
+	
+	/**
+	 * Enum for the chosen robot
+	 * SCREW_DESIGN: design with the expanding track and screw
+	 * TANK: design with the tank tracks
+	 */
+	public enum Robot {
+		SCREW_DESIGN, TANK
+	}
+	
 
 	// Motor Objects, and Robot related parameters
 	public static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
@@ -37,15 +53,25 @@ public class GamePlan {
 
 	public static final EV3ColorSensor lightSensor = new EV3ColorSensor(LocalEV3.get().getPort("S1"));
 	public static final EV3ColorSensor armSensor = new EV3ColorSensor(LocalEV3.get().getPort("S2"));
-	public static final SensorModes ultraSSensor = new EV3UltrasonicSensor(LocalEV3.get().getPort("S4"));
+	public static final EV3GyroSensor gyroSensor = new EV3GyroSensor(LocalEV3.get().getPort("S3"));
+	public static final EV3UltrasonicSensor ultraSSensor = new EV3UltrasonicSensor(LocalEV3.get().getPort("S4"));
+	public static final TextLCD lcd = LocalEV3.get().getTextLCD();
 
 	public static final RobotConfig CONFIG = RobotConfig.PROPULSION;
+	public static final Robot robot = Robot.SCREW_DESIGN;
 
-	private enum Direction {
+	/**
+	 * Enum describing the cardinal point.
+	 * Used to describe the side of a region.
+	 * NORTH: side with the highest y
+	 * EAST: side with the highest x
+	 * SOUTH: side with the lowest y
+	 * WEST: side with the lowest x
+	 */
+	public enum Direction {
 		NORTH, EAST, SOUTH, WEST
 	}
 
-	private TextLCD lcd;
 	private Odometer odometer;
 	private Navigation navigation;
 	private TrackExpansion dynamicTrack;
@@ -55,33 +81,38 @@ public class GamePlan {
 	private EV3WifiClient serverData;
 	private Display odometryDisplay;
 	private OdometerCorrection odoCorrect;
+	
+	
 	/**
 	 * Creates an object of the GamePlan class. Initializes all instances needed in
 	 * the game
 	 * 
-	 * @param lcd
-	 *            TextLCD used for output on the EV3 brick
 	 * @throws Exception error with Odometer instances or with data server retreival
 	 */
-	public GamePlan(TextLCD lcd) throws Exception {
-		this.lcd = lcd;
-		// US related objects
-		@SuppressWarnings("resource") // Because we don't bother to close this resource
-		SampleProvider us = ultraSSensor.getMode("Distance"); // usDistance provides samples from
-																// this instance
-		float[] usData = new float[us.sampleSize()]; // usData is the buffer in which data are
+	public GamePlan() throws Exception {
+		
 		cSensor = new ColorSensor(armSensor);
 		lSensor = new ColorSensor(lightSensor);
-		ultraSensor = new UltrasonicSensor(us, usData);
+		ultraSensor = new UltrasonicSensor(ultraSSensor);
 
-		// Odometer related objects
+		//track related object
 		dynamicTrack = new TrackExpansion();
+		switch (robot) {
+		case SCREW_DESIGN:
+			dynamicTrack.setExpandable(true);
+			break;
+
+		case TANK:
+			dynamicTrack.setExpandable(false);
+			break;
+		}
+		// Odometer related objects
 		odometer = Odometer.getOdometer(leftMotor, rightMotor, dynamicTrack, CONFIG);
 		odometryDisplay = new Display(lcd, ultraSensor);
 		odoCorrect=new OdometerCorrection(lSensor, odometer);
 		
 		navigation = new Navigation(odometer, dynamicTrack, CONFIG);
-		serverData=new EV3WifiClient();
+		//serverData = new EV3WifiClient();
 	}
 
 	/**
@@ -89,8 +120,8 @@ public class GamePlan {
 	 * adjustment, then calls the minimum adjustment
 	 */
 	public void trackAdjust() {
-		dynamicTrack.adjustToMax(lcd);
-		dynamicTrack.adjustToMin(lcd);
+		dynamicTrack.adjustToMax();
+		dynamicTrack.adjustToMin();
 	}
 
 	

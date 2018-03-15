@@ -1,5 +1,6 @@
 package ca.mcgill.ecse211.localizer;
 
+import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.robotics.SampleProvider;
 import lejos.utility.Delay;
 
@@ -22,12 +23,13 @@ public class UltrasonicSensor {
 
 	/**
 	 * Constructor of the sampling object
-	 * @param us SampleProvider used
-	 * @param usData float[] to hold the us samples
+	 * 
+	 * @param ultraSSensor EV3UltraSonicSensor used
 	 */
-	public UltrasonicSensor(SampleProvider us, float[] usData) {
-	    this.us = us;
-	    this.usData = usData;
+	public UltrasonicSensor(EV3UltrasonicSensor ultraSSensor) {
+		us = ultraSSensor.getMode("Distance"); // usDistance provides samples from
+																// this instance
+		usData = new float[us.sampleSize()]; // usData is the buffer in which data are
 	}
 	  
 	

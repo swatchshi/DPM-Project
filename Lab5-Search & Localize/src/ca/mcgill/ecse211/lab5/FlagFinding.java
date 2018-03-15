@@ -37,11 +37,7 @@ public class FlagFinding {
 	private boolean flagFound;
 	private long searchStart; // start time
 
-	public static enum Side {
-		BOTTOM, RIGHT, TOP, LEFT
-
-	}
-
+	
 	/**
 	 * Constructor of the FlagFinding class
 	 * 
@@ -112,14 +108,14 @@ public class FlagFinding {
 		travelToLowerLeft();
 		Sound.beep();
 		int i = 0;
-		while (i < Side.values().length && timeElapsed() < MAX_SEARCH_TIME) { // if the robot has not detected 4 blocks
+		while (i < GamePlan.Direction.values().length && timeElapsed() < MAX_SEARCH_TIME) { // if the robot has not detected 4 blocks
 																				// on one side and still some time left
 
-			Side sideTest = Side.values()[i];
+			GamePlan.Direction sideTest = GamePlan.Direction.values()[i];
 
 			switch (sideTest) {
 
-			case BOTTOM: // x-axis
+			case SOUTH: // x-axis
 				Delay.msDelay(500);
 				navigation.turnTo(90);
 				rotateUltrasonicSensor(true);
@@ -171,7 +167,7 @@ public class FlagFinding {
 					i++; // next side
 				}
 				break;
-			case RIGHT: // y-axis
+			case EAST: // y-axis
 				Delay.msDelay(500);
 				navigation.turnTo(0);
 				rotateUltrasonicSensor(true);
@@ -224,7 +220,7 @@ public class FlagFinding {
 					i++; // next side
 				}
 				break;
-			case TOP: // x-axis on the top
+			case NORTH: // x-axis on the top
 				Delay.msDelay(500);
 				navigation.turnTo(270);
 				rotateUltrasonicSensor(true);
@@ -277,7 +273,7 @@ public class FlagFinding {
 					i++; // next side
 				}
 				break;
-			case LEFT: // y-axis back to starting point
+			case WEST: // y-axis back to starting point
 				Delay.msDelay(500);
 				navigation.turnTo(180);
 				rotateUltrasonicSensor(true);
@@ -402,36 +398,36 @@ public class FlagFinding {
 	 * @return true if it has reached the lower left corner
 	 */
 	public boolean travelToLowerLeft() {
-		Side side;
+		GamePlan.Direction side;
 		// determine the side of the of the search zone
 		if (odo.getX() <= LLx) {
-			side = Side.LEFT;
+			side = GamePlan.Direction.WEST;
 		} else if (odo.getX() <= URx) {
 			if (odo.getY() <= LLy) {
-				side = Side.BOTTOM;
+				side = GamePlan.Direction.SOUTH;
 			} else if (odo.getY() >= URy) {
-				side = Side.TOP;
+				side = GamePlan.Direction.NORTH;
 			} else {
 				// center of search zone
 				navigation.travelTo(LLx - dynamicTrack.getTrack(), LLy - dynamicTrack.getTrack());
 				return true;
 			}
 		} else {
-			side = Side.RIGHT;
+			side = GamePlan.Direction.EAST;
 		}
 		// goes around the search zone
 		switch (side) {
-		case LEFT:
+		case WEST:
 			navigation.travelTo(LLx - dynamicTrack.getTrack(), LLy - dynamicTrack.getTrack());
 			break;
-		case BOTTOM:
+		case SOUTH:
 			navigation.travelTo(LLx - dynamicTrack.getTrack(), LLy - dynamicTrack.getTrack());
 			break;
-		case RIGHT:
+		case EAST:
 			navigation.travelTo(URx + dynamicTrack.getTrack(), LLy - dynamicTrack.getTrack());
 			navigation.travelTo(LLx - dynamicTrack.getTrack(), LLy - dynamicTrack.getTrack());
 			break;
-		case TOP:
+		case NORTH:
 			navigation.travelTo(LLx - dynamicTrack.getTrack(), URy + dynamicTrack.getTrack());
 			navigation.travelTo(LLx - dynamicTrack.getTrack(), LLy - dynamicTrack.getTrack());
 			break;
@@ -446,39 +442,39 @@ public class FlagFinding {
 	 * @return true if it has reached the upper right corner
 	 */
 	public boolean travelToUpperRight() {
-		Side side;
+		GamePlan.Direction side;
 		// determine the side of where the robot is
 		if (odo.getX() <= LLx) {
-			side = Side.LEFT;
+			side = GamePlan.Direction.WEST;
 		} else if (odo.getX() <= URx) {
 			if (odo.getY() <= LLy) {
-				side = Side.BOTTOM;
+				side = GamePlan.Direction.SOUTH;
 			} else if (odo.getY() >= URy) {
-				side = Side.TOP;
+				side = GamePlan.Direction.NORTH;
 			} else {
 				// center of search zone
 				navigation.travelTo(URx, URy);
 				return true;
 			}
 		} else {
-			side = Side.RIGHT;
+			side = GamePlan.Direction.EAST;
 		}
 
 		// go around search zone
 		switch (side) {
-		case LEFT:
+		case WEST:
 			navigation.travelTo(LLx - dynamicTrack.getTrack(), URy + dynamicTrack.getTrack());
 			navigation.travelTo(URx, URy);
 
 			break;
-		case BOTTOM:
+		case SOUTH:
 			navigation.travelTo(URx + dynamicTrack.getTrack(), LLy - dynamicTrack.getTrack());
 			navigation.travelTo(URx, URy);
 			break;
-		case RIGHT:
+		case EAST:
 			navigation.travelTo(URx, URy);
 			break;
-		case TOP:
+		case NORTH:
 			navigation.travelTo(URx, URy);
 			break;
 		}

@@ -39,13 +39,14 @@ public class Lab5 {
 	 * Catches any error thrown by the program.
 	 * 
 	 * @param args Compiler arguments
+	 * @throws Exception 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		int buttonChoice;
 		try {
 			
 			
-			GamePlan game=new GamePlan(lcd);
+			GamePlan game=new GamePlan();
 
 			do {
 				// clear the display
@@ -97,10 +98,10 @@ public class Lab5 {
 			
 		} catch (OdometerExceptions exc) {
 			// instance error, do nothing
-		} catch (Exception e) {
+		}/* catch (Exception e) {
 			// Other error
 			Sound.buzz();
 			System.err.println("Error: " + e.getMessage());
-		}
+		}*/
 	}
 }

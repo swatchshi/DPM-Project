@@ -1,6 +1,7 @@
 package ca.mcgill.ecse211.lab5;
 
 import lejos.hardware.Button;
+import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 
 /**
@@ -16,12 +17,14 @@ public class TrackExpansion {
 	public static final double WHEEL_RAD = 2.12;
 	public static final double MIN_TRACK = 15.7; // adjust from 13.7 to 18.1
 	public static final double MAX_TRACK= 25.4; //21.3 to 29.5
-
-	private static float SCREW_SPEED = 100;
-	private static float MAINTENANCE_SPEED = 100;
+	public static final TextLCD lcd = LocalEV3.get().getTextLCD();
+	private static float SCREW_SPEED = 600;
+	private static float MAINTENANCE_SPEED = 400;
 	private static double SCREW_PITCH = 0.34544;
 	private double track;
 	private boolean expanded=false;
+	private boolean expandable;
+
 
 	/**
 	 * Constructor of the TrackExpansion
@@ -83,7 +86,7 @@ public class TrackExpansion {
 	 * Waits for the user to press any button when the minimum track has been reached
 	 * Cancel option included
 	 */
-	public void adjustToMin(TextLCD lcd) {
+	public void adjustToMin() {
 		int buttonID;
 		do {
 			// clear the display
@@ -97,7 +100,7 @@ public class TrackExpansion {
 			lcd.drawString(" to skip min set", 0, 4);
 			buttonID=Button.waitForAnyPress();
 
-		}while(buttonID==Button.ID_ENTER || buttonID==Button.ID_ESCAPE);
+		}while(buttonID!=Button.ID_ENTER && buttonID!=Button.ID_ESCAPE);
 		
 		if(buttonID==Button.ID_ENTER) {
 			GamePlan.trackExpansionMotor.setSpeed(MAINTENANCE_SPEED);
@@ -119,7 +122,7 @@ public class TrackExpansion {
 	 * Waits for the user to press any button when the maximum track has been reached
 	 * Cancel option included
 	 */
-	public void adjustToMax(TextLCD lcd) {
+	public void adjustToMax() {
 		int buttonID;
 		do {
 			// clear the display
@@ -133,7 +136,7 @@ public class TrackExpansion {
 			lcd.drawString(" to skip max set", 0, 4);
 			buttonID=Button.waitForAnyPress();
 
-		}while(buttonID==Button.ID_ENTER || buttonID==Button.ID_ESCAPE);
+		}while(buttonID!=Button.ID_ENTER && buttonID!=Button.ID_ESCAPE);
 		
 		if(buttonID==Button.ID_ENTER) {
 			GamePlan.trackExpansionMotor.setSpeed(MAINTENANCE_SPEED);
@@ -165,6 +168,24 @@ public class TrackExpansion {
 	 */
 	public double getTrack() {
 		return track;
+	}
+	
+	/**
+	 * Gets if the track is expandable
+	 * 
+	 * @return True if the track can expand
+	 */
+	public boolean isExpandable() {
+		return expandable;
+	}
+	
+	/**
+	 * Sets if the track is expandable
+	 * 
+	 * @param expandable True if the track can expand
+	 */
+	public void setExpandable(boolean expandable) {
+		this.expandable = expandable;
 	}
 	
 	

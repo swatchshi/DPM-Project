@@ -30,18 +30,78 @@ import ca.mcgill.ecse211.localizer.ColorSensor;
  *
  */
 public class EV3WifiClient {
+	/**
+	 * Enumeration of the game parameters referring to a coordinate component
+	 *         Red_LL_x, Red_LL_y: lower left grid coordinates of the Red zone with
+	 *         respect to the 0,0
+	 * 
+	 *         Red_UR_x, Red_UR_y: upper right grid coordinates of the Red zone with
+	 *         respect to the 0,0
+	 * 
+	 *         Green_LL_x, Green_LL_y: lower left grid coordinates of the Green zone
+	 *         with respect to the 0,0
+	 * 
+	 *         Green_UR_x, Green_UR_y: upper right grid coordinates of the Green
+	 *         zone with respect to the 0,0
+	 * 
+	 *         SR_LL_x, SR_LL_y: lower left grid coordinates of the Red search zone
+	 *         with respect to the 0,0
+	 * 
+	 *         SR_UR_x, SR_UR_y: upper right grid coordinates of the Red search zone
+	 *         with respect to the 0,0
+	 * 
+	 *         SG_LL_x, SG_LL_y: lower left grid coordinates of the Green search
+	 *         zone with respect to the 0,0
+	 * 
+	 *         SG_UR_x, SG_UR_y: upper right grid coordinates of the Green search
+	 *         zone with respect to the 0,0
+	 * 
+	 *         BR_LL_x, BR_LL_y: lower left grid coordinates of the bridge with
+	 *         respect to the 0,0
+	 * 
+	 *         BR_UR_x, BR_UR_y: upper right grid coordinates of the bridge zone
+	 *         with respect to the 0,0
+	 * 
+	 *         TN_LL_x, TN_LL_y: lower left grid coordinates of the tunnel with
+	 *         respect to the 0,0
+	 * 
+	 *         TN_UR_x, TN_UR_y: upper right grid coordinates of the tunnel with
+	 *         respect to the 0,0
+	 */
 	public enum CoordParameter {
 		Red_LL_x, Red_LL_y, Red_UR_x, Red_UR_y, Green_LL_x, Green_LL_y, Green_UR_x, Green_UR_y, SR_LL_x, SR_LL_y, SR_UR_x, SR_UR_y, SG_LL_x, SG_LL_y, SG_UR_x, SG_UR_y, BR_LL_x, BR_LL_y, BR_UR_x, BR_UR_y, TN_LL_x, TN_LL_y, TN_UR_x, TN_UR_y,
 	}
 
+	/**
+	 * Enumeration for the parameters not related to the coordinate system
+	 * OG: flag of the green team
+	 * OR: flag of the red team
+	 * RedCorner: Starting corner of the red team
+	 * GreenCorner: Starting corner of the green team
+	 * RedTeam: Team number of the red team
+	 * GreenTeam: Team number of the green team
+	 */
 	public enum QualParameter {
 		OG, OR, RedCorner, GreenCorner, RedTeam, GreenTeam
 	}
 
+	/**
+	 * Enumeration for the team colors
+	 * RED: red team
+	 * GREEN: green team
+	 */
 	public enum TeamColor {
 		RED, GREEN
 	}
 
+	/**
+	 * Enumeration for the different zones on the map
+	 * RED: red team zone
+	 * GREEN: green team zone
+	 * WATER: water area (no man's land)
+	 * BRIDGE: zone of the bridge
+	 * TUNNEL: zone of the tunnel
+	 */
 	public enum Zone {
 		RED, GREEN, WATER, BRIDGE, TUNNEL
 	}
