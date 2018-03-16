@@ -269,8 +269,8 @@ public class Navigation {
 		navigating=true;
 		GamePlan.leftMotor.setSpeed(ROTATE_SPEED);
 	    GamePlan.rightMotor.setSpeed(ROTATE_SPEED);
-	    GamePlan.leftMotor.rotate(-convertAngle(TrackExpansion.WHEEL_RAD, dynamicTrack.getTrack(), rotation), true);
-	    GamePlan.rightMotor.rotate(convertAngle(TrackExpansion.WHEEL_RAD, dynamicTrack.getTrack(), rotation), false);
+	    GamePlan.leftMotor.rotate(-convertAngle(dynamicTrack.getWheelRad(), dynamicTrack.getTrack(), rotation), true);
+	    GamePlan.rightMotor.rotate(convertAngle(dynamicTrack.getWheelRad(), dynamicTrack.getTrack(), rotation), false);
 	    navigating=false;
 	}
 	

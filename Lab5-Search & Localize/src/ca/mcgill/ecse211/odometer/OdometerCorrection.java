@@ -1,12 +1,14 @@
 package ca.mcgill.ecse211.odometer;
 
 import ca.mcgill.ecse211.lab5.Navigation;
+import ca.mcgill.ecse211.lab5.TrackExpansion;
 import ca.mcgill.ecse211.localizer.ColorSensor;
 import ca.mcgill.ecse211.localizer.LightLocalizer;
 
 public class OdometerCorrection extends Thread{
 	public final double ERROR_THRESHOLD;
 	private final ColorSensor lightSensor;
+	private final TrackExpansion dynamicTrack;
 	private Odometer odo;
 	
 	/**
@@ -16,10 +18,11 @@ public class OdometerCorrection extends Thread{
 	 * @param sensor ColorSensor in red mode.
 	 * @param odo Odometer used by the robot's navigation system.
 	 */
-	public OdometerCorrection(ColorSensor sensor, Odometer odo) {
+	public OdometerCorrection(ColorSensor sensor, Odometer odo, TrackExpansion dynamicTrack) {
 		this.lightSensor=sensor;
 		this.odo=odo;
-		this.ERROR_THRESHOLD=LightLocalizer.LIGHT_SENSOR_DISTANCE;
+		this.dynamicTrack=dynamicTrack;
+		this.ERROR_THRESHOLD=dynamicTrack.getLightSensorDistance();
 	}
 	
 	
@@ -40,16 +43,16 @@ public class OdometerCorrection extends Thread{
 				y=odo.getY();
 				theta=odo.getTheta(); 
 				//Takes the light sensor displacement into account
-				lineX=Math.round(x+LightLocalizer.LIGHT_SENSOR_DISTANCE*Math.sin(Math.toRadians(theta))/Navigation.TILE_SIZE);
-				lineY=Math.round(y+LightLocalizer.LIGHT_SENSOR_DISTANCE*Math.cos(Math.toRadians(theta))/Navigation.TILE_SIZE);
+				lineX=Math.round(x+dynamicTrack.getLightSensorDistance()*Math.sin(Math.toRadians(theta))/Navigation.TILE_SIZE);
+				lineY=Math.round(y+dynamicTrack.getLightSensorDistance()*Math.cos(Math.toRadians(theta))/Navigation.TILE_SIZE);
 				if(Math.abs(x-lineX*Navigation.TILE_SIZE)<ERROR_THRESHOLD && Math.abs(y-lineY*Navigation.TILE_SIZE)<ERROR_THRESHOLD) {
 					//do nothing because close to crossing
 				} else if(Math.abs(x-lineX*Navigation.TILE_SIZE)<ERROR_THRESHOLD) {
 					//close enough to x grid line
-					odo.setX(lineX*Navigation.TILE_SIZE-LightLocalizer.LIGHT_SENSOR_DISTANCE*Math.sin(Math.toRadians(theta))); //correct X
+					odo.setX(lineX*Navigation.TILE_SIZE-dynamicTrack.getLightSensorDistance()*Math.sin(Math.toRadians(theta))); //correct X
 				}else if(Math.abs(y-lineY*Navigation.TILE_SIZE)<ERROR_THRESHOLD) {
 					//close enough to y grid line
-					odo.setY(lineY*Navigation.TILE_SIZE-LightLocalizer.LIGHT_SENSOR_DISTANCE*Math.cos(Math.toRadians(theta))); //correct Y
+					odo.setY(lineY*Navigation.TILE_SIZE-dynamicTrack.getLightSensorDistance()*Math.cos(Math.toRadians(theta))); //correct Y
 				}
 			}
 		}

@@ -16,8 +16,8 @@ public class LightLocalizer {
 	/**
 	 * Variable for light localization
 	 */
-	public static final double LIGHT_SENSOR_DISTANCE = 6; // from 4 to 8
 	private final Navigation navigation;
+	private final TrackExpansion dynamicTrack;
 	private final ColorSensor lightSensor;
 	private final Odometer odo;
 	private final GamePlan.RobotConfig config;
@@ -35,9 +35,10 @@ public class LightLocalizer {
 	 * @param config
 	 *            The Lab5.RobotConfig, i.e. the wheel positioning
 	 */
-	public LightLocalizer(Navigation navigation, ColorSensor lightSensor, Odometer odo, GamePlan.RobotConfig config) {
+	public LightLocalizer(Navigation navigation, TrackExpansion dynamicTrack, ColorSensor lightSensor, Odometer odo, GamePlan.RobotConfig config) {
 		this.odo = odo;
 		this.navigation = navigation;
+		this.dynamicTrack=dynamicTrack;
 		this.lightSensor = lightSensor;
 		this.lightLocalizerDone = false;
 		this.config = config;
@@ -65,7 +66,7 @@ public class LightLocalizer {
 		}
 
 		// travel to "center" the robot on the cross
-		navigation.travel(LIGHT_SENSOR_DISTANCE);
+		navigation.travel(dynamicTrack.getLightSensorDistance());
 
 		// Read in the angles
 		double[] lineAngles = new double[4];
@@ -93,20 +94,20 @@ public class LightLocalizer {
 		switch (corner) {
 		// correct coordinates
 		case 0:
-			x = LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2) + Navigation.TILE_SIZE; // ends more in upper right
-			y = LIGHT_SENSOR_DISTANCE * Math.cos(ThetaX / 2) + Navigation.TILE_SIZE;
+			x = dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2) + Navigation.TILE_SIZE; // ends more in upper right
+			y = dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2) + Navigation.TILE_SIZE;
 			break;
 		case 1:
-			x = -LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2) + Navigation.TILE_SIZE; // ends more in upper left
-			y = LIGHT_SENSOR_DISTANCE * Math.cos(ThetaX / 2) + Navigation.TILE_SIZE;
+			x = -dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2) + Navigation.TILE_SIZE; // ends more in upper left
+			y = dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2) + Navigation.TILE_SIZE;
 			break;
 		case 2:
-			x = -LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2) + Navigation.TILE_SIZE; // ends more in lower left
-			y = -LIGHT_SENSOR_DISTANCE * Math.cos(ThetaX / 2) + Navigation.TILE_SIZE;
+			x = -dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2) + Navigation.TILE_SIZE; // ends more in lower left
+			y = -dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2) + Navigation.TILE_SIZE;
 			break;
 		case 3:
-			x = LIGHT_SENSOR_DISTANCE * Math.cos(thetaY / 2) + Navigation.TILE_SIZE; // ends more in lower right
-			y = -LIGHT_SENSOR_DISTANCE * Math.cos(ThetaX / 2) + Navigation.TILE_SIZE;
+			x = dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2) + Navigation.TILE_SIZE; // ends more in lower right
+			y = -dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2) + Navigation.TILE_SIZE;
 			break;
 		}
 		double dTheta = Math.toDegrees(thetaY) / 2 + 270 - lineAngles[3];

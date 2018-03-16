@@ -121,8 +121,8 @@ public class Odometer extends OdometerData implements Runnable {
 			      
 			      position=getXYT();	//get the coordinates
 			      
-			      distL=Math.PI*TrackExpansion.WHEEL_RAD*(leftMotorTachoCount-leftMotorLastTachoCount)/180; 	//convert left rotation to wheel displacement
-			      distR=Math.PI*TrackExpansion.WHEEL_RAD*(rightMotorTachoCount-rightMotorLastTachoCount)/180;	//convert right rotation to wheel displacement
+			      distL=Math.PI*dynamicTrack.getWheelRad()*(leftMotorTachoCount-leftMotorLastTachoCount)/180; 	//convert left rotation to wheel displacement
+			      distR=Math.PI*dynamicTrack.getWheelRad()*(rightMotorTachoCount-rightMotorLastTachoCount)/180;	//convert right rotation to wheel displacement
 			      
 			      dTheta=(distL-distR)/dynamicTrack.getTrack(); //Calculating the instantaneous rotation magnitude
 			      

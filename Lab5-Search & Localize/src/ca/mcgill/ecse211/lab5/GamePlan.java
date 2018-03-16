@@ -97,22 +97,15 @@ public class GamePlan {
 
 		//track related object
 		dynamicTrack = new TrackExpansion();
-		switch (robot) {
-		case SCREW_DESIGN:
-			dynamicTrack.setExpandable(true);
-			break;
-
-		case TANK:
-			dynamicTrack.setExpandable(false);
-			break;
-		}
+		dynamicTrack.setDesignConstants(robot); //sets the values for the chosen robot
+		
 		// Odometer related objects
 		odometer = Odometer.getOdometer(leftMotor, rightMotor, dynamicTrack, CONFIG);
 		odometryDisplay = new Display(lcd, ultraSensor);
-		odoCorrect=new OdometerCorrection(lSensor, odometer);
+		odoCorrect=new OdometerCorrection(lSensor, odometer, dynamicTrack);
 		
 		navigation = new Navigation(odometer, dynamicTrack, CONFIG);
-		//serverData = new EV3WifiClient();
+		//serverData = new EV3WifiClient(); ////////////////////////////////////////////uncomment to enable data retrieval
 	}
 
 	/**
@@ -150,6 +143,8 @@ public class GamePlan {
 		
 		//TODO victory tune
 	}
+	
+	
 
 	/**
 	 * Game plan of the red team. 
@@ -161,9 +156,34 @@ public class GamePlan {
 	 * 6- Travels to the tunnel 
 	 * 7- Crosses the tunnel
 	 * 8- finishes in its starting corner
+	 * 
+	 * @throws Exception When there is a problem with the data from the EV3WifiClass
 	 */
-	private void redPlan() {
+	private void redPlan() throws Exception {
 		// TODO call the procedure for the red team
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
+		usLoc.doLocalization(serverData.getStartingCorner());
+		LightLocalizer lightLoc=new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, CONFIG);
+		switch(serverData.getStartingCorner()) {
+		case 0:
+			break;
+		case 1:
+			break;
+		case 2:
+			break;
+		case 3:
+			break;
+		}
+		
 	}
 
 	/**
