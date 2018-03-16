@@ -5,6 +5,7 @@ import ca.mcgill.ecse211.lab5.GamePlan.Direction;
 import ca.mcgill.ecse211.localizer.*;
 import ca.mcgill.ecse211.odometer.*;
 import lejos.ev3.tools.EV3ConnectionState;
+import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -318,16 +319,20 @@ public class GamePlan {
 	 * @param direction Direction (side) of the bridge entry
 	 * @return True when reached
 	 */
-	private boolean goToBridge(Direction direction) {
-		if (getBridgeEntry() == Direction.NORTH) {  // green side, enter from bottom side
-			navigation.travelTo(CoordParameter.BR_LL_x , CoordParameter.BR_LL_x);
+	private void goToBridge(Direction direction) {
+		if (getBridgeEntry() == Direction.NORTH) {  // red side, enter from top side
+			navigation.travelTo(CoordParameter.BR_UR_x , CoordParameter.BR_UR_x);
 			
 			currentAngle = gyroscope.getAngle();
 			angleNeeded = 180;
 			angleTurning = angleNeeded - currentAngle;
-		
+			navigation.turn(angleTurning);
+		}
+			else if(getBridgeEntry() == Direction.SOUTH) { //no way to enter from south
+				Sound.buzz();//fail
+			}
 		//TODO code the maneuver
-		return true;
+	
 		}
 	}
 	
@@ -338,9 +343,18 @@ public class GamePlan {
 	 * @param direction Direction (side) of the tunnel entry
 	 * @return True when reached
 	 */
-	private boolean goToTunnel(Direction direction) {
-		//TODO code the maneuver
-		return true;
+	private void goToTunnel(Direction direction) {
+		if (getTunnelEntry() == Direction.SOUTH) { //green side,enter from bottom
+		navigation.travelTo(CoordParameter.TN_LL_x, CoordParameter.TN_LL_y);	
+		currentAngle = gyroscope.getAngle();
+		angleNeeded=0;
+		angleTurning=angleNeeded-currentAngle;
+		navigation.turn(angleTurning);
+			
+		}
+		else if (getTunnelEntry() == Direction.NORTH) {
+		Sound.buzz();
+		}
 	}
 	
 	/**
