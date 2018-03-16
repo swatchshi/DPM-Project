@@ -1,5 +1,7 @@
 package ca.mcgill.ecse211.lab5;
 
+import ca.mcgill.ecse211.lab5.EV3WifiClient.CoordParameter;
+import ca.mcgill.ecse211.lab5.GamePlan.Direction;
 import ca.mcgill.ecse211.localizer.*;
 import ca.mcgill.ecse211.odometer.*;
 import lejos.ev3.tools.EV3ConnectionState;
@@ -22,7 +24,7 @@ import lejos.robotics.SampleProvider;
  *
  */
 public class GamePlan {
-
+	Gyroscope gyroscope = new Gyroscope(gyroSensor);
 	/**
 	 * Enum for the wheel configuration of the robot
 	 * TRACTION: wheels are in front of the robot
@@ -79,8 +81,16 @@ public class GamePlan {
 	private EV3WifiClient serverData;
 	private Display odometryDisplay;
 	private OdometerCorrection odoCorrect;
+	private double currentAngle;
+	private double angleNeeded;
+	private double angleTurning;
 	
 	
+	public static final double WHEEL_RAD = 2.2;
+	public static final double TRACK = 8.6;
+    private boolean player;  //green = true, red = false;
+	
+	int speed = 150;
 	/**
 	 * Creates an object of the GamePlan class. Initializes all instances needed in
 	 * the game
@@ -104,6 +114,9 @@ public class GamePlan {
 		
 		navigation = new Navigation(odometer, dynamicTrack, CONFIG);
 		//serverData = new EV3WifiClient(); ////////////////////////////////////////////uncomment to enable data retrieval
+		
+		
+		
 	}
 
 	/**
@@ -249,6 +262,9 @@ public class GamePlan {
 	 * @return True when the tunnel has been crossed
 	 */
 	private boolean crossTunnel() {
+	      navigation.travel(navigation.TILE_SIZE*2);
+	      leftMotor.stop(true);
+	      rightMotor.stop(false);
 		// TODO call the procedure for tunnel traversal
 		return true;
 	}
@@ -264,15 +280,14 @@ public class GamePlan {
 	 * @throws Exception Exception thrown if the robot is not playing
 	 */
 	private Direction getBridgeEntry() throws Exception {
-		switch(serverData.getTeamColor()) {
-		case RED:
-			//Need to find the red entrance
-			break;
-		case GREEN:
-			//Need to find the red entrance
-			break;
+		
+		if(player == true) {//green
+			return Direction.SOUTH;
 		}
-		return Direction.EAST;
+		else if(player == false) {//red
+			return Direction.NORTH;
+		}
+		return null;
 	}
 
 	/**
@@ -304,8 +319,16 @@ public class GamePlan {
 	 * @return True when reached
 	 */
 	private boolean goToBridge(Direction direction) {
+		if (getBridgeEntry() == Direction.NORTH) {  // green side, enter from bottom side
+			navigation.travelTo(CoordParameter.BR_LL_x , CoordParameter.BR_LL_x);
+			
+			currentAngle = gyroscope.getAngle();
+			angleNeeded = 180;
+			angleTurning = angleNeeded - currentAngle;
+		
 		//TODO code the maneuver
 		return true;
+		}
 	}
 	
 	/**

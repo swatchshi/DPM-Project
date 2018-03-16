@@ -10,7 +10,7 @@ public class Gyroscope {
 	
 	public Gyroscope(EV3GyroSensor gyroSensor) {
 		this.gyroSensor=gyroSensor;
-		SampleProvider gyroscope = gyroSensor.getAngleMode();
+//		SampleProvider gyroscope = gyroSensor.getAngleMode();
 		resetToZero();
 	}
 
@@ -36,6 +36,7 @@ public class Gyroscope {
 	}
 	
 	public double getAngle() {
+		gyro = gyroSensor.getAngleMode();//
 		float[] sample=new float[gyro.sampleSize()];
 		gyro.fetchSample(sample, 0);
 		return (double) sample[0];
