@@ -48,8 +48,6 @@ public class GamePlan {
 
 	public static final EV3MediumRegulatedMotor usSensorMotor = new EV3MediumRegulatedMotor(
 			LocalEV3.get().getPort("C"));
-	public static final EV3MediumRegulatedMotor trackExpansionMotor = new EV3MediumRegulatedMotor(
-			LocalEV3.get().getPort("B"));
 
 	public static final EV3ColorSensor lightSensor = new EV3ColorSensor(LocalEV3.get().getPort("S1"));
 	public static final EV3ColorSensor armSensor = new EV3ColorSensor(LocalEV3.get().getPort("S2"));
@@ -122,7 +120,7 @@ public class GamePlan {
 	/**
 	 * Procedure to determine what Team color plan should be followed
 	 * 
-	 * @throws Exceptiion Exception thrown if the robot is not playing
+	 * @throws Exception Exception thrown if the robot is not playing
 	 */
 	public void play() throws Exception {
 		Thread odoThread = new Thread(odometer);
@@ -162,28 +160,32 @@ public class GamePlan {
 	private void redPlan() throws Exception {
 		// TODO call the procedure for the red team
 		
-		
-		
-		
-		
-		
-		
-		
-		
 		USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
 		usLoc.doLocalization(serverData.getStartingCorner());
 		LightLocalizer lightLoc=new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, CONFIG);
 		switch(serverData.getStartingCorner()) {
 		case 0:
+			lightLoc.doLocalization(1, 1, 0);
 			break;
 		case 1:
+			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1, 1, 1);
 			break;
 		case 2:
+			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1, serverData.Y_GRID_LINES-1, 2);
 			break;
 		case 3:
+			lightLoc.doLocalization(1, EV3WifiClient.Y_GRID_LINES-1, 3);
 			break;
 		}
+		goToBridge(getBridgeEntry());
+		crossBridge();
 		
+		//TODO: look for flag
+		
+		
+		goToTunnel(getTunnelEntry());
+		crossTunnel();
+		goToStartingCorner();
 	}
 
 	/**
@@ -196,9 +198,39 @@ public class GamePlan {
 	 * 6- Travels to the bridge 
 	 * 7- Crosses the bridge
 	 * 8- finishes in its starting corner
+	 * 
+	 * @throws Exception When there is a problem with the data from the EV3WifiClass
 	 */
-	private void greenPlan() {
-		// TODO call the procedure for the green team
+	private void greenPlan() throws Exception {
+		USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
+		usLoc.doLocalization(serverData.getStartingCorner());
+		LightLocalizer lightLoc=new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, CONFIG);
+		switch(serverData.getStartingCorner()) {
+		case 0:
+			lightLoc.doLocalization(1, 1, 0);
+			break;
+		case 1:
+			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1, 1, 1);
+			break;
+		case 2:
+			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1, serverData.Y_GRID_LINES-1, 2);
+			break;
+		case 3:
+			lightLoc.doLocalization(1, EV3WifiClient.Y_GRID_LINES-1, 3);
+			break;
+		}
+		
+		
+		
+		goToTunnel(getTunnelEntry());
+		crossTunnel();
+		
+		//TODO: look for flag
+		
+		goToBridge(getBridgeEntry());
+		crossBridge();
+		
+		goToStartingCorner();
 	}
 
 	/**
@@ -228,9 +260,18 @@ public class GamePlan {
 	 * 
 	 * @return The Direction (side) which the 
 	 * 			robot needs to enter the bridge
+	 * 
+	 * @throws Exception Exception thrown if the robot is not playing
 	 */
-	private Direction getBridgeEntry() {
-		//TODO look at the team color and check around the bridge for the right zone
+	private Direction getBridgeEntry() throws Exception {
+		switch(serverData.getTeamColor()) {
+		case RED:
+			//Need to find the red entrance
+			break;
+		case GREEN:
+			//Need to find the red entrance
+			break;
+		}
 		return Direction.EAST;
 	}
 
@@ -240,9 +281,17 @@ public class GamePlan {
 	 * 
 	 * @return The Direction (side) which the 
 	 * 			robot needs to enter the tunnel
+	 * @throws Exception 
 	 */
-	private Direction getTunnelEntry() {
-		//TODO look at the team color and check around the tunnel
+	private Direction getTunnelEntry() throws Exception {
+		switch(serverData.getTeamColor()) {
+		case RED:
+			//Need to find the green entrance
+			break;
+		case GREEN:
+			//Need to find the green entrance
+			break;
+		}
 		return Direction.EAST;
 	}
 	

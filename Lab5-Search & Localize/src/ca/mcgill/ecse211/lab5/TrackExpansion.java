@@ -3,6 +3,7 @@ package ca.mcgill.ecse211.lab5;
 import lejos.hardware.Button;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
+import lejos.hardware.motor.EV3MediumRegulatedMotor;
 
 /**
  * Class responsible for expanding the track and providing methods to regulate the width of the robot.
@@ -31,7 +32,7 @@ public class TrackExpansion {
 	private double lightSensorDistance;
 	private boolean expanded=false;
 	private boolean expandable;
-
+	private EV3MediumRegulatedMotor trackExpansionMotor; 
 
 	/**
 	 * Constructor of the TrackExpansion
@@ -53,18 +54,22 @@ public class TrackExpansion {
 	 */
 	public boolean expandToMax() {
 		int initialTachoCount,finalTachoCount;
-		if(expandable) {
-			if(!expanded) {
-				//Expand
-				GamePlan.trackExpansionMotor.setSpeed(SCREW_SPEED);
-				initialTachoCount=GamePlan.trackExpansionMotor.getTachoCount();
-				GamePlan.trackExpansionMotor.rotate(convertExpansion(MAX_SCREW_TRACK-track)); //Rotate to expand
-				finalTachoCount=GamePlan.trackExpansionMotor.getTachoCount();
-				
-				track+=convertRotation(Math.abs(finalTachoCount-initialTachoCount)); //calculate the real track
-				expanded=true;
-				return true;
+		try {
+			if(expandable) {
+				if(!expanded) {
+					//Expand
+					trackExpansionMotor.setSpeed(SCREW_SPEED);
+					initialTachoCount=trackExpansionMotor.getTachoCount();
+					trackExpansionMotor.rotate(convertExpansion(MAX_SCREW_TRACK-track)); //Rotate to expand
+					finalTachoCount=trackExpansionMotor.getTachoCount();
+					
+					track+=convertRotation(Math.abs(finalTachoCount-initialTachoCount)); //calculate the real track
+					expanded=true;
+					return true;
+				}
 			}
+		}catch(NullPointerException e) {
+			//motor not defined
 		}
 		return false;
 	}
@@ -76,19 +81,24 @@ public class TrackExpansion {
 	 */
 	public boolean retractToMin() {
 		int initialTachoCount,finalTachoCount;
-		if(expandable) {
-			if(expanded) {
-				//Retrack
-				GamePlan.trackExpansionMotor.setSpeed(SCREW_SPEED);
-				initialTachoCount=GamePlan.trackExpansionMotor.getTachoCount();
-				GamePlan.trackExpansionMotor.rotate(-convertExpansion(track-MIN_SCREW_TRACK)); //Rotate to expand
-				finalTachoCount=GamePlan.trackExpansionMotor.getTachoCount();
-				
-				track-=convertRotation(Math.abs(finalTachoCount-initialTachoCount)); //calculate the real track
-				expanded=false;
-				return true;
+		try {
+			if(expandable) {
+				if(expanded) {
+					//Retrack
+					trackExpansionMotor.setSpeed(SCREW_SPEED);
+					initialTachoCount=trackExpansionMotor.getTachoCount();
+					trackExpansionMotor.rotate(-convertExpansion(track-MIN_SCREW_TRACK)); //Rotate to expand
+					finalTachoCount=trackExpansionMotor.getTachoCount();
+					
+					track-=convertRotation(Math.abs(finalTachoCount-initialTachoCount)); //calculate the real track
+					expanded=false;
+					return true;
+				}
 			}
+		}catch(NullPointerException e) {
+			//motor not defined
 		}
+		
 		return false;
 	}
 	
@@ -116,14 +126,14 @@ public class TrackExpansion {
 			}while(buttonID!=Button.ID_ENTER && buttonID!=Button.ID_ESCAPE);
 			
 			if(buttonID==Button.ID_ENTER) {
-				GamePlan.trackExpansionMotor.setSpeed(MAINTENANCE_SPEED);
+				trackExpansionMotor.setSpeed(MAINTENANCE_SPEED);
 				lcd.clear();
 				lcd.drawString("Adjust to Min Track", 0, 0);
 				lcd.drawString("Press any button   ", 0, 1);
 				lcd.drawString(" when reached      ", 0, 2);
-				GamePlan.trackExpansionMotor.backward();
+				trackExpansionMotor.backward();
 				Button.waitForAnyPress();
-				GamePlan.trackExpansionMotor.stop();
+				trackExpansionMotor.stop();
 				lcd.clear();
 				track=MIN_SCREW_TRACK;
 			}
@@ -160,14 +170,14 @@ public class TrackExpansion {
 			}while(buttonID!=Button.ID_ENTER && buttonID!=Button.ID_ESCAPE);
 			
 			if(buttonID==Button.ID_ENTER) {
-				GamePlan.trackExpansionMotor.setSpeed(MAINTENANCE_SPEED);
+				trackExpansionMotor.setSpeed(MAINTENANCE_SPEED);
 				lcd.clear();
 				lcd.drawString("Adjust to Max Track", 0, 0);
 				lcd.drawString("Press any button   ", 0, 1);
 				lcd.drawString(" when reached      ", 0, 2);
-				GamePlan.trackExpansionMotor.forward();
+				trackExpansionMotor.forward();
 				Button.waitForAnyPress();
-				GamePlan.trackExpansionMotor.stop();
+				trackExpansionMotor.stop();
 				lcd.clear();
 				track=MIN_SCREW_TRACK;
 			}
@@ -253,6 +263,8 @@ public class TrackExpansion {
 			this.wheelRad=SCREW_WHEEL_RAD;
 			this.lightSensorDistance=LIGHT_SENSOR_DISTANCE_SCREW;
 			this.expandable=true;
+			this.trackExpansionMotor=new EV3MediumRegulatedMotor(
+					LocalEV3.get().getPort("B"));
 			break;
 		case TANK:
 			this.track=TANK_TRACK;
@@ -278,6 +290,8 @@ public class TrackExpansion {
 			this.wheelRad=SCREW_WHEEL_RAD;
 			this.lightSensorDistance=LIGHT_SENSOR_DISTANCE_SCREW;
 			this.expandable=true;
+			this.trackExpansionMotor=new EV3MediumRegulatedMotor(
+					LocalEV3.get().getPort("B"));
 			if(expanded) {
 				this.track=MAX_SCREW_TRACK;
 			}else {
