@@ -24,7 +24,6 @@ public class Navigation {
 	private double lastY;
 	private static boolean navigating=false;
 	private static boolean interrupt=false;
-	private final Thread odoCorrect;
 	
 	private static Navigation nav; //Holds the used instance of this class
 	private Lab5.RobotConfig config;
@@ -42,10 +41,9 @@ public class Navigation {
 	 * @param config The Lab5.RobotConfig, i.e. the wheel positioning
 	 * @param odoCor Thread instance of OdometerCorrection
 	 */
-	public Navigation(Odometer odo, Lab5.RobotConfig config, Thread odoCor) {
+	public Navigation(Odometer odo, Lab5.RobotConfig config) {
 		this.odo=odo;
 		this.config=config;
-		this.odoCorrect=odoCor;
 		nav=this;
 		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {Lab5.leftMotor, Lab5.rightMotor}) {
 			motor.stop();

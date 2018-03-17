@@ -125,7 +125,7 @@ public class USLocalizer{
 		doneTurning=false;
 		
 		while(!doneTurning) {
-			if(usSensor.getDistance()<WALL_THRESHOLD) { 
+			if(usSensor.readDistance()<WALL_THRESHOLD) { 
 				filterControl++;
 				if(filterControl>=WALL_FILTER) {
 					doneTurning=true;
@@ -148,7 +148,7 @@ public class USLocalizer{
 		doneTurning=false;
 		
 		while(!doneTurning) {
-			if(usSensor.getDistance()>WALL_THRESHOLD) {
+			if(usSensor.readDistance()>WALL_THRESHOLD) {
 			  filterControl++;
 				if(filterControl>=NO_WALL_FILTER) {
 					filterControl=0;
@@ -184,7 +184,7 @@ public class USLocalizer{
 	 * Determines the localizer type based on the distance seen
 	 */
 	public void determineLocType() {
-		if(usSensor.getDistance()<WALL_THRESHOLD) { //Deciding what localizer should be used
+		if(usSensor.readDistance()<WALL_THRESHOLD) { //Deciding what localizer should be used
 			this.loc = LocalizerType.RISING_EDGE;
 		}else {
 			this.loc=LocalizerType.FALLING_EDGE;

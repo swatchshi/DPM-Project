@@ -16,8 +16,9 @@ public class UltrasonicSensor {
 	 */
 	private SampleProvider us;
 	private float[] usData;
-	private int distance;
-	private static final int SAMPLE_SIZE=1;
+	private static final int US_FILTER=2;
+	private static final int US_ERROR=5;
+	private int distance=0;
 
 
 	/**
@@ -35,17 +36,31 @@ public class UltrasonicSensor {
 	 * Gets the distance seen by the US
 	 * @return the normalized distance seen (as an integer)
 	 */
-	public  int getDistance() {
-		int trueDistance =0;
-		for(int i=0;i<SAMPLE_SIZE;i++) {
+	public  int readDistance() {
+		int newDistance=0;
+		int filterCount = 0;
+		while(filterCount<US_FILTER) {
 			us.fetchSample(usData, 0); // acquire data
-			trueDistance=(int) (usData[0] * 100.0);// extract from buffer, cast to int and add to total
+			newDistance=(int) (usData[0] * 100.0);// extract from buffer, cast to int and add to total
 			
-			
-			Delay.msDelay(30);
+			if(newDistance<=distance+US_ERROR && newDistance>=distance-US_ERROR) {
+				filterCount++;
+			}else {
+				filterCount=0;
+			}
+			distance=newDistance;
+	//		Delay.msDelay(10);
 		}
-		
-	    distance = trueDistance; //normalize
 		return distance; 
+	}
+	
+	
+	
+	/**
+	 * Gets the distance previously recorded by the ultrasonic sensor
+	 * @return the distance in cm (as an int)
+	 */
+	public int getDistance() {
+		return distance;
 	}
 }
