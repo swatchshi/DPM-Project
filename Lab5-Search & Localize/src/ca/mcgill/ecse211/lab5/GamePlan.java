@@ -252,7 +252,11 @@ public class GamePlan {
 	 * 
 	 * @return True when the bridge has been crossed
 	 */
-	private boolean crossBridge() {
+	private boolean crossBridge() {   //expansion method, travel directly
+		navigation.travel(navigation.TILE_SIZE*2);
+	      leftMotor.stop(true);
+	      rightMotor.stop(false);
+		
 		// TODO call the procedure for bridge traversal
 		return true;
 	}
@@ -332,10 +336,31 @@ public class GamePlan {
 			navigation.turn(angleTurning);
 			break;
 		case EAST:
+			navigation.travelTo(serverData.getCoordParam(CoordParameter.BR_UR_x)*Navigation.TILE_SIZE ,
+					serverData.getCoordParam(CoordParameter.BR_UR_y)*Navigation.TILE_SIZE);
+			
+			currentAngle = gyroscope.getAngle();
+			angleNeeded = 90;
+			angleTurning = angleNeeded - currentAngle;
+			navigation.turn(angleTurning);
 			break;
 		case SOUTH:
+			navigation.travelTo(serverData.getCoordParam(CoordParameter.BR_LL_x)*Navigation.TILE_SIZE ,
+					serverData.getCoordParam(CoordParameter.BR_LL_y)*Navigation.TILE_SIZE);
+			
+			currentAngle = gyroscope.getAngle();
+			angleNeeded = 0;
+			angleTurning = angleNeeded - currentAngle;
+			navigation.turn(angleTurning);
 			break;
 		case WEST:
+			navigation.travelTo(serverData.getCoordParam(CoordParameter.BR_LL_x)*Navigation.TILE_SIZE ,
+					serverData.getCoordParam(CoordParameter.BR_LL_y)*Navigation.TILE_SIZE);
+			
+			currentAngle = gyroscope.getAngle();
+			angleNeeded = 270;
+			angleTurning = angleNeeded - currentAngle;
+			navigation.turn(angleTurning);
 			break;
 		}
 		
@@ -355,9 +380,20 @@ public class GamePlan {
 	private void goToTunnel(Direction direction) throws Exception {
 		switch(direction) {
 		case NORTH:
-			
+			navigation.travelTo(serverData.getCoordParam(CoordParameter.TN_UR_x)*Navigation.TILE_SIZE ,
+					serverData.getCoordParam(CoordParameter.TN_UR_y)*Navigation.TILE_SIZE);
+			currentAngle = gyroscope.getAngle();
+			angleNeeded=180;
+			angleTurning=angleNeeded-currentAngle;
+			navigation.turn(angleTurning);
 			break;
 		case EAST:
+			navigation.travelTo(serverData.getCoordParam(CoordParameter.TN_UR_x)*Navigation.TILE_SIZE ,
+					serverData.getCoordParam(CoordParameter.TN_UR_y)*Navigation.TILE_SIZE);
+			currentAngle = gyroscope.getAngle();
+			angleNeeded=90;
+			angleTurning=angleNeeded-currentAngle;
+			navigation.turn(angleTurning);
 			break;
 		case SOUTH:
 			navigation.travelTo(serverData.getCoordParam(CoordParameter.TN_LL_x)*Navigation.TILE_SIZE ,
@@ -368,6 +404,12 @@ public class GamePlan {
 			navigation.turn(angleTurning);
 			break;
 		case WEST:
+			navigation.travelTo(serverData.getCoordParam(CoordParameter.TN_LL_x)*Navigation.TILE_SIZE ,
+					serverData.getCoordParam(CoordParameter.TN_LL_y)*Navigation.TILE_SIZE);
+			currentAngle = gyroscope.getAngle();
+			angleNeeded=270;
+			angleTurning=angleNeeded-currentAngle;
+			navigation.turn(angleTurning);
 			break;
 		}
 		
