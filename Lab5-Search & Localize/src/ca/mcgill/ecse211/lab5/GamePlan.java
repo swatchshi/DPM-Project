@@ -318,22 +318,30 @@ public class GamePlan {
 	 * 
 	 * @param direction Direction (side) of the bridge entry
 	 * @return True when reached
+	 * @throws Exception 
 	 */
-	private void goToBridge(Direction direction) {
-		if (getBridgeEntry() == Direction.NORTH) {  // red side, enter from top side
-			navigation.travelTo(CoordParameter.BR_UR_x , CoordParameter.BR_UR_x);
+	private void goToBridge(Direction direction) throws Exception {
+		switch(direction) {
+		case NORTH:
+			navigation.travelTo(serverData.getCoordParam(CoordParameter.BR_UR_x)*Navigation.TILE_SIZE ,
+					serverData.getCoordParam(CoordParameter.BR_UR_y)*Navigation.TILE_SIZE);
 			
 			currentAngle = gyroscope.getAngle();
 			angleNeeded = 180;
 			angleTurning = angleNeeded - currentAngle;
 			navigation.turn(angleTurning);
+			break;
+		case EAST:
+			break;
+		case SOUTH:
+			break;
+		case WEST:
+			break;
 		}
-			else if(getBridgeEntry() == Direction.SOUTH) { //no way to enter from south
-				Sound.buzz();//fail
-			}
+		
 		//TODO code the maneuver
 	
-		}
+		
 	}
 	
 	/**
@@ -342,19 +350,27 @@ public class GamePlan {
 	 * 
 	 * @param direction Direction (side) of the tunnel entry
 	 * @return True when reached
+	 * @throws Exception 
 	 */
-	private void goToTunnel(Direction direction) {
-		if (getTunnelEntry() == Direction.SOUTH) { //green side,enter from bottom
-		navigation.travelTo(CoordParameter.TN_LL_x, CoordParameter.TN_LL_y);	
-		currentAngle = gyroscope.getAngle();
-		angleNeeded=0;
-		angleTurning=angleNeeded-currentAngle;
-		navigation.turn(angleTurning);
+	private void goToTunnel(Direction direction) throws Exception {
+		switch(direction) {
+		case NORTH:
 			
+			break;
+		case EAST:
+			break;
+		case SOUTH:
+			navigation.travelTo(serverData.getCoordParam(CoordParameter.TN_LL_x)*Navigation.TILE_SIZE ,
+					serverData.getCoordParam(CoordParameter.TN_LL_y)*Navigation.TILE_SIZE);
+			currentAngle = gyroscope.getAngle();
+			angleNeeded=0;
+			angleTurning=angleNeeded-currentAngle;
+			navigation.turn(angleTurning);
+			break;
+		case WEST:
+			break;
 		}
-		else if (getTunnelEntry() == Direction.NORTH) {
-		Sound.buzz();
-		}
+		
 	}
 	
 	/**
