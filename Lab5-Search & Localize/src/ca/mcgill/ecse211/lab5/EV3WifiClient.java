@@ -6,9 +6,9 @@ import ca.mcgill.ecse211.WiFiClient.WifiConnection;
 import ca.mcgill.ecse211.localizer.ColorSensor;
 
 /**
- * Class using WifiConnection to communicate with a server and receive
- * data concerning the competition such as the starting corner the robot is
- * placed in.
+ * Class using WifiConnection to communicate with a server and receive data
+ * concerning the competition such as the starting corner the robot is placed
+ * in.
  * 
  * There are two variables you **MUST** set manually before trying to use this
  * code.
@@ -32,78 +32,71 @@ import ca.mcgill.ecse211.localizer.ColorSensor;
 public class EV3WifiClient {
 	/**
 	 * Enumeration of the game parameters referring to a coordinate component
-	 *         Red_LL_x, Red_LL_y: lower left grid coordinates of the Red zone with
-	 *         respect to the 0,0
+	 * Red_LL_x, Red_LL_y: lower left grid coordinates of the Red zone with respect
+	 * to the 0,0
 	 * 
-	 *         Red_UR_x, Red_UR_y: upper right grid coordinates of the Red zone with
-	 *         respect to the 0,0
+	 * Red_UR_x, Red_UR_y: upper right grid coordinates of the Red zone with respect
+	 * to the 0,0
 	 * 
-	 *         Green_LL_x, Green_LL_y: lower left grid coordinates of the Green zone
-	 *         with respect to the 0,0
+	 * Green_LL_x, Green_LL_y: lower left grid coordinates of the Green zone with
+	 * respect to the 0,0
 	 * 
-	 *         Green_UR_x, Green_UR_y: upper right grid coordinates of the Green
-	 *         zone with respect to the 0,0
+	 * Green_UR_x, Green_UR_y: upper right grid coordinates of the Green zone with
+	 * respect to the 0,0
 	 * 
-	 *         SR_LL_x, SR_LL_y: lower left grid coordinates of the Red search zone
-	 *         with respect to the 0,0
+	 * SR_LL_x, SR_LL_y: lower left grid coordinates of the Red search zone with
+	 * respect to the 0,0
 	 * 
-	 *         SR_UR_x, SR_UR_y: upper right grid coordinates of the Red search zone
-	 *         with respect to the 0,0
+	 * SR_UR_x, SR_UR_y: upper right grid coordinates of the Red search zone with
+	 * respect to the 0,0
 	 * 
-	 *         SG_LL_x, SG_LL_y: lower left grid coordinates of the Green search
-	 *         zone with respect to the 0,0
+	 * SG_LL_x, SG_LL_y: lower left grid coordinates of the Green search zone with
+	 * respect to the 0,0
 	 * 
-	 *         SG_UR_x, SG_UR_y: upper right grid coordinates of the Green search
-	 *         zone with respect to the 0,0
+	 * SG_UR_x, SG_UR_y: upper right grid coordinates of the Green search zone with
+	 * respect to the 0,0
 	 * 
-	 *         BR_LL_x, BR_LL_y: lower left grid coordinates of the bridge with
-	 *         respect to the 0,0
+	 * BR_LL_x, BR_LL_y: lower left grid coordinates of the bridge with respect to
+	 * the 0,0
 	 * 
-	 *         BR_UR_x, BR_UR_y: upper right grid coordinates of the bridge zone
-	 *         with respect to the 0,0
+	 * BR_UR_x, BR_UR_y: upper right grid coordinates of the bridge zone with
+	 * respect to the 0,0
 	 * 
-	 *         TN_LL_x, TN_LL_y: lower left grid coordinates of the tunnel with
-	 *         respect to the 0,0
+	 * TN_LL_x, TN_LL_y: lower left grid coordinates of the tunnel with respect to
+	 * the 0,0
 	 * 
-	 *         TN_UR_x, TN_UR_y: upper right grid coordinates of the tunnel with
-	 *         respect to the 0,0
+	 * TN_UR_x, TN_UR_y: upper right grid coordinates of the tunnel with respect to
+	 * the 0,0
 	 */
 	public enum CoordParameter {
 		Red_LL_x, Red_LL_y, Red_UR_x, Red_UR_y, Green_LL_x, Green_LL_y, Green_UR_x, Green_UR_y, SR_LL_x, SR_LL_y, SR_UR_x, SR_UR_y, SG_LL_x, SG_LL_y, SG_UR_x, SG_UR_y, BR_LL_x, BR_LL_y, BR_UR_x, BR_UR_y, TN_LL_x, TN_LL_y, TN_UR_x, TN_UR_y,
 	}
 
 	/**
-	 * Enumeration for the parameters not related to the coordinate system
-	 * OG: flag of the green team
-	 * OR: flag of the red team
-	 * RedCorner: Starting corner of the red team
-	 * GreenCorner: Starting corner of the green team
-	 * RedTeam: Team number of the red team
-	 * GreenTeam: Team number of the green team
+	 * Enumeration for the parameters not related to the coordinate system OG: flag
+	 * of the green team OR: flag of the red team RedCorner: Starting corner of the
+	 * red team GreenCorner: Starting corner of the green team RedTeam: Team number
+	 * of the red team GreenTeam: Team number of the green team
 	 */
 	public enum QualParameter {
 		OG, OR, RedCorner, GreenCorner, RedTeam, GreenTeam
 	}
 
 	/**
-	 * Enumeration for the team colors
-	 * RED: red team
-	 * GREEN: green team
+	 * Enumeration for the team colors RED: red team GREEN: green team
 	 */
 	public enum TeamColor {
 		RED, GREEN
 	}
 
 	/**
-	 * Enumeration for the different zones on the map
-	 * RED: red team zone
-	 * GREEN: green team zone
-	 * WATER: water area (no man's land)
-	 * BRIDGE: zone of the bridge
-	 * TUNNEL: zone of the tunnel
+	 * Enumeration for the different zones on the map RED: red team zone GREEN:
+	 * green team zone WATER: water area (no man's land) BRIDGE: zone of the bridge
+	 * TUNNEL: zone of the tunnel SG: search zone in the green zone SR: search zone
+	 * in the red zone
 	 */
 	public enum Zone {
-		RED, GREEN, WATER, BRIDGE, TUNNEL
+		RED, GREEN, WATER, BRIDGE, TUNNEL, SG, SR
 	}
 
 	// ** Set these as appropriate for your team and current situation **
@@ -207,16 +200,16 @@ public class EV3WifiClient {
 	 *         zone with respect to the 0,0
 	 * 
 	 *         SR_LL_x, SR_LL_y: lower left grid coordinates of the Red search zone
-	 *         with respect to the 0,0
+	 *         with respect to the 0,0 (is in the red zone)
 	 * 
 	 *         SR_UR_x, SR_UR_y: upper right grid coordinates of the Red search zone
-	 *         with respect to the 0,0
+	 *         with respect to the 0,0 (is in the red zone)
 	 * 
 	 *         SG_LL_x, SG_LL_y: lower left grid coordinates of the Green search
-	 *         zone with respect to the 0,0
+	 *         zone with respect to the 0,0 (is in the green zone)
 	 * 
 	 *         SG_UR_x, SG_UR_y: upper right grid coordinates of the Green search
-	 *         zone with respect to the 0,0
+	 *         zone with respect to the 0,0 (is in the green zone)
 	 * 
 	 *         BR_LL_x, BR_LL_y: lower left grid coordinates of the bridge with
 	 *         respect to the 0,0
@@ -312,58 +305,63 @@ public class EV3WifiClient {
 		}
 	}
 
-	
 	/**
-	 * Gets the zone which contains the specified line coordinates
-	 * Default zone is WATER
+	 * Gets the zone which contains the specified line coordinates Default zone is
+	 * WATER
 	 * 
-	 * @param x Line number in x (0, 1, ..., X_GRID_LINES)
-	 * @param y Line number in y (0, 1, ..., Y_GRID_LINES)
+	 * @param x
+	 *            Line number in x (0, 1, ..., X_GRID_LINES)
+	 * @param y
+	 *            Line number in y (0, 1, ..., Y_GRID_LINES)
 	 * @return The Zone where the coordinates are
 	 */
 	public Zone getZone(int x, int y) {
-		return getZone(x*Navigation.TILE_SIZE, y*Navigation.TILE_SIZE);
+		return getZone(x * Navigation.TILE_SIZE, y * Navigation.TILE_SIZE);
 	}
-	
+
 	/**
-	 * Gets the zone which contains the specified odometer coordinates.
-	 * Default zone is WATER
+	 * Gets the zone which contains the specified odometer coordinates. Default zone
+	 * is WATER
 	 * 
-	 * @param x Coordinate in x (as a double)
-	 * @param y Coordinate in y (as a double)
+	 * @param x
+	 *            Coordinate in x (as a double)
+	 * @param y
+	 *            Coordinate in y (as a double)
 	 * @return The Zone where the coordinates are
 	 */
 	public Zone getZone(double x, double y) {
-		for(Zone zone: Zone.values()) { 
-			if(isInZone(x, y, zone)) {//Checks every zone until it finds the right zone
+		for (Zone zone : Zone.values()) {
+			if (isInZone(x, y, zone)) {// Checks every zone until it finds the right zone
 				return zone;
 			}
 		}
-		return Zone.WATER; //default value
+		return Zone.WATER; // default value
 	}
-	
+
 	/**
-	 * Gets if the specified line coordinates 
-	 * are in the specified zone.
+	 * Gets if the specified line coordinates are in the specified zone.
 	 * 
-	 * @param targetX Line number in x (0, 1, ..., X_GRID_LINES)
-	 * @param targetY Line number in y (0, 1, ..., Y_GRID_LINES)
-	 * @param zone Zone which needs to be checked.
+	 * @param targetX
+	 *            Line number in x (0, 1, ..., X_GRID_LINES)
+	 * @param targetY
+	 *            Line number in y (0, 1, ..., Y_GRID_LINES)
+	 * @param zone
+	 *            Zone which needs to be checked.
 	 * @return True if the coordinates are in the zone.
 	 */
 	public boolean isInZone(int targetX, int targetY, Zone zone) {
-		return isInZone(targetX*Navigation.TILE_SIZE, targetY*Navigation.TILE_SIZE, zone);
+		return isInZone(targetX * Navigation.TILE_SIZE, targetY * Navigation.TILE_SIZE, zone);
 	}
 
-	
-	
 	/**
-	 * Gets if the specified odometer coordinates 
-	 * are in the specified zone.
+	 * Gets if the specified odometer coordinates are in the specified zone.
 	 * 
-	 * @param targetX Coordinate in x (as a double)
-	 * @param targetY Coordinate in y (as a double)
-	 * @param zone Zone which needs to be checked
+	 * @param targetX
+	 *            Coordinate in x (as a double)
+	 * @param targetY
+	 *            Coordinate in y (as a double)
+	 * @param zone
+	 *            Zone which needs to be checked
 	 * @return True if the coordinates are in the zone
 	 */
 	public boolean isInZone(double targetX, double targetY, Zone zone) {
@@ -373,7 +371,9 @@ public class EV3WifiClient {
 					&& targetX >= getCoordParam(CoordParameter.Red_LL_x) * Navigation.TILE_SIZE
 					&& targetY <= getCoordParam(CoordParameter.Red_UR_y) * Navigation.TILE_SIZE
 					&& targetY >= getCoordParam(CoordParameter.Red_LL_y) * Navigation.TILE_SIZE) {
-				return true;
+				if(!isInZone(targetX, targetY, Zone.SR)) { //if the robot is not in the search zone in red zone
+					return true;
+				}
 			}
 			break;
 		case GREEN:
@@ -381,6 +381,24 @@ public class EV3WifiClient {
 					&& targetX >= getCoordParam(CoordParameter.Green_LL_x) * Navigation.TILE_SIZE
 					&& targetY <= getCoordParam(CoordParameter.Green_UR_y) * Navigation.TILE_SIZE
 					&& targetY >= getCoordParam(CoordParameter.Green_LL_y) * Navigation.TILE_SIZE) {
+				if(!isInZone(targetX, targetY, Zone.SG)) { //if the robot is not in the search zone in green zone
+					return true;
+				}
+			}
+			break;
+		case SG:
+			if (targetX <= getCoordParam(CoordParameter.SG_UR_x) * Navigation.TILE_SIZE
+					&& targetX >= getCoordParam(CoordParameter.SG_LL_x) * Navigation.TILE_SIZE
+					&& targetY <= getCoordParam(CoordParameter.SG_UR_y) * Navigation.TILE_SIZE
+					&& targetY >= getCoordParam(CoordParameter.SG_LL_y) * Navigation.TILE_SIZE) {
+				return true;
+			}
+			break;
+		case SR:
+			if (targetX <= getCoordParam(CoordParameter.SR_UR_x) * Navigation.TILE_SIZE
+					&& targetX >= getCoordParam(CoordParameter.SR_LL_x) * Navigation.TILE_SIZE
+					&& targetY <= getCoordParam(CoordParameter.SR_UR_y) * Navigation.TILE_SIZE
+					&& targetY >= getCoordParam(CoordParameter.SR_LL_y) * Navigation.TILE_SIZE) {
 				return true;
 			}
 			break;
@@ -401,18 +419,74 @@ public class EV3WifiClient {
 			}
 			break;
 		case WATER:
-			//if is not in any of the zones above
+			// if is not in any of the zones above
 			if (!isInZone(targetX, targetY, Zone.GREEN) && !isInZone(targetX, targetY, Zone.RED)
 					&& !isInZone(targetX, targetY, Zone.TUNNEL) && !isInZone(targetX, targetY, Zone.BRIDGE)) {
 				return true;
 			}
 			break;
+
 		}
 		return false;
 	}
 
-	
-	
+	public GamePlan.Direction getSide(Zone zone, double x, double y) {
+		GamePlan.Direction side;
+		double lowerLeftX=0, lowerLeftY=0, upperRightX=0, upperRightY=0;
+		switch (zone) {
+		case BRIDGE:
+			lowerLeftX=getCoordParam(CoordParameter.BR_LL_x);
+			lowerLeftY=getCoordParam(CoordParameter.BR_LL_y);
+			upperRightX=getCoordParam(CoordParameter.BR_UR_x);
+			upperRightY=getCoordParam(CoordParameter.BR_UR_y);
+			break;
+		case TUNNEL:
+			lowerLeftX=getCoordParam(CoordParameter.TN_LL_x);
+			lowerLeftY=getCoordParam(CoordParameter.TN_LL_y);
+			upperRightX=getCoordParam(CoordParameter.TN_UR_x);
+			upperRightY=getCoordParam(CoordParameter.TN_UR_y);
+			break;
+		case GREEN:
+			lowerLeftX=getCoordParam(CoordParameter.Green_LL_x);
+			lowerLeftY=getCoordParam(CoordParameter.Green_LL_y);
+			upperRightX=getCoordParam(CoordParameter.Green_UR_x);
+			upperRightY=getCoordParam(CoordParameter.Green_UR_y);
+			break;
+		case RED:
+			lowerLeftX=getCoordParam(CoordParameter.Red_LL_x);
+			lowerLeftY=getCoordParam(CoordParameter.Red_LL_y);
+			upperRightX=getCoordParam(CoordParameter.Red_UR_x);
+			upperRightY=getCoordParam(CoordParameter.Red_UR_y);
+			break;
+		case SG:
+			lowerLeftX=getCoordParam(CoordParameter.SG_LL_x);
+			lowerLeftY=getCoordParam(CoordParameter.SG_LL_y);
+			upperRightX=getCoordParam(CoordParameter.SG_UR_x);
+			upperRightY=getCoordParam(CoordParameter.SG_UR_y);
+			break;
+		case SR:
+			lowerLeftX=getCoordParam(CoordParameter.SR_LL_x);
+			lowerLeftY=getCoordParam(CoordParameter.SR_LL_y);
+			upperRightX=getCoordParam(CoordParameter.SR_UR_x);
+			upperRightY=getCoordParam(CoordParameter.SR_UR_y);
+			break;
+		}
+		if (x <= lowerLeftX) {
+			return GamePlan.Direction.WEST;
+		} else if (x <= upperRightX) {
+			if (y <= lowerLeftY) {
+				return GamePlan.Direction.SOUTH;
+			} else if (y >= upperRightY) {
+				return GamePlan.Direction.NORTH;
+			} else {
+				// center of search zone
+				return GamePlan.Direction.CENTER;
+			}
+		} else {
+			return GamePlan.Direction.EAST;
+		}
+	}
+
 	/**
 	 * Method for the validation of the server user input Checks every parameter and
 	 * makes sure it is plausible

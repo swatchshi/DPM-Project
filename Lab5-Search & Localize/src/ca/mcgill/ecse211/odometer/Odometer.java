@@ -18,7 +18,7 @@ public class Odometer extends OdometerData implements Runnable {
 	  private EV3LargeRegulatedMotor leftMotor;
 	  private EV3LargeRegulatedMotor rightMotor;
 	  private GamePlan.RobotConfig config;
-	
+	  private Gyroscope gyroscope;
 	  private TrackExpansion dynamicTrack;
 	
 	  private double[] position;
@@ -36,9 +36,10 @@ public class Odometer extends OdometerData implements Runnable {
 	   * @throws OdometerExceptions
 	   */
 	  private Odometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor,
-	      TrackExpansion dynamicTrack, GamePlan.RobotConfig config) throws OdometerExceptions {
+	      TrackExpansion dynamicTrack, Gyroscope gyroscope, GamePlan.RobotConfig config) throws OdometerExceptions {
 	                                                  // manipulation methods
 		  this.config=config;
+		  this.gyroscope=gyroscope;
 		  switch(config) {
 			case PROPULSION:
 			 	this.leftMotor = leftMotor;
@@ -52,6 +53,7 @@ public class Odometer extends OdometerData implements Runnable {
 		    
 		  // Reset the values of x, y and z to 0
 		  setXYT(0, 0, 0);
+		  gyroscope.resetToZero();
 		  // tacho count initializations
 		  this.leftMotorLastTachoCount = 0;
 		  this.rightMotorLastTachoCount = 0;
@@ -67,18 +69,19 @@ public class Odometer extends OdometerData implements Runnable {
 	   * 
 	   * @param leftMotor
 	   * @param rightMotor
+	   * @param gyroscope
 	   * @param config The Lab5.RobotConfig, i.e. the wheel positioning
 	   * @return new or existing Odometer Object
 	   * @throws OdometerExceptions
 	   */
 	  public synchronized static Odometer getOdometer(EV3LargeRegulatedMotor leftMotor,
-	      EV3LargeRegulatedMotor rightMotor, TrackExpansion dynamicTrack, GamePlan.RobotConfig config)
+	      EV3LargeRegulatedMotor rightMotor, TrackExpansion dynamicTrack, Gyroscope gyroscope, GamePlan.RobotConfig config)
 	      throws OdometerExceptions {
 		  
 		    if (odo != null) { // Return existing object
 		      return odo;
 		    } else { // create object and return it
-		      odo = new Odometer(leftMotor, rightMotor, dynamicTrack, config);
+		      odo = new Odometer(leftMotor, rightMotor, dynamicTrack, gyroscope, config);
 		      return odo;
 		    }
 	  }
@@ -124,8 +127,8 @@ public class Odometer extends OdometerData implements Runnable {
 			      distL=Math.PI*dynamicTrack.getWheelRad()*(leftMotorTachoCount-leftMotorLastTachoCount)/180; 	//convert left rotation to wheel displacement
 			      distR=Math.PI*dynamicTrack.getWheelRad()*(rightMotorTachoCount-rightMotorLastTachoCount)/180;	//convert right rotation to wheel displacement
 			      
-			      dTheta=(distL-distR)/dynamicTrack.getTrack(); //Calculating the instantaneous rotation magnitude
-			      
+			      //dTheta=(distL-distR)/dynamicTrack.getTrack(); //Calculating the instantaneous rotation magnitude
+			      dTheta=gyroscope.getAngleDisplacement(); //Calculating the instantaneous rotation magnitude
 			      
 			      if(config==GamePlan.RobotConfig.PROPULSION) {
 			    	  dTheta=-Math.toDegrees(dTheta); //conversion to degrees

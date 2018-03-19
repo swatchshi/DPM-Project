@@ -25,7 +25,6 @@ import lejos.robotics.SampleProvider;
  *
  */
 public class GamePlan {
-	Gyroscope gyroscope = new Gyroscope(gyroSensor);
 	/**
 	 * Enum for the wheel configuration of the robot
 	 * TRACTION: wheels are in front of the robot
@@ -68,9 +67,10 @@ public class GamePlan {
 	 * EAST: side with the highest x
 	 * SOUTH: side with the lowest y
 	 * WEST: side with the lowest x
+	 * CENTER: in the middle
 	 */
 	public enum Direction {
-		NORTH, EAST, SOUTH, WEST
+		NORTH, EAST, SOUTH, WEST, CENTER
 	}
 
 	private Odometer odometer;
@@ -79,19 +79,17 @@ public class GamePlan {
 	private ColorSensor cSensor;
 	private ColorSensor lSensor;
 	private UltrasonicSensor ultraSensor;
+	private Gyroscope gyroscope;
 	private EV3WifiClient serverData;
 	private Display odometryDisplay;
 	private OdometerCorrection odoCorrect;
-	private double currentAngle;
-	private double angleNeeded;
-	private double angleTurning;
 	
 	
 	public static final double WHEEL_RAD = 2.2;
 	public static final double TRACK = 8.6;
     private boolean player;  //green = true, red = false;
 	
-	int speed = 150;
+	
 	/**
 	 * Creates an object of the GamePlan class. Initializes all instances needed in
 	 * the game
@@ -103,13 +101,13 @@ public class GamePlan {
 		cSensor = new ColorSensor(armSensor);
 		lSensor = new ColorSensor(lightSensor);
 		ultraSensor = new UltrasonicSensor(ultraSSensor);
-
+		gyroscope = new Gyroscope(gyroSensor);
 		//track related object
 		dynamicTrack = new TrackExpansion();
 		dynamicTrack.setDesignConstants(robot); //sets the values for the chosen robot
 		
 		// Odometer related objects
-		odometer = Odometer.getOdometer(leftMotor, rightMotor, dynamicTrack, CONFIG);
+		odometer = Odometer.getOdometer(leftMotor, rightMotor, dynamicTrack, gyroscope, CONFIG);
 		odometryDisplay = new Display(lcd, ultraSensor);
 		odoCorrect=new OdometerCorrection(lSensor, odometer, dynamicTrack);
 		
@@ -144,7 +142,13 @@ public class GamePlan {
 		Thread odoCorrectionThread=new Thread(odoCorrect);
 		odoCorrectionThread.start();
 		
-		switch(serverData.getTeamColor()) {
+		
+		
+		//testing slot
+		
+		
+		
+		/*switch(serverData.getTeamColor()) {
 		case RED:
 			redPlan();
 			break;
@@ -152,7 +156,7 @@ public class GamePlan {
 			greenPlan();
 			break;
 		}
-		
+		*/
 		//TODO victory tune
 	}
 	
@@ -301,7 +305,7 @@ public class GamePlan {
 	 * 
 	 * @return The Direction (side) which the 
 	 * 			robot needs to enter the tunnel
-	 * @throws Exception 
+	 * @throws Exception When there is a problem with the data from the EV3WifiClass
 	 */
 	private Direction getTunnelEntry() throws Exception {
 		switch(serverData.getTeamColor()) {
@@ -322,47 +326,157 @@ public class GamePlan {
 	 * 
 	 * @param direction Direction (side) of the bridge entry
 	 * @return True when reached
-	 * @throws Exception 
+	 * @throws Exception When there is a problem with the data from the EV3WifiClass or with the entry point
 	 */
 	private void goToBridge(Direction direction) throws Exception {
+		double lowerLeftX=serverData.getCoordParam(CoordParameter.BR_LL_x)*Navigation.TILE_SIZE;
+		double lowerLeftY=serverData.getCoordParam(CoordParameter.BR_LL_y)*Navigation.TILE_SIZE;
+		double upperRightX=serverData.getCoordParam(CoordParameter.BR_UR_x)*Navigation.TILE_SIZE;
+		double upperRightY=serverData.getCoordParam(CoordParameter.BR_UR_y)*Navigation.TILE_SIZE;
+		
 		switch(direction) {
 		case NORTH:
-			navigation.travelTo(serverData.getCoordParam(CoordParameter.BR_UR_x)*Navigation.TILE_SIZE ,
-					serverData.getCoordParam(CoordParameter.BR_UR_y)*Navigation.TILE_SIZE);
-			
-			currentAngle = gyroscope.getAngle();
-			angleNeeded = 180;
-			angleTurning = angleNeeded - currentAngle;
-			navigation.turn(angleTurning);
+			//entrance of the bridge is on the North side
+			//avoid SR
+			switch(serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
+			//position of the robot with respect to the search zone
+			case CENTER:
+				//can't avoid search zone so go for it
+				navigation.travelTo(lowerLeftX+(upperRightX-lowerLeftX)/2, upperRightY+ Navigation.TILE_SIZE/2); //half a tile in front of bridge
+				break;
+			case NORTH:
+				//robot is north of the search zone
+				switch(serverData.getSide(EV3WifiClient.Zone.SR, lowerLeftX+(upperRightX-lowerLeftX)/2, upperRightY)) {
+				//position of the entrance relative to the search zone
+				case CENTER:
+					throw new Exception("Brigde entry in search zone");
+				case NORTH:
+					//robot is north of the search zone, which is south of the north bridge entry
+					//very unlikely considering rectangular zones
+					throw new Exception("No good trajectory to go to tunnel entrance");
+				case EAST:
+					//robot is north of the search zone, which is west of the north bridge entry
+					//travel east using east bound
+					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_UR_x)*Navigation.TILE_SIZE + dynamicTrack.getTrack(),
+							serverData.getCoordParam(CoordParameter.SR_UR_y)*Navigation.TILE_SIZE + dynamicTrack.getTrack());
+					break;
+				case SOUTH:
+					//robot is north of the search zone, which is north of the north bridge entry
+					//goes south around by the west bound
+					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
+							serverData.getCoordParam(CoordParameter.SR_UR_y)*Navigation.TILE_SIZE + dynamicTrack.getTrack());
+					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
+							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+					break;
+				case WEST:
+					//robot is north of the search zone, which is east of the north bridge entry
+					//travel west
+					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
+							serverData.getCoordParam(CoordParameter.SR_UR_y)*Navigation.TILE_SIZE + dynamicTrack.getTrack());
+					break;
+				}
+				break;
+				
+			case EAST:
+				//robot is east of search zone
+				switch(serverData.getSide(EV3WifiClient.Zone.SR, lowerLeftX+(upperRightX-lowerLeftX)/2, upperRightY)) {
+				//position of the entrance relative to the search zone
+				case CENTER:
+					throw new Exception("Brigde entry in search zone");
+				case NORTH:
+					//robot is east of the search zone, which is south of the north bridge entry
+					//very unlikely considering rectangular zones
+					throw new Exception("No good trajectory to go to tunnel entrance");
+				case EAST:
+					//robot is east of the search zone, which is west of the north bridge entry
+					//will travel directly to bridge later
+					
+					break;
+				case SOUTH:
+					//robot is east of the search zone, which is north of the north bridge entry
+					//goes south around by the east bound
+					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_UR_x)*Navigation.TILE_SIZE + dynamicTrack.getTrack(),
+							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+					break;
+				case WEST:
+					//robot is east of the search zone, which is east of the north bridge entry
+					//travel west using south bound
+					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_UR_x)*Navigation.TILE_SIZE + dynamicTrack.getTrack(),
+							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
+							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+					break;
+				}
+				break;
+			case WEST:
+				//robot is west of search zone
+				switch(serverData.getSide(EV3WifiClient.Zone.SR, lowerLeftX+(upperRightX-lowerLeftX)/2, upperRightY)) {
+				//position of the entrance relative to the search zone
+				case CENTER:
+					throw new Exception("Brigde entry in search zone");
+				case NORTH:
+					//robot is west of the search zone, which is south of the north bridge entry
+					//very unlikely considering rectangular zones
+					throw new Exception("No good trajectory to go to tunnel entrance");
+				case EAST:
+					//robot is west of the search zone, which is west of the north bridge entry
+					//travel east using south bound
+					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
+							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
+							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+					break;
+					
+				case SOUTH:
+					//robot is east of the search zone, which is north of the north bridge entry
+					//goes south around by the east bound
+					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_UR_x)*Navigation.TILE_SIZE + dynamicTrack.getTrack(),
+							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+					break;
+				case WEST:
+					//robot is east of the search zone, which is east of the north bridge entry
+					//travel west using south bound
+					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_UR_x)*Navigation.TILE_SIZE + dynamicTrack.getTrack(),
+							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
+							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+					break;
+				}
+				break;
+			case SOUTH:
+				//robot is south of search zone
+				//can always reach north bridge entrance in the rectangular red zone
+				//will travel to entrance later
+				break;
+			}
+			//goes half a tile in front of bridge
+			navigation.travelTo(lowerLeftX+(upperRightX-lowerLeftX)/2, upperRightY+ Navigation.TILE_SIZE/2); 
+			navigation.travelTo(lowerLeftX+(upperRightX-lowerLeftX)/2, upperRightY); //center of North face
+			navigation.turnTo(180); //faces south
 			break;
 		case EAST:
-			navigation.travelTo(serverData.getCoordParam(CoordParameter.BR_UR_x)*Navigation.TILE_SIZE ,
-					serverData.getCoordParam(CoordParameter.BR_UR_y)*Navigation.TILE_SIZE);
+			//avoid SR
 			
-			currentAngle = gyroscope.getAngle();
-			angleNeeded = 90;
-			angleTurning = angleNeeded - currentAngle;
-			navigation.turn(angleTurning);
+			navigation.travelTo(upperRightX, lowerLeftY+(upperRightY-lowerLeftY)/2); //center of East face
+			navigation.turnTo(270); //faces west
 			break;
 		case SOUTH:
-			navigation.travelTo(serverData.getCoordParam(CoordParameter.BR_LL_x)*Navigation.TILE_SIZE ,
-					serverData.getCoordParam(CoordParameter.BR_LL_y)*Navigation.TILE_SIZE);
 			
-			currentAngle = gyroscope.getAngle();
-			angleNeeded = 0;
-			angleTurning = angleNeeded - currentAngle;
-			navigation.turn(angleTurning);
+			//avoid SR
+			navigation.travelTo(lowerLeftX+(upperRightX-lowerLeftX)/2, lowerLeftY); //center of South face
+			navigation.turnTo(0); //faces north
 			break;
 		case WEST:
-			navigation.travelTo(serverData.getCoordParam(CoordParameter.BR_LL_x)*Navigation.TILE_SIZE ,
-					serverData.getCoordParam(CoordParameter.BR_LL_y)*Navigation.TILE_SIZE);
-			
-			currentAngle = gyroscope.getAngle();
-			angleNeeded = 270;
-			angleTurning = angleNeeded - currentAngle;
-			navigation.turn(angleTurning);
+			//avoid SR
+			navigation.travelTo(lowerLeftX, lowerLeftY+(upperRightY-lowerLeftY)/2); //center of West face
+			navigation.turnTo(270); //faces west
 			break;
+			
+		case CENTER:
+			//entrance cannot be in the middle
+			throw new Exception("Problem with the entry point of the bridge");
 		}
+		
 		
 		//TODO code the maneuver
 	
@@ -375,42 +489,37 @@ public class GamePlan {
 	 * 
 	 * @param direction Direction (side) of the tunnel entry
 	 * @return True when reached
-	 * @throws Exception 
+	 * @throws Exception When there is a problem with the data from the EV3WifiClass or with the entry point
 	 */
 	private void goToTunnel(Direction direction) throws Exception {
 		switch(direction) {
 		case NORTH:
 			navigation.travelTo(serverData.getCoordParam(CoordParameter.TN_UR_x)*Navigation.TILE_SIZE ,
 					serverData.getCoordParam(CoordParameter.TN_UR_y)*Navigation.TILE_SIZE);
-			currentAngle = gyroscope.getAngle();
-			angleNeeded=180;
-			angleTurning=angleNeeded-currentAngle;
-			navigation.turn(angleTurning);
+			
+			navigation.turnTo(180); //faces south
 			break;
 		case EAST:
 			navigation.travelTo(serverData.getCoordParam(CoordParameter.TN_UR_x)*Navigation.TILE_SIZE ,
 					serverData.getCoordParam(CoordParameter.TN_UR_y)*Navigation.TILE_SIZE);
-			currentAngle = gyroscope.getAngle();
-			angleNeeded=90;
-			angleTurning=angleNeeded-currentAngle;
-			navigation.turn(angleTurning);
+
+			navigation.turnTo(270); //faces west
 			break;
 		case SOUTH:
 			navigation.travelTo(serverData.getCoordParam(CoordParameter.TN_LL_x)*Navigation.TILE_SIZE ,
 					serverData.getCoordParam(CoordParameter.TN_LL_y)*Navigation.TILE_SIZE);
-			currentAngle = gyroscope.getAngle();
-			angleNeeded=0;
-			angleTurning=angleNeeded-currentAngle;
-			navigation.turn(angleTurning);
+			navigation.turnTo(0); //faces north
 			break;
 		case WEST:
 			navigation.travelTo(serverData.getCoordParam(CoordParameter.TN_LL_x)*Navigation.TILE_SIZE ,
 					serverData.getCoordParam(CoordParameter.TN_LL_y)*Navigation.TILE_SIZE);
-			currentAngle = gyroscope.getAngle();
-			angleNeeded=270;
-			angleTurning=angleNeeded-currentAngle;
-			navigation.turn(angleTurning);
+			
+			navigation.turnTo(90); //faces east
 			break;
+			
+		case CENTER:
+			//entrance cannot be in the middle
+			throw new Exception("Problem with the entry point of the tunnel");
 		}
 		
 	}
@@ -422,7 +531,7 @@ public class GamePlan {
 	 * @return True when reached
 	 */
 	private boolean goToStartingCorner() {
-		//TODO code the maneuver
+		
 		return true;
 	}
 }
