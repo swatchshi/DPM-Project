@@ -80,11 +80,7 @@ public class GamePlan {
 	private Display odometryDisplay;
 	private OdometerCorrection odoCorrect;
 	
-<<<<<<< HEAD
-	
-	
-=======
->>>>>>> 27412878d5f1635bdde2319a34ca9cdbada4c775
+
     private boolean player;  //green = true, red = false;
 	
 	
