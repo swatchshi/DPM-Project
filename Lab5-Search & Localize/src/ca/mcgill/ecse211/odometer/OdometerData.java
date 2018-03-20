@@ -113,7 +113,7 @@ public class OdometerData {
 	/**
 	 * Gets the theta
 	 * 
-	 * @return
+	 * @return the angle theta
 	 */
 	public double getTheta() {
 		return theta;
@@ -122,7 +122,7 @@ public class OdometerData {
 	/**
 	 * Gets the x coordinate
 	 * 
-	 * @return
+	 * @return the x
 	 */
 	public double getX() {
 		return x;
@@ -131,7 +131,7 @@ public class OdometerData {
 	/**
 	 * Gets the y coordinate
 	 * 
-	 * @return
+	 * @return the y
 	 */
 	public double getY() {
 		return y;

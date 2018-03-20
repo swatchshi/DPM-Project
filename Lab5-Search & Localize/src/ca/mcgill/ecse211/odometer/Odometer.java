@@ -1,10 +1,13 @@
 package ca.mcgill.ecse211.odometer;
 
 import ca.mcgill.ecse211.lab5.GamePlan;
-import ca.mcgill.ecse211.lab5.Lab5;
 import ca.mcgill.ecse211.lab5.TrackExpansion;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
+/**
+ * Class responsible for keeping track of the movements of the robot
+ * Runs on a thread
+ */
 public class Odometer extends OdometerData implements Runnable {
 
 	  //  private OdometerData odoData;
@@ -20,6 +23,7 @@ public class Odometer extends OdometerData implements Runnable {
 	  private GamePlan.RobotConfig config;
 	  private Gyroscope gyroscope;
 	  private TrackExpansion dynamicTrack;
+	  private static final int MAX_ANGLE_ERROR=2;
 	
 	  private double[] position;
 	
@@ -32,7 +36,9 @@ public class Odometer extends OdometerData implements Runnable {
 	   * 
 	   * @param leftMotor
 	   * @param rightMotor
-	   * @param config The Lab5.RobotConfig, i.e. the wheel positioning
+	   * @param dynamicTrack
+	   * @param gyroscope
+	   * @param config The GamePlan.RobotConfig, i.e. the wheel positioning
 	   * @throws OdometerExceptions
 	   */
 	  private Odometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor,
@@ -69,6 +75,7 @@ public class Odometer extends OdometerData implements Runnable {
 	   * 
 	   * @param leftMotor
 	   * @param rightMotor
+	   * @param dynamicTrack
 	   * @param gyroscope
 	   * @param config The Lab5.RobotConfig, i.e. the wheel positioning
 	   * @return new or existing Odometer Object
@@ -101,6 +108,22 @@ public class Odometer extends OdometerData implements Runnable {
 		    }
 		    return odo;
 	  }
+	  
+	  /**
+	   * Correction of the angle with the gyroscope angle value
+	   * if the difference is greater than the max angle error
+	   * 
+	   * @param odoAngle new angle recorded by the Odometer
+	   * @return a linear combination of the two angle if there is a big difference
+	   */
+	  private double correctAngle(double odoAngle) {
+		  double correctedAngle=odoAngle;
+		  double gyroAngle=gyroscope.getAngle();
+		  if(Math.abs(odoAngle-gyroAngle)>MAX_ANGLE_ERROR) {
+			  correctedAngle=odoAngle * 0.5 + gyroAngle * 0.5; //change proportions to get more accurate correction
+		  }
+		  return correctedAngle;
+	  }
 	
 	  /**
 	   * This method is where the logic for the odometer will run. Use the methods provided from the
@@ -127,18 +150,17 @@ public class Odometer extends OdometerData implements Runnable {
 			      distL=Math.PI*dynamicTrack.getWheelRad()*(leftMotorTachoCount-leftMotorLastTachoCount)/180; 	//convert left rotation to wheel displacement
 			      distR=Math.PI*dynamicTrack.getWheelRad()*(rightMotorTachoCount-rightMotorLastTachoCount)/180;	//convert right rotation to wheel displacement
 			      
-			      //dTheta=(distL-distR)/dynamicTrack.getTrack(); //Calculating the instantaneous rotation magnitude
-			      dTheta=gyroscope.getAngleDisplacement(); //Calculating the instantaneous rotation magnitude
+			      dTheta=(distL-distR)/dynamicTrack.getTrack(); //Calculating the instantaneous rotation magnitude
 			      
 			      if(config==GamePlan.RobotConfig.PROPULSION) {
 			    	  dTheta=-Math.toDegrees(dTheta); //conversion to degrees
-				      position[2]+=dTheta; 			//new temporary angle
+			    	  position[2]=correctAngle(position[2]+dTheta); 			//new angle
 				      
 				      dX=-0.5*(distL+distR)*Math.sin(Math.toRadians(position[2])); //displacement in X with new angle
 				      dY=-0.5*(distL+distR)*Math.cos(Math.toRadians(position[2])); //displacement in Y with new angle
 			      } else { //TRACTION
 			    	  dTheta=Math.toDegrees(dTheta); //conversion to degrees
-			          position[2]+=dTheta; 			//new temporary angle
+			    	  position[2]=correctAngle(position[2]+dTheta); 			//new angle
 			          
 			          dX=0.5*(distL+distR)*Math.sin(Math.toRadians(position[2])); //displacement in X with new angle
 			          dY=0.5*(distL+distR)*Math.cos(Math.toRadians(position[2])); //displacement in Y with new angle
@@ -149,7 +171,7 @@ public class Odometer extends OdometerData implements Runnable {
 			      rightMotorLastTachoCount=rightMotorTachoCount;	//resets value of the right tachoCount
 			      
 			      //Update odometer values with new calculated values
-			      update(dX, dY, dTheta); 
+			      update(dX, dY, getTheta()-position[2]); 
 			
 			      // this ensures that the odometer only runs once every period
 			      updateEnd = System.currentTimeMillis();

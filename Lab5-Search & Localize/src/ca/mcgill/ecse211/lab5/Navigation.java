@@ -267,10 +267,22 @@ public class Navigation {
 	 */
 	public void turn(double rotation) {
 		navigating=true;
+		double initialTheta=odo.getTheta();
 		GamePlan.leftMotor.setSpeed(ROTATE_SPEED);
 	    GamePlan.rightMotor.setSpeed(ROTATE_SPEED);
-	    GamePlan.leftMotor.rotate(-convertAngle(dynamicTrack.getWheelRad(), dynamicTrack.getTrack(), rotation), true);
-	    GamePlan.rightMotor.rotate(convertAngle(dynamicTrack.getWheelRad(), dynamicTrack.getTrack(), rotation), false);
+	    if(rotation>0) {
+	    	rotate(Turn.CLOCK_WISE);
+	    	while((odo.getTheta()-initialTheta) < rotation) {
+	    		//wait
+	    	}
+	    	stopMotors();
+	    }else {
+	    	rotate(Turn.COUNTER_CLOCK_WISE);
+	    	while((odo.getTheta()-initialTheta) > rotation) {
+	    		//wait
+	    	}
+	    	stopMotors();
+	    }
 	    navigating=false;
 	}
 	

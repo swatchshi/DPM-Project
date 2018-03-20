@@ -5,6 +5,12 @@ import ca.mcgill.ecse211.lab5.TrackExpansion;
 import ca.mcgill.ecse211.localizer.ColorSensor;
 import ca.mcgill.ecse211.localizer.LightLocalizer;
 
+/**
+ * Class for correcting the odometer values using a light sensor from the ColorSensor class
+ * Corrects the odometer values when crossing a line.
+ * @author Xavier Pellemans
+ *
+ */
 public class OdometerCorrection extends Thread{
 	public final double ERROR_THRESHOLD;
 	private final ColorSensor lightSensor;
