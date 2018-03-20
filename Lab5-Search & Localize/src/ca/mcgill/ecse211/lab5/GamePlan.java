@@ -53,7 +53,7 @@ public class GamePlan {
 	public static final EV3UltrasonicSensor ultraSSensor = new EV3UltrasonicSensor(LocalEV3.get().getPort("S4"));
 	public static final TextLCD lcd = LocalEV3.get().getTextLCD();
 
-	public static final RobotConfig CONFIG = RobotConfig.PROPULSION;
+	public static final RobotConfig CONFIG = RobotConfig.TRACTION;
 	public static final Robot robot = Robot.SCREW_DESIGN;
 
 	/**
