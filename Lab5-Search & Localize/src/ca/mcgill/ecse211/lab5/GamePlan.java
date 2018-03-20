@@ -85,8 +85,7 @@ public class GamePlan {
 	private OdometerCorrection odoCorrect;
 	
 	
-	public static final double WHEEL_RAD = 2.2;
-	public static final double TRACK = 8.6;
+	
     private boolean player;  //green = true, red = false;
 	
 	
@@ -146,7 +145,9 @@ public class GamePlan {
 		
 		//testing slot
 		
-		
+		navigation.travel(30.48);
+		navigation.stopMotors();
+		navigation.turn(90);
 		
 		/*switch(serverData.getTeamColor()) {
 		case RED:

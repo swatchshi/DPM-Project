@@ -70,6 +70,8 @@ public class Lab5 {
 			
 			
 			game.play();
+			while (buttonChoice != Button.ID_ESCAPE);
+			System.exit(0);
 			
 				/*
 
