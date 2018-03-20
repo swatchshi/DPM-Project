@@ -1,11 +1,8 @@
 package ca.mcgill.ecse211.lab5;
 
 import ca.mcgill.ecse211.lab5.EV3WifiClient.CoordParameter;
-import ca.mcgill.ecse211.lab5.GamePlan.Direction;
 import ca.mcgill.ecse211.localizer.*;
 import ca.mcgill.ecse211.odometer.*;
-import lejos.ev3.tools.EV3ConnectionState;
-import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -13,8 +10,6 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
-import lejos.hardware.sensor.SensorModes;
-import lejos.robotics.SampleProvider;
 
 /**
  * Class responsible for the game play. This class creates instances of a game,
@@ -84,9 +79,6 @@ public class GamePlan {
 	private Display odometryDisplay;
 	private OdometerCorrection odoCorrect;
 	
-	
-	public static final double WHEEL_RAD = 2.2;
-	public static final double TRACK = 8.6;
     private boolean player;  //green = true, red = false;
 	
 	
@@ -335,152 +327,437 @@ public class GamePlan {
 		double upperRightY=serverData.getCoordParam(CoordParameter.BR_UR_y)*Navigation.TILE_SIZE;
 		
 		switch(direction) {
+		//Entrance is in the North	
 		case NORTH:
 			//entrance of the bridge is on the North side
 			//avoid SR
-			switch(serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
-			//position of the robot with respect to the search zone
+			switch(serverData.getSide(EV3WifiClient.Zone.SR, lowerLeftX+(upperRightX-lowerLeftX)/2, upperRightY)) {
 			case CENTER:
-				//can't avoid search zone so go for it
-				navigation.travelTo(lowerLeftX+(upperRightX-lowerLeftX)/2, upperRightY+ Navigation.TILE_SIZE/2); //half a tile in front of bridge
-				break;
+				throw new Exception("Brigde entry in search zone");
 			case NORTH:
-				//robot is north of the search zone
-				switch(serverData.getSide(EV3WifiClient.Zone.SR, lowerLeftX+(upperRightX-lowerLeftX)/2, upperRightY)) {
-				//position of the entrance relative to the search zone
+				//the search zone is south of the north bridge entry
+				//very unlikely considering rectangular zones
+				throw new Exception("No good trajectory to go to bridge entrance");
+			case SOUTH:
+				//the search zone is north of the north bridge entry
+				switch(serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
 				case CENTER:
-					throw new Exception("Brigde entry in search zone");
-				case NORTH:
-					//robot is north of the search zone, which is south of the north bridge entry
-					//very unlikely considering rectangular zones
-					throw new Exception("No good trajectory to go to tunnel entrance");
-				case EAST:
-					//robot is north of the search zone, which is west of the north bridge entry
-					//travel east using east bound
-					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_UR_x)*Navigation.TILE_SIZE + dynamicTrack.getTrack(),
-							serverData.getCoordParam(CoordParameter.SR_UR_y)*Navigation.TILE_SIZE + dynamicTrack.getTrack());
+					//rush for it
 					break;
-				case SOUTH:
+				case NORTH:
 					//robot is north of the search zone, which is north of the north bridge entry
 					//goes south around by the west bound
-					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
-							serverData.getCoordParam(CoordParameter.SR_UR_y)*Navigation.TILE_SIZE + dynamicTrack.getTrack());
-					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
-							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+					goToSRUpperLeft();
+					goToSRLowerLeft();
+					break;
+				case SOUTH:
+					//robot is south of the search zone, which is north of the north bridge entry
+					//rush for it
+					break;
+				case EAST:
+					//robot is east of the search zone, which is north of the north bridge entry
+					//go south by the east bound
+					goToSRLowerRight();
 					break;
 				case WEST:
-					//robot is north of the search zone, which is east of the north bridge entry
-					//travel west
-					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
-							serverData.getCoordParam(CoordParameter.SR_UR_y)*Navigation.TILE_SIZE + dynamicTrack.getTrack());
+					//robot is west of the search zone, which is north of the north bridge entry
+					//go south by the west bound
+					goToSRLowerLeft();
 					break;
 				}
 				break;
-				
 			case EAST:
-				//robot is east of search zone
-				switch(serverData.getSide(EV3WifiClient.Zone.SR, lowerLeftX+(upperRightX-lowerLeftX)/2, upperRightY)) {
-				//position of the entrance relative to the search zone
+				//the search zone is west of the north bridge entry
+				switch(serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
 				case CENTER:
-					throw new Exception("Brigde entry in search zone");
+					//rush for it
+					break;
 				case NORTH:
-					//robot is east of the search zone, which is south of the north bridge entry
-					//very unlikely considering rectangular zones
-					throw new Exception("No good trajectory to go to tunnel entrance");
-				case EAST:
-					//robot is east of the search zone, which is west of the north bridge entry
-					//will travel directly to bridge later
-					
+					//robot is north of the search zone, which is west of the north bridge entry
+					//goes south around by the east bound
+					goToSRUpperRight();
+					goToSRLowerRight();
 					break;
 				case SOUTH:
-					//robot is east of the search zone, which is north of the north bridge entry
-					//goes south around by the east bound
-					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_UR_x)*Navigation.TILE_SIZE + dynamicTrack.getTrack(),
-							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+					//robot is south of the search zone, which is west of the north bridge entry
+					//go west
+					goToSRLowerRight();
+					break;
+				case EAST:
+					//robot is east of the search zone, which is west of the north bridge entry
+					//rush for it
 					break;
 				case WEST:
-					//robot is east of the search zone, which is east of the north bridge entry
-					//travel west using south bound
-					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_UR_x)*Navigation.TILE_SIZE + dynamicTrack.getTrack(),
-							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
-					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
-							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+					//robot is west of the search zone, which is west of the north bridge entry
+					//go south by the west bound and then east
+					goToSRLowerLeft();
+					goToSRLowerRight();
 					break;
 				}
 				break;
 			case WEST:
-				//robot is west of search zone
-				switch(serverData.getSide(EV3WifiClient.Zone.SR, lowerLeftX+(upperRightX-lowerLeftX)/2, upperRightY)) {
-				//position of the entrance relative to the search zone
+				//the search zone is east of the north bridge entry
+				switch(serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
 				case CENTER:
-					throw new Exception("Brigde entry in search zone");
-				case NORTH:
-					//robot is west of the search zone, which is south of the north bridge entry
-					//very unlikely considering rectangular zones
-					throw new Exception("No good trajectory to go to tunnel entrance");
-				case EAST:
-					//robot is west of the search zone, which is west of the north bridge entry
-					//travel east using south bound
-					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
-							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
-					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
-							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+					//rush for it
 					break;
-					
+				case NORTH:
+					//robot is north of the search zone, which is east of the north bridge entry
+					//goes south around by the west bound
+					goToSRUpperLeft();
+					goToSRLowerLeft();
+					break;
 				case SOUTH:
-					//robot is east of the search zone, which is north of the north bridge entry
-					//goes south around by the east bound
-					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_UR_x)*Navigation.TILE_SIZE + dynamicTrack.getTrack(),
-							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+					//robot is south of the search zone, which is east of the north bridge entry
+					//go west
+					goToSRLowerLeft();
+					break;
+				case EAST:
+					//robot is east of the search zone, which is east of the north bridge entry
+					//go south by the east bound and then west
+					goToSRLowerRight();
+					goToSRLowerLeft();
 					break;
 				case WEST:
-					//robot is east of the search zone, which is east of the north bridge entry
-					//travel west using south bound
-					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_UR_x)*Navigation.TILE_SIZE + dynamicTrack.getTrack(),
-							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
-					navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
-							serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+					//robot is west of the search zone, which is east of the north bridge entry
+					//rush for it
 					break;
 				}
 				break;
+			}
+			
+			//finally rush to North entrance of the bridge
+			navigation.travelTo(lowerLeftX+(upperRightX-lowerLeftX)/2, upperRightY+Navigation.TILE_SIZE/2);
+			navigation.turnTo(180);
+			break;
+			
+			
+		//Entrance is in the East	
+		case EAST:
+			//entrance of the bridge is on the East side
+			//avoid SR
+			switch(serverData.getSide(EV3WifiClient.Zone.SR, upperRightX, lowerLeftY+(upperRightY-lowerLeftY)/2)) {
+			case CENTER:
+				throw new Exception("Brigde entry in search zone");
+			case EAST:
+				//the search zone is west of the east bridge entry
+				//very unlikely considering rectangular zones
+				throw new Exception("No good trajectory to go to bridge entrance");
 			case SOUTH:
-				//robot is south of search zone
-				//can always reach north bridge entrance in the rectangular red zone
-				//will travel to entrance later
+				//the search zone is north of the east bridge entry
+				switch(serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
+				case CENTER:
+					//rush for it
+					break;
+				case NORTH:
+					//robot is north of the search zone, which is north of the east bridge entry
+					//goes south around by the east bound
+					goToSRUpperRight();
+					goToSRLowerRight();
+					break;
+				case SOUTH:
+					//robot is south of the search zone, which is north of the east bridge entry
+					//go east a bit
+					goToSRLowerRight();
+					break;
+				case EAST:
+					//robot is east of the search zone, which is north of the east bridge entry
+					//go south by the east bound
+					goToSRLowerRight();
+					break;
+				case WEST:
+					//robot is west of the search zone, which is north of the east bridge entry
+					//go south by the west bound and then east
+					goToSRLowerLeft();
+					goToSRLowerRight();
+					break;
+				}
+				break;
+			case NORTH:
+				//the search zone is south of the east bridge entry
+				switch(serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
+				case CENTER:
+					//rush for it
+					break;
+				case NORTH:
+					//robot is north of the search zone, which is south of the east bridge entry
+					//go east a bit
+					goToSRLowerRight();
+					break;
+				case SOUTH:
+					//robot is south of the search zone, which is south of the east bridge entry
+					//go north by the east bound
+					goToSRLowerRight();
+					goToSRUpperRight();
+					break;
+				case EAST:
+					//robot is east of the search zone, which is south of the east bridge entry
+					//go north using east bound
+					goToSRUpperRight();
+					break;
+				case WEST:
+					//robot is west of the search zone, which is south of the east bridge entry
+					//go north by the west bound and then east
+					goToSRUpperLeft();
+					goToSRUpperRight();
+					break;
+				}
+				break;
+			case WEST:
+				//the search zone is east of the east bridge entry
+				switch(serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
+				case CENTER:
+					//rush for it
+					break;
+				case NORTH:
+					//robot is north of the search zone, which is east of the east bridge entry
+					//goes west
+					goToSRUpperLeft();
+					break;
+				case SOUTH:
+					//robot is south of the search zone, which is east of the east bridge entry
+					//go west
+					goToSRLowerLeft();
+					break;
+				case EAST:
+					//robot is east of the search zone, which is east of the east bridge entry
+					
+					if(lowerLeftY<odometer.getY()) {
+						//go south by the east bound and then west
+						goToSRLowerRight();
+						goToSRLowerLeft();
+					}else {
+						goToSRUpperRight();
+						goToSRUpperLeft();
+					}
+					break;
+				case WEST:
+					//robot is west of the search zone, which is east of the east bridge entry
+					//rush for it
+					break;
+				}
 				break;
 			}
-			//goes half a tile in front of bridge
-			navigation.travelTo(lowerLeftX+(upperRightX-lowerLeftX)/2, upperRightY+ Navigation.TILE_SIZE/2); 
-			navigation.travelTo(lowerLeftX+(upperRightX-lowerLeftX)/2, upperRightY); //center of North face
-			navigation.turnTo(180); //faces south
+			//finally rush to East entrance of the bridge
+			navigation.travelTo(upperRightX+Navigation.TILE_SIZE/2, lowerLeftY+(upperRightY-lowerLeftY)/2);
+			navigation.turnTo(270);
 			break;
-		case EAST:
-			//avoid SR
-			
-			navigation.travelTo(upperRightX, lowerLeftY+(upperRightY-lowerLeftY)/2); //center of East face
-			navigation.turnTo(270); //faces west
-			break;
-		case SOUTH:
-			
-			//avoid SR
-			navigation.travelTo(lowerLeftX+(upperRightX-lowerLeftX)/2, lowerLeftY); //center of South face
-			navigation.turnTo(0); //faces north
-			break;
+		
+		//Entrance is in the West	
 		case WEST:
+			//entrance of the bridge is on the West side
 			//avoid SR
-			navigation.travelTo(lowerLeftX, lowerLeftY+(upperRightY-lowerLeftY)/2); //center of West face
-			navigation.turnTo(270); //faces west
+			switch(serverData.getSide(EV3WifiClient.Zone.SR, lowerLeftX, lowerLeftY+(upperRightY-lowerLeftY)/2)) {
+			case CENTER:
+				throw new Exception("Brigde entry in search zone");
+			case WEST:
+				//the search zone is east of the west bridge entry
+				//very unlikely considering rectangular zones
+				throw new Exception("No good trajectory to go to bridge entrance");
+			case SOUTH:
+				//the search zone is north of the west bridge entry
+				switch(serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
+				case CENTER:
+					//rush for it
+					break;
+				case NORTH:
+					//robot is north of the search zone, which is north of the west bridge entry
+					//goes south around by the west bound
+					goToSRUpperLeft();
+					goToSRLowerLeft();
+					break;
+				case SOUTH:
+					//robot is south of the search zone, which is north of the west bridge entry
+					//go west a bit
+					goToSRLowerLeft();
+					break;
+				case EAST:
+					//robot is east of the search zone, which is north of the west bridge entry
+					//go south by the east bound and then west
+					goToSRLowerRight();
+					goToSRLowerLeft();
+					break;
+				case WEST:
+					//robot is west of the search zone, which is north of the west bridge entry
+					//go south by the west bound
+					goToSRLowerLeft();
+					break;
+				}
+				break;
+			case NORTH:
+				//the search zone is south of the west bridge entry
+				switch(serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
+				case CENTER:
+					//rush for it
+					break;
+				case NORTH:
+					//robot is north of the search zone, which is south of the west bridge entry
+					//go west a bit
+					goToSRLowerLeft();
+					break;
+				case SOUTH:
+					//robot is south of the search zone, which is south of the west bridge entry
+					//go north by the west bound
+					goToSRLowerLeft();
+					goToSRUpperLeft();
+					break;
+				case EAST:
+					//robot is east of the search zone, which is south of the west bridge entry
+					//go for it
+					break;
+				case WEST:
+					//robot is west of the search zone, which is south of the west bridge entry
+					//go north by the west bound
+					goToSRUpperLeft();
+					break;
+				}
+				break;
+			case EAST:
+				//the search zone is west of the west bridge entry
+				switch(serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
+				case CENTER:
+					//rush for it
+					break;
+				case NORTH:
+					//robot is north of the search zone, which is west of the west bridge entry
+					//goes east
+					goToSRUpperRight();
+					break;
+				case SOUTH:
+					//robot is south of the search zone, which is west of the west bridge entry
+					//go east
+					goToSRLowerRight();
+					break;
+				case EAST:
+					//robot is east of the search zone, which is west of the west bridge entry
+					//rush for it
+					
+					break;
+				case WEST:
+					//robot is west of the search zone, which is west of the west bridge entry
+					if(lowerLeftY<odometer.getY()) {
+						//go south by the west bound and then east
+						goToSRLowerLeft();
+						goToSRLowerRight();
+					}else {
+						goToSRUpperLeft();
+						goToSRUpperRight();
+					}
+					break;
+				}
+				break;
+			}
+			//finally rush to West entrance of the bridge
+			navigation.travelTo(lowerLeftX-Navigation.TILE_SIZE/2, lowerLeftY+(upperRightY-lowerLeftY)/2);
+			navigation.turnTo(90);
 			break;
 			
-		case CENTER:
-			//entrance cannot be in the middle
-			throw new Exception("Problem with the entry point of the bridge");
+			
+		//Entrance is in the south	
+		case SOUTH:
+			//entrance of the bridge is on the South side
+			//avoid SR
+			switch(serverData.getSide(EV3WifiClient.Zone.SR, lowerLeftX+(upperRightX-lowerLeftX)/2, lowerLeftY)) {
+			case CENTER:
+				throw new Exception("Brigde entry in search zone");
+			case SOUTH:
+				//the search zone is north of the south bridge entry
+				//very unlikely considering rectangular zones
+				throw new Exception("No good trajectory to go to bridge entrance");
+			case NORTH:
+				//the search zone is south of the south bridge entry
+				switch(serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
+				case CENTER:
+					//robot in center of search zone
+					//rush for it
+					break;
+				case NORTH:
+					//robot is north of the search zone, which is south of the south bridge entry
+					//rush for it
+					break;
+				case SOUTH:
+					//robot is south of the search zone, which is south of the south bridge entry
+					//go north using the west bound
+					goToSRLowerLeft();
+					goToSRUpperLeft();
+					break;
+				case EAST:
+					//robot is east of the search zone, which is south of the south bridge entry
+					//go north by the east bound
+					goToSRUpperRight();
+					break;
+				case WEST:
+					//robot is west of the search zone, which is south of the south bridge entry
+					//go north by the west bound
+					goToSRUpperLeft();
+					break;
+				}
+				break;
+			case EAST:
+				//the search zone is west of the south bridge entry
+				switch(serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
+				case CENTER:
+					//rush for it
+					break;
+				case NORTH:
+					//robot is north of the search zone, which is west of the south bridge entry
+					//go east a bit
+					goToSRUpperRight();
+					break;
+				case SOUTH:
+					//robot is south of the search zone, which is west of the south bridge entry
+					//go north using the east bound
+					goToSRLowerRight();
+					goToSRUpperRight();
+					break;
+				case EAST:
+					//robot is east of the search zone, which is west of the south bridge entry
+					//rush for it
+					break;
+				case WEST:
+					//robot is west of the search zone, which is west of the south bridge entry
+					//go north by the west bound and then east
+					goToSRUpperLeft();
+					goToSRUpperRight();
+					break;
+				}
+				break;
+			case WEST:
+				//the search zone is east of the south bridge entry
+				switch(serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
+				case CENTER:
+					//rush for it
+					break;
+				case NORTH:
+					//robot is north of the search zone, which is east of the south bridge entry
+					//go west a bit
+					goToSRUpperLeft();
+					break;
+				case SOUTH:
+					//robot is south of the search zone, which is east of the south bridge entry
+					//go north using the west bound
+					goToSRLowerLeft();
+					goToSRUpperLeft();
+					break;
+				case EAST:
+					//robot is east of the search zone, which is east of the south bridge entry
+					//go north by the east bound and then west
+					goToSRUpperRight();
+					goToSRUpperLeft();
+					break;
+				case WEST:
+					//robot is west of the search zone, which is east of the south bridge entry
+					//rush for it
+					break;
+				}
+				break;
+			}
+			
+			//finally rush to South entrance of the bridge
+			navigation.travelTo(lowerLeftX+(upperRightX-lowerLeftX)/2, lowerLeftY-Navigation.TILE_SIZE/2);
+			navigation.turnTo(0);
+			break;
 		}
-		
-		
-		//TODO code the maneuver
-	
-		
 	}
 	
 	/**
@@ -534,4 +811,42 @@ public class GamePlan {
 		
 		return true;
 	}
+	
+	
+	//////////////////////////////////////////////////////////
+	private boolean goToSRLowerLeft() {
+		navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
+				serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+		return true;
+	}
+	private boolean goToSRLowerRight() {
+		navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_UR_x)*Navigation.TILE_SIZE + dynamicTrack.getTrack(),
+				serverData.getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE - dynamicTrack.getTrack());
+		return true;
+	}
+	private boolean goToSRUpperLeft() {
+		navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE - dynamicTrack.getTrack(),
+				serverData.getCoordParam(CoordParameter.SR_UR_y)*Navigation.TILE_SIZE + dynamicTrack.getTrack());
+		return true;
+	}
+	private boolean goToSRUpperRight() {
+		navigation.travelTo(serverData.getCoordParam(CoordParameter.SR_UR_x)*Navigation.TILE_SIZE + dynamicTrack.getTrack(),
+				serverData.getCoordParam(CoordParameter.SR_UR_y)*Navigation.TILE_SIZE + dynamicTrack.getTrack());
+		return true;
+	}
+	
+	/*
+	private boolean goToSGLowerLeft() {
+		return true;
+	}
+	private boolean goToSGLowerRight() {
+		return true;
+	}
+	private boolean goToSGUpperLeft() {
+		return true;
+	}
+	private boolean goToSGUpperRight() {
+		return true;
+	}
+	*/
 }
