@@ -4,6 +4,7 @@ import ca.mcgill.ecse211.lab5.EV3WifiClient.CoordParameter;
 import ca.mcgill.ecse211.lab5.EV3WifiClient.Zone;
 import ca.mcgill.ecse211.localizer.*;
 import ca.mcgill.ecse211.odometer.*;
+import lejos.hardware.Button;
 import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
@@ -12,6 +13,7 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
+import ca.mcgill.ecse211.WiFiClient.*;
 
 /**
  * Class responsible for the game play. This class creates instances of a game,
@@ -115,6 +117,18 @@ public class GamePlan {
 		odoDisplayThread.start();
 		Thread odoCorrectionThread=new Thread(odoCorrect);
 		//odoCorrectionThread.start();
+		
+		
+		
+		
+		
+		
+				
+		
+		
+		
+		
+		
 	}
 
 	/**

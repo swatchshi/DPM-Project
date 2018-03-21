@@ -4,6 +4,7 @@ import java.util.Map;
 
 import ca.mcgill.ecse211.WiFiClient.WifiConnection;
 import ca.mcgill.ecse211.localizer.ColorSensor;
+import lejos.hardware.Button;
 
 /**
  * Class using WifiConnection to communicate with a server and receive data
@@ -100,7 +101,7 @@ public class EV3WifiClient {
 	}
 
 	// ** Set these as appropriate for your team and current situation **
-	private static final String SERVER_IP = "192.168.1.104"; // put your ipv4 here (go to cmd and write ipconfig)
+	private static final String SERVER_IP = "192.168.2.39"; // put your ipv4 here (go to cmd and write ipconfig)
 	// "192.168.2.3"
 	private static final int TEAM_NUMBER = 1; // Best team ever, will definitely win the competition
 	public static final int X_GRID_LINES = 12; // according to predefined convention for x
@@ -144,8 +145,16 @@ public class EV3WifiClient {
 		 * invalid team number was specified and getData() will throw an exception
 		 * letting you know.
 		 */
+	
+		
 		data = conn.getData();
+		System.out.println("getData completed");
+		Button.waitForAnyPress();
 		validateData();
+		System.out.println("validate completed");
+		Button.waitForAnyPress();
+		
+		
 	}
 
 	/**
