@@ -113,16 +113,14 @@ public class Odometer extends OdometerData implements Runnable {
 	   * Correction of the angle with the gyroscope angle value
 	   * if the difference is greater than the max angle error
 	   * 
-	   * @param odoAngle new angle recorded by the Odometer
 	   * @return a linear combination of the two angle if there is a big difference
 	   */
-	  private double correctAngle(double odoAngle) {
-		  double correctedAngle=odoAngle;
+	  public void correctAngle() {
+		  double odoAngle=getTheta();
 		  double gyroAngle=gyroscope.getAngle();
 		  if(Math.abs(odoAngle-gyroAngle)>MAX_ANGLE_ERROR) {
-			  correctedAngle=odoAngle * 0.5 + gyroAngle * 0.5; //change proportions to get more accurate correction
+			  odo.setTheta(odoAngle * 0.2 + gyroAngle * 0.8); //change proportions to get more accurate correction
 		  }
-		  return correctedAngle;
 	  }
 	
 	  /**
@@ -161,7 +159,8 @@ public class Odometer extends OdometerData implements Runnable {
 				      dY=-0.5*(distL+distR)*Math.cos(Math.toRadians(position[2])); //displacement in Y with new angle
 			      } else { //TRACTION
 			    	  dTheta=Math.toDegrees(dTheta); //conversion to degrees
-			    	  position[2]=correctAngle(position[2]+dTheta); 			//new angle
+			    	  position[2]+=dTheta;
+			    	//  position[2]=correctAngle(position[2]+dTheta); 			//new angle
 			          
 			          dX=0.5*(distL+distR)*Math.sin(Math.toRadians(position[2])); //displacement in X with new angle
 			          dY=0.5*(distL+distR)*Math.cos(Math.toRadians(position[2])); //displacement in Y with new angle

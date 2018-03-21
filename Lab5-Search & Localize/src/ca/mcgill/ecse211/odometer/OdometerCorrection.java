@@ -28,7 +28,8 @@ public class OdometerCorrection extends Thread{
 		this.lightSensor=sensor;
 		this.odo=odo;
 		this.dynamicTrack=dynamicTrack;
-		this.ERROR_THRESHOLD=dynamicTrack.getLightSensorDistance();
+		this.ERROR_THRESHOLD=dynamicTrack.getLightSensorDistance()*1.2; //to make sure no error occurs at crossings
+																		//normally is times 1
 	}
 	
 	

@@ -4,6 +4,7 @@ import ca.mcgill.ecse211.lab5.EV3WifiClient.CoordParameter;
 import ca.mcgill.ecse211.lab5.EV3WifiClient.Zone;
 import ca.mcgill.ecse211.localizer.*;
 import ca.mcgill.ecse211.odometer.*;
+import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
@@ -138,9 +139,15 @@ public class GamePlan {
 		
 		
 		//testing slot
-		navigation.turn(360);
-		
-		
+		navigation.travel(2*Navigation.TILE_SIZE);
+		navigation.turn(90);
+		navigation.travel(2*Navigation.TILE_SIZE);
+		navigation.turn(90);
+		navigation.travel(2*Navigation.TILE_SIZE);
+		navigation.turn(90);
+		navigation.travel(2*Navigation.TILE_SIZE);
+		navigation.turn(90);
+		Sound.beep();
 		/*switch(serverData.getTeamColor()) {
 		case RED:
 			redPlan();

@@ -48,7 +48,7 @@ public class LightLocalizer {
 	 * Localization in any line crossing
 	 * Only corrects the Odometer values
 	 * Does not go over the line crossing after localizing
-	 * 
+	 * Assumes light sensor is at the front (positive Light sensor distance)
 	 * @param xLine x line coordinate (0, 1, 2, ...) according to number of lines in x
 	 * @param yLine x line coordinate (0, 1, 2, ...) according to number of lines in y
 	 * @param corner  Corner from where the robot is relative to this intersection
@@ -64,14 +64,20 @@ public class LightLocalizer {
 		if (lightSensor.lineCrossed()) { // wait to cross a line
 			navigation.stopMotors();
 		}
-
 		// travel to "center" the robot on the cross
-		navigation.travel(dynamicTrack.getLightSensorDistance());
+		if(dynamicTrack.getLightSensorDistance()>0) {
+			navigation.travel(dynamicTrack.getLightSensorDistance());
+		}else {
+			navigation.backUp(dynamicTrack.getLightSensorDistance());
+		}
 
 		// Read in the angles
 		double[] lineAngles = new double[4];
 		int index = (corner * -1) % 4; // 0 -> 0, 1 -> 3, 2 -> 2, 3 -> 1
 
+		if(dynamicTrack.getLightSensorDistance()<0) { //if sensor is at the back
+			index=(index+2)%4;
+		}
 		for (int lineCounter = 0; lineCounter < 4; lineCounter++) {
 
 			navigation.rotate(Navigation.Turn.CLOCK_WISE);// Rotate
@@ -80,7 +86,7 @@ public class LightLocalizer {
 
 			if (lightSensor.lineCrossed()) { // wait to cross a line
 				
-				lineAngles[index] = odo.getTheta(); // positive x, negative y, negative x, positive y
+				lineAngles[index] = odo.getTheta(); // 0: positive x, 1: negative y, 2: negative x, 3: positive y
 				index = (index + 1) % 4; // cycle index to record good angle with line
 			}
 		}
@@ -110,7 +116,7 @@ public class LightLocalizer {
 			y = -dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2) + Navigation.TILE_SIZE;
 			break;
 		}
-		double dTheta = Math.toDegrees(thetaY) / 2 + 270 - lineAngles[3];
+		double dTheta = Math.toDegrees(thetaY) / 2 + 270 - lineAngles[((index-1)%4)];
 
 		odo.setXYT(x + xLine * Navigation.TILE_SIZE, y + yLine * Navigation.TILE_SIZE,
 				odo.getTheta() + dTheta - 90 * corner);
