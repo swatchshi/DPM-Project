@@ -47,7 +47,12 @@ public class Lab5 {
 			
 			
 			GamePlan game=new GamePlan();
-
+			
+			game.play();
+			Button.waitForAnyPress();
+			System.exit(0);
+			/*
+			
 			do {
 				// clear the display
 				lcd.clear();
@@ -70,40 +75,12 @@ public class Lab5 {
 			
 			
 			game.play();
-			while (buttonChoice != Button.ID_ESCAPE);
-			System.exit(0);
+			*/
 			
-				/*
-
-				// Start odometer and display threads
-				Thread odoThread = new Thread(odometer);
-				odoThread.start();
-				Thread odoDisplayThread = new Thread(odometryDisplay);
-				odoDisplayThread.start();
-				Navigation navigation = new Navigation(odometer, dynamicTrack, CONFIG);
-				FlagFinding flagFinder = new FlagFinding(dynamicTrack, cSensor, ultraSensor, blockWanted, SR_LLx, SR_LLy, SR_URx, SR_URy);
-
-				// Localization
 				
-				USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
-				usLoc.doLocalization();
-
-				LightLocalizer lightLoc = new LightLocalizer(navigation, lSensor, odometer, CONFIG);
-				//////////////////////////////////////////////////////////////////////////////////////////////////
-				lightLoc.doLocalization(1, 1, 0);
-
-				// Block finding
-				flagFinder.findBlock();
-				flagFinder.beepSequence(1);
-				System.exit(0);
-				*/
 			
 		} catch (OdometerExceptions exc) {
 			// instance error, do nothing
-		}/* catch (Exception e) {
-			// Other error
-			Sound.buzz();
-			System.err.println("Error: " + e.getMessage());
-		}*/
+		}
 	}
 }

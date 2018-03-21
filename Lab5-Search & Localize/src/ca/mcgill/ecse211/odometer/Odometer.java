@@ -154,7 +154,8 @@ public class Odometer extends OdometerData implements Runnable {
 			      
 			      if(config==GamePlan.RobotConfig.PROPULSION) {
 			    	  dTheta=-Math.toDegrees(dTheta); //conversion to degrees
-			    	  position[2]=correctAngle(position[2]+dTheta); 			//new angle
+			    	  position[2]+=dTheta;
+			    	  //position[2]=correctAngle(position[2]+dTheta); 			//new angle
 				      
 				      dX=-0.5*(distL+distR)*Math.sin(Math.toRadians(position[2])); //displacement in X with new angle
 				      dY=-0.5*(distL+distR)*Math.cos(Math.toRadians(position[2])); //displacement in Y with new angle
@@ -171,7 +172,7 @@ public class Odometer extends OdometerData implements Runnable {
 			      rightMotorLastTachoCount=rightMotorTachoCount;	//resets value of the right tachoCount
 			      
 			      //Update odometer values with new calculated values
-			      update(dX, dY, getTheta()-position[2]); 
+			      update(dX, dY, dTheta); 
 			
 			      // this ensures that the odometer only runs once every period
 			      updateEnd = System.currentTimeMillis();

@@ -19,6 +19,8 @@ public class Navigation {
 	 */
 	private static final int FORWARD_SPEED = 400;
 	private static final int ROTATE_SPEED = 160;
+	private static final int ACCELERATION = 1000;
+	private static final int DECELERATION = 2000;
 	public static final double TILE_SIZE = 30.48;
 	private Odometer odo;
 	private double lastX;
@@ -46,12 +48,8 @@ public class Navigation {
 		this.odo=odo;
 		this.dynamicTrack=dynamicTrack;
 		this.config=config;
-		
 		nav=this;
-		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {GamePlan.leftMotor, GamePlan.rightMotor}) {
-			motor.stop();
-			motor.setAcceleration(2000);
-		}
+		setAcceleration(1000);
 	}
 	
 	/**
@@ -67,6 +65,17 @@ public class Navigation {
 	    }
 	   // Return existing object
 	    return nav;
+	}
+	
+	/**
+	 * Sets the acceleration of both traction/propulsion motors
+	 * @param acceleration The desired acceleration
+	 */
+	private void setAcceleration(int acceleration) {
+		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {GamePlan.leftMotor, GamePlan.rightMotor}) {
+			motor.stop();
+			motor.setAcceleration(3000);
+		}
 	}
 	
 	/**
@@ -267,22 +276,10 @@ public class Navigation {
 	 */
 	public void turn(double rotation) {
 		navigating=true;
-		double initialTheta=odo.getTheta();
 		GamePlan.leftMotor.setSpeed(ROTATE_SPEED);
 	    GamePlan.rightMotor.setSpeed(ROTATE_SPEED);
-	    if(rotation>0) {
-	    	rotate(Turn.CLOCK_WISE);
-	    	while((odo.getTheta()-initialTheta) < rotation) {
-	    		//wait
-	    	}
-	    	stopMotors();
-	    }else {
-	    	rotate(Turn.COUNTER_CLOCK_WISE);
-	    	while((odo.getTheta()-initialTheta) > rotation) {
-	    		//wait
-	    	}
-	    	stopMotors();
-	    }
+	    GamePlan.leftMotor.rotate(-convertAngle(dynamicTrack.getWheelRad(), dynamicTrack.getTrack(), rotation), true);
+	    GamePlan.rightMotor.rotate(convertAngle(dynamicTrack.getWheelRad(), dynamicTrack.getTrack(), rotation), false);
 	    navigating=false;
 	}
 	

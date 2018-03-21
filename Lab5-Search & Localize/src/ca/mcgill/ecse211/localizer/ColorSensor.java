@@ -5,7 +5,8 @@ import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.robotics.SampleProvider;
 
 /**
- * Class for handling the light sensor sampling
+ * Class for handling the light sensor sampling methods
+ * Handles light sensor in mode RGB (color) and Red mode (line detecting)
  * 
  * @author Xavier Pellemans
  * @author Thomas Bahen
@@ -47,7 +48,15 @@ public class ColorSensor {
 	private final static double BLUE_B_STD=0.016708785;
 	
 	
-	
+	/**
+	 * Enumeration for the colors possible
+	 * BLUE: color blue
+	 * RED: color red
+	 * YELLOW: color yellow
+	 * WHITE: color white
+	 * NoColorFoudn: unable to get the RGB representation
+	 * 				 of one of the colors above
+	 */
 	public static enum BlockColor{
 		BLUE, RED, YELLOW, WHITE, NoColorFound
 	}

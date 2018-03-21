@@ -53,8 +53,8 @@ public class GamePlan {
 	public static final EV3UltrasonicSensor ultraSSensor = new EV3UltrasonicSensor(LocalEV3.get().getPort("S4"));
 	public static final TextLCD lcd = LocalEV3.get().getTextLCD();
 
-	public static final RobotConfig CONFIG = RobotConfig.TRACTION;
-	public static final Robot robot = Robot.SCREW_DESIGN;
+	public static final RobotConfig CONFIG = RobotConfig.PROPULSION;
+	public static final Robot robot = Robot.TANK;
 
 	/**
 	 * Enum describing the cardinal point.
@@ -102,18 +102,22 @@ public class GamePlan {
 		
 		// Odometer related objects
 		odometer = Odometer.getOdometer(leftMotor, rightMotor, dynamicTrack, gyroscope, CONFIG);
-		odometryDisplay = new Display(lcd, ultraSensor);
+		odometryDisplay = new Display(lcd, ultraSensor, gyroscope);
 		odoCorrect=new OdometerCorrection(lSensor, odometer, dynamicTrack);
 		
 		navigation = new Navigation(odometer, dynamicTrack, CONFIG);
 		//serverData = new EV3WifiClient(); ////////////////////////////////////////////uncomment to enable data retrieval
 		
-		
-		
+		Thread odoThread = new Thread(odometer);
+		odoThread.start();
+		Thread odoDisplayThread = new Thread(odometryDisplay);
+		odoDisplayThread.start();
+		Thread odoCorrectionThread=new Thread(odoCorrect);
+		//odoCorrectionThread.start();
 	}
 
 	/**
-	 * Calling for the procedure of the dynamic track adjustment. Calls the maximum
+	 * Calling for the procedure of the dynamic track adjustment for the SCREW_DESIGN. Calls the maximum
 	 * adjustment, then calls the minimum adjustment
 	 */
 	public void trackAdjust() {
@@ -129,20 +133,13 @@ public class GamePlan {
 	 * @throws Exception Exception thrown if the robot is not playing
 	 */
 	public void play() throws Exception {
-		Thread odoThread = new Thread(odometer);
-		odoThread.start();
-		Thread odoDisplayThread = new Thread(odometryDisplay);
-		odoDisplayThread.start();
-		Thread odoCorrectionThread=new Thread(odoCorrect);
-		odoCorrectionThread.start();
+		
 		
 		
 		
 		//testing slot
+		navigation.turn(360);
 		
-		navigation.travel(30.48);
-		navigation.stopMotors();
-		navigation.turn(90);
 		
 		/*switch(serverData.getTeamColor()) {
 		case RED:

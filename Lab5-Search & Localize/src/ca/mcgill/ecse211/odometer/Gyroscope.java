@@ -39,6 +39,6 @@ public class Gyroscope {
 	
 		float[] sample=new float[gyro.sampleSize()];
 		gyro.fetchSample(sample, 0);
-		return (double) sample[0];
+		return (double) (-1*sample[0] % 360);
 	}
 }

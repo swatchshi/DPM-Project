@@ -1,6 +1,7 @@
 package ca.mcgill.ecse211.lab5;
 
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
@@ -16,8 +17,8 @@ public class TrackExpansion {
 	// wheel width 2.2 (EACH)
 	// wheel diameter: 4.4
 	public static final double SCREW_WHEEL_RAD = 2.2;
-	public static final double TANK_WHEEL_RAD = 2.2;
-	public static final double TANK_TRACK = 16.3; 
+	public static final double TANK_WHEEL_RAD = 1.68;
+	public static final double TANK_TRACK = 19; 
 	public static final double MIN_SCREW_TRACK = 16.3; // adjust from 13.7 to 18.1
 	public static final double MAX_SCREW_TRACK= 16.3; //21.3 to 29.5
 	public static final double LIGHT_SENSOR_DISTANCE_SCREW=6;

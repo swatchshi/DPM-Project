@@ -103,8 +103,8 @@ public class EV3WifiClient {
 	private static final String SERVER_IP = "192.168.1.104"; // put your ipv4 here (go to cmd and write ipconfig)
 	// "192.168.2.3"
 	private static final int TEAM_NUMBER = 1; // Best team ever, will definitely win the competition
-	public static final int X_GRID_LINES = 8; // according to predefined convention for x
-	public static final int Y_GRID_LINES = 8; // according to predefined convention for y
+	public static final int X_GRID_LINES = 12; // according to predefined convention for x
+	public static final int Y_GRID_LINES = 12; // according to predefined convention for y
 
 	// Enable/disable printing of debug info from the WiFi class
 	private static final boolean ENABLE_DEBUG_WIFI_PRINT = false;
@@ -594,7 +594,7 @@ public class EV3WifiClient {
 		}
 
 		// Green zone in x
-		param = ((Long) data.get(CoordParameter.Green_LL_x.toString())).intValue()
+		param = ((Long) data.get(CoordParameter.Green_UR_x.toString())).intValue()
 				- ((Long) data.get(CoordParameter.Green_LL_x.toString())).intValue();
 		if (param < 2 || param > 10) {
 			throw new Exception("Green zone length in x out of bounds");
@@ -607,7 +607,7 @@ public class EV3WifiClient {
 			throw new Exception("Green zone length in y out of bounds");
 		}
 		// Red zone in x
-		param = ((Long) data.get(CoordParameter.Red_LL_x.toString())).intValue()
+		param = ((Long) data.get(CoordParameter.Red_UR_x.toString())).intValue()
 				- ((Long) data.get(CoordParameter.Red_LL_x.toString())).intValue();
 		if (param < 2 || param > 10) {
 			throw new Exception("Red zone length in x out of bounds");
@@ -621,7 +621,7 @@ public class EV3WifiClient {
 		}
 
 		// Green search zone in x
-		param = ((Long) data.get(CoordParameter.SG_LL_x.toString())).intValue()
+		param = ((Long) data.get(CoordParameter.SG_UR_x.toString())).intValue()
 				- ((Long) data.get(CoordParameter.SG_LL_x.toString())).intValue();
 		if (param < 2 || param > 10) {
 			throw new Exception("Green search zone length in x out of bounds");
@@ -634,7 +634,7 @@ public class EV3WifiClient {
 			throw new Exception("Green search zone length in y out of bounds");
 		}
 		// Red search zone in x
-		param = ((Long) data.get(CoordParameter.SR_LL_x.toString())).intValue()
+		param = ((Long) data.get(CoordParameter.SR_UR_x.toString())).intValue()
 				- ((Long) data.get(CoordParameter.SR_LL_x.toString())).intValue();
 		if (param < 2 || param > 10) {
 			throw new Exception("Red search zone length in x out of bounds");

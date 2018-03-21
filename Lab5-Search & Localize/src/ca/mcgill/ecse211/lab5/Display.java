@@ -3,6 +3,7 @@ package ca.mcgill.ecse211.lab5;
 import java.text.DecimalFormat;
 
 import ca.mcgill.ecse211.localizer.UltrasonicSensor;
+import ca.mcgill.ecse211.odometer.Gyroscope;
 import ca.mcgill.ecse211.odometer.Odometer;
 import ca.mcgill.ecse211.odometer.OdometerExceptions;
 import lejos.hardware.lcd.TextLCD;
@@ -14,6 +15,7 @@ public class Display implements Runnable {
 
   private Odometer odo;
   private UltrasonicSensor us;
+  private Gyroscope gyroscope;
   private TextLCD lcd;
   private double[] position;
   private final long DISPLAY_PERIOD = 25;
@@ -24,12 +26,14 @@ public class Display implements Runnable {
    * 
    * @param lcd The screen used to display
    * @param us The UltrasonicSensor which will fetch the data
+   * @param gyroscope Gyroscope used
    * @throws OdometerExceptions if there is a problem with Odometer instances
    */
-  public Display(TextLCD lcd, UltrasonicSensor us) throws OdometerExceptions {
+  public Display(TextLCD lcd, UltrasonicSensor us, Gyroscope gyroscope) throws OdometerExceptions {
     odo = Odometer.getOdometer();
     this.lcd = lcd;
     this.us=us;
+    this.gyroscope=gyroscope;
   }
 
   /**
@@ -71,6 +75,7 @@ public class Display implements Runnable {
       lcd.drawString("Y: " + numberFormat.format(position[1]), 0, 1);
       lcd.drawString("T: " + numberFormat.format(position[2]), 0, 2);
       lcd.drawString("U: " + us.getDistance(), 0, 3);
+      lcd.drawString("G: " + gyroscope.getAngle(), 0, 4);
       
       }catch(Exception e) {}
       
