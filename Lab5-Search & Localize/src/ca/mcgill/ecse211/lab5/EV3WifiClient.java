@@ -552,21 +552,21 @@ public class EV3WifiClient {
 			switch (QualParameter.values()[i]) {
 			case GreenTeam:
 			case RedTeam:
-				param = ((Long) data.get(CoordParameter.values()[i].toString())).intValue();
+				param = ((Long) data.get(QualParameter.values()[i].toString())).intValue();
 				if (param < 1 || param > 20) {
 					throw new Exception("Parameter " + QualParameter.values()[i].toString() + " out of bounds");
 				}
 				break;
 			case GreenCorner:
 			case RedCorner:
-				param = ((Long) data.get(CoordParameter.values()[i].toString())).intValue();
+				param = ((Long) data.get(QualParameter.values()[i].toString())).intValue();
 				if (param < 0 || param > 4) {
 					throw new Exception("Parameter " + QualParameter.values()[i].toString() + " out of bounds");
 				}
 				break;
 			case OG:
 			case OR:
-				param = ((Long) data.get(CoordParameter.values()[i].toString())).intValue();
+				param = ((Long) data.get(QualParameter.values()[i].toString())).intValue();
 				if (param < 1 || param > 4) {
 					throw new Exception("Parameter " + QualParameter.values()[i].toString() + " out of bounds");
 				}
@@ -633,13 +633,17 @@ public class EV3WifiClient {
 		param = ((Long) data.get(CoordParameter.SG_UR_x.toString())).intValue()
 				- ((Long) data.get(CoordParameter.SG_LL_x.toString())).intValue();
 		if (param < 2 || param > 10) {
+			System.out.println(param);
 			throw new Exception("Green search zone length in x out of bounds");
+			
 		}
 
 		// Green search zone in y
 		param = ((Long) data.get(CoordParameter.SG_UR_y.toString())).intValue()
 				- ((Long) data.get(CoordParameter.SG_LL_y.toString())).intValue();
+		System.out.println("abc" + param);
 		if (param < 2 || param > 10) {
+			
 			throw new Exception("Green search zone length in y out of bounds");
 		}
 		// Red search zone in x
