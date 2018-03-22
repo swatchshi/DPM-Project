@@ -119,7 +119,9 @@ public class Odometer extends OdometerData implements Runnable {
 		  double odoAngle=getTheta();
 		  double gyroAngle=gyroscope.getAngle();
 		  if(Math.abs(odoAngle-gyroAngle)>MAX_ANGLE_ERROR) {
-			  odo.setTheta(odoAngle * 0.2 + gyroAngle * 0.8); //change proportions to get more accurate correction
+			  double angle=odoAngle * 0.2 + gyroAngle * 0.8; //change proportions to get more accurate correction
+			  odo.setTheta(angle); 
+			  gyroscope.setAngle(angle);
 		  }
 	  }
 	

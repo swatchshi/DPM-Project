@@ -9,7 +9,8 @@ import ca.mcgill.ecse211.odometer.OdometerExceptions;
 import lejos.hardware.lcd.TextLCD;
 
 /**
- * This class is used to display the content of the odometer variables (x, y, Theta) and ultrasonic distance.
+ * This class is used to display the content of the odometer variables (x, y, Theta), ultrasonic distance
+ * and gyroscope angle.
  */
 public class Display implements Runnable {
 

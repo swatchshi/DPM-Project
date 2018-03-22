@@ -37,7 +37,7 @@ public class UltrasonicSensor {
 	 * Gets the distance seen by the US
 	 * @return the normalized distance seen (as an integer)
 	 */
-	public  int readDistance() {
+	public int readDistance() {
 		int newDistance=0;
 		int filterCount = 0;
 		while(filterCount<US_FILTER) {

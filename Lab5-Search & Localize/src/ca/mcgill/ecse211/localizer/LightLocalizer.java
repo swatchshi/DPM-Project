@@ -6,7 +6,7 @@ import lejos.hardware.Sound;
 import lejos.utility.Delay;
 
 /**
- * Class for handling the light localization procedure
+ * Class for handling the light localization procedure at any crossing
  * 
  * @author Xavier Pellemans
  * @author Thomas Bahen

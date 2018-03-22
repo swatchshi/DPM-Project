@@ -136,8 +136,6 @@ public class GamePlan {
 	public void play() throws Exception {
 		
 		
-		
-		
 		//testing slot
 		navigation.travel(2*Navigation.TILE_SIZE);
 		navigation.turn(90);
