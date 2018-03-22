@@ -430,6 +430,14 @@ public class EV3WifiClient {
 		return false;
 	}
 
+	/**
+	 * Gets on what side the specified coordinates are 
+	 * compared to the zone.
+	 * @param zone Zone specified
+	 * @param x X absolute coordinate (in cm)
+	 * @param y Y absolute coordinate (in cm)
+	 * @return The side closest to the point (EAST and WEST are predominant)
+	 */
 	public GamePlan.Direction getSide(Zone zone, double x, double y) {
 		GamePlan.Direction side;
 		double lowerLeftX=0, lowerLeftY=0, upperRightX=0, upperRightY=0;
@@ -486,6 +494,51 @@ public class EV3WifiClient {
 			return GamePlan.Direction.EAST;
 		}
 	}
+	
+	/**
+	 * Gets the tile width of the tunnel in line 
+	 * with the entry side (in grid line).
+	 * 
+	 * @param entry Side of the entrance to the tunnel
+	 * @return The width in this axis (in grid lines)
+	 * @throws Exception If the entry point specified is erroneous
+	 */
+	public int getTunnelWidth(GamePlan.Direction entry) throws Exception {
+		switch(entry) {
+		default:
+		case CENTER:
+			throw new Exception("getTunnelWidth(): no such entry point");
+		case NORTH:
+		case SOUTH:
+			return getCoordParam(CoordParameter.TN_UR_y)-getCoordParam(CoordParameter.TN_LL_y);
+		case EAST:
+		case WEST:
+			return getCoordParam(CoordParameter.TN_UR_x)-getCoordParam(CoordParameter.TN_LL_x);
+		}
+	}
+	
+	/**
+	 * Gets the tile width of the tunnel in line 
+	 * with the entry side (in grid line).
+	 * 
+	 * @param entry Side of the entrance to the tunnel
+	 * @return The width in this axis (in grid lines)
+	 * @throws Exception If the entry point specified is erroneous
+	 */
+	public int getBridgeWidth(GamePlan.Direction entry) throws Exception {
+		switch(entry) {
+		default:
+		case CENTER:
+			throw new Exception("getBridgeWidth(): no such entry point");
+		case NORTH:
+		case SOUTH:
+			return getCoordParam(CoordParameter.BR_UR_y)-getCoordParam(CoordParameter.BR_LL_y);
+		case EAST:
+		case WEST:
+			return getCoordParam(CoordParameter.BR_UR_x)-getCoordParam(CoordParameter.BR_LL_x);
+		}
+	}
+	
 
 	/**
 	 * Method for the validation of the server user input Checks every parameter and
@@ -543,21 +596,21 @@ public class EV3WifiClient {
 			switch (QualParameter.values()[i]) {
 			case GreenTeam:
 			case RedTeam:
-				param = ((Long) data.get(CoordParameter.values()[i].toString())).intValue();
+				param = ((Long) data.get(QualParameter.values()[i].toString())).intValue();
 				if (param < 1 || param > 20) {
 					throw new Exception("Parameter " + QualParameter.values()[i].toString() + " out of bounds");
 				}
 				break;
 			case GreenCorner:
 			case RedCorner:
-				param = ((Long) data.get(CoordParameter.values()[i].toString())).intValue();
-				if (param < 0 || param > 4) {
+				param = ((Long) data.get(QualParameter.values()[i].toString())).intValue();
+				if (param < 0 || param > 3) {
 					throw new Exception("Parameter " + QualParameter.values()[i].toString() + " out of bounds");
 				}
 				break;
 			case OG:
 			case OR:
-				param = ((Long) data.get(CoordParameter.values()[i].toString())).intValue();
+				param = ((Long) data.get(QualParameter.values()[i].toString())).intValue();
 				if (param < 1 || param > 4) {
 					throw new Exception("Parameter " + QualParameter.values()[i].toString() + " out of bounds");
 				}

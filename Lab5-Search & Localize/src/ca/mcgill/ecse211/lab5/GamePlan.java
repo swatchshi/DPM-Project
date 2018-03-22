@@ -114,7 +114,7 @@ public class GamePlan {
 		Thread odoDisplayThread = new Thread(odometryDisplay);
 		odoDisplayThread.start();
 		Thread odoCorrectionThread=new Thread(odoCorrect);
-		//odoCorrectionThread.start();
+		odoCorrectionThread.start();
 	}
 
 	/**
@@ -255,13 +255,11 @@ public class GamePlan {
 	 * Procedure to cross the bridge
 	 * 
 	 * @return True when the bridge has been crossed
+	 * @throws Exception if the specified entry point is incorrect
 	 */
-	private boolean crossBridge() {   //expansion method, travel directly
-		navigation.travel(navigation.TILE_SIZE*2);
-	      leftMotor.stop(true);
-	      rightMotor.stop(false);
-		
-		// TODO call the procedure for bridge traversal
+	private boolean crossBridge() throws Exception {   //expansion method, travel directly
+		navigation.travel(navigation.TILE_SIZE*(0.5+serverData.getBridgeWidth(getBridgeEntry())));
+		//travels the width of the bridge plus an extra half tile
 		return true;
 	}
 
@@ -269,12 +267,11 @@ public class GamePlan {
 	 * Procedure to cross the tunnel
 	 * 
 	 * @return True when the tunnel has been crossed
+	 * @throws Exception if the specified entry point is incorrect
 	 */
-	private boolean crossTunnel() {
-	      navigation.travel(navigation.TILE_SIZE*2);
-	      leftMotor.stop(true);
-	      rightMotor.stop(false);
-		// TODO call the procedure for tunnel traversal
+	private boolean crossTunnel() throws Exception {
+	    navigation.travel(navigation.TILE_SIZE*(0.5+serverData.getTunnelWidth(getTunnelEntry())));
+	    //travels the width of the tunnel plus an extra half tile
 		return true;
 	}
 
@@ -326,7 +323,8 @@ public class GamePlan {
 	 * 
 	 * @param direction Direction (side) of the bridge entry
 	 * @return True when reached
-	 * @throws Exception When there is a problem with the data from the EV3WifiClass or with the entry point
+	 * @throws Exception When there is a problem with the data from the 
+	 * 			EV3WifiClass or with the entry point
 	 */
 	private void goToBridge(Direction direction) throws Exception {
 		double lowerLeftX=serverData.getCoordParam(CoordParameter.BR_LL_x)*Navigation.TILE_SIZE;
