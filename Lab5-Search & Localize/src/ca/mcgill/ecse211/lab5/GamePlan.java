@@ -13,6 +13,7 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
+import wifi.EV3WifiClient;
 import ca.mcgill.ecse211.WiFiClient.*;
 
 /**
@@ -116,12 +117,12 @@ public class GamePlan {
 		Thread odoDisplayThread = new Thread(odometryDisplay);
 		odoDisplayThread.start();
 		Thread odoCorrectionThread=new Thread(odoCorrect);
-<<<<<<< HEAD
+
 		//odoCorrectionThread.start();
 		
 		
 		
-		
+	}
 		
 		
 				
@@ -130,10 +131,7 @@ public class GamePlan {
 		
 		
 		
-=======
-		odoCorrectionThread.start();
->>>>>>> ae4e3e6b979ca121a974a8fe991b2cb861e1fcab
-	}
+
 
 	/**
 	 * Calling for the procedure of the dynamic track adjustment for the SCREW_DESIGN. Calls the maximum
@@ -155,15 +153,38 @@ public class GamePlan {
 		
 		
 		//testing slot
-		navigation.travel(2*Navigation.TILE_SIZE);
-		navigation.turn(90);
-		navigation.travel(2*Navigation.TILE_SIZE);
-		navigation.turn(90);
-		navigation.travel(2*Navigation.TILE_SIZE);
-		navigation.turn(90);
-		navigation.travel(2*Navigation.TILE_SIZE);
-		navigation.turn(90);
-		Sound.beep();
+		
+		try {
+			System.out.println("please press any button");
+			Button.waitForAnyPress();
+		EV3WifiClient serverData=new EV3WifiClient();
+
+		System.out.println("severdata complete");
+		Button.waitForAnyPress();
+		
+		System.out.println("Red_LL_x" + serverData.getCoordParam(CoordParameter.Red_LL_x));
+		System.out.println("Red_LL_y" + serverData.getCoordParam(CoordParameter.Red_LL_y));
+		System.out.println("BR_LL_x" + serverData.getCoordParam(CoordParameter.BR_LL_x));
+		System.out.println("TN_LL_x" + serverData.getCoordParam(CoordParameter.TN_LL_x));
+		
+		Button.waitForAnyPress();
+		
+		}catch(Exception e) {
+			 System.err.println("Error: main " + e.getMessage());
+			 Button.waitForAnyPress();
+		}
+		
+		
+		
+//		navigation.travel(2*Navigation.TILE_SIZE);
+//		navigation.turn(90);
+//		navigation.travel(2*Navigation.TILE_SIZE);
+//		navigation.turn(90);
+//		navigation.travel(2*Navigation.TILE_SIZE);
+//		navigation.turn(90);
+//		navigation.travel(2*Navigation.TILE_SIZE);
+//		navigation.turn(90);
+//		Sound.beep();
 		/*switch(serverData.getTeamColor()) {
 		case RED:
 			redPlan();

@@ -613,14 +613,15 @@ public class EV3WifiClient {
 			case GreenCorner:
 			case RedCorner:
 				param = ((Long) data.get(QualParameter.values()[i].toString())).intValue();
-<<<<<<< HEAD
+
 				if (param < 0 || param > 4) {
-=======
+
 				if (param < 0 || param > 3) {
->>>>>>> ae4e3e6b979ca121a974a8fe991b2cb861e1fcab
+
 					throw new Exception("Parameter " + QualParameter.values()[i].toString() + " out of bounds");
 				}
 				break;
+				}
 			case OG:
 			case OR:
 				param = ((Long) data.get(QualParameter.values()[i].toString())).intValue();
