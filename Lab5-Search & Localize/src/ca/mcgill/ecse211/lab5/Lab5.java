@@ -47,34 +47,14 @@ public class Lab5 {
 //		try {
 //			
 //			
-//			GamePlan game=new GamePlan();
-//			
-//			game.play();
-//			Button.waitForAnyPress();
-//			System.exit(0);
+			GamePlan game=new GamePlan();
 			
-			
-			try {
-				System.out.println("please press any button");
-				Button.waitForAnyPress();
-			EV3WifiClient serverData=new EV3WifiClient();
-
-			System.out.println("severdata complete");
+			game.play();
 			Button.waitForAnyPress();
-			
-			System.out.println("Red_LL_x" + serverData.getCoordParam(CoordParameter.Red_LL_x));
-			System.out.println("Red_LL_y" + serverData.getCoordParam(CoordParameter.Red_LL_y));
-			System.out.println("BR_LL_x" + serverData.getCoordParam(CoordParameter.BR_LL_x));
-			System.out.println("TN_LL_x" + serverData.getCoordParam(CoordParameter.TN_LL_x));
-			
-			Button.waitForAnyPress();
-			
-			}catch(Exception e) {
-				 System.err.println("Error: main " + e.getMessage());
-				 Button.waitForAnyPress();
-			}
+			System.exit(0);
 			
 			
+		
 			
 			/*
 			

@@ -109,30 +109,14 @@ public class GamePlan {
 		odoCorrect=new OdometerCorrection(lSensor, odometer, dynamicTrack);
 		
 		navigation = new Navigation(odometer, dynamicTrack, CONFIG);
-		//serverData = new EV3WifiClient(); ////////////////////////////////////////////uncomment to enable data retrieval
+		serverData = new EV3WifiClient(); ////////////////////////////////////////////uncomment to enable data retrieval
 		
 		Thread odoThread = new Thread(odometer);
 		odoThread.start();
 		Thread odoDisplayThread = new Thread(odometryDisplay);
 		odoDisplayThread.start();
 		Thread odoCorrectionThread=new Thread(odoCorrect);
-<<<<<<< HEAD
-		//odoCorrectionThread.start();
-		
-		
-		
-		
-		
-		
-				
-		
-		
-		
-		
-		
-=======
 		odoCorrectionThread.start();
->>>>>>> ae4e3e6b979ca121a974a8fe991b2cb861e1fcab
 	}
 
 	/**
@@ -154,17 +138,7 @@ public class GamePlan {
 	public void play() throws Exception {
 		
 		
-		//testing slot
-		navigation.travel(2*Navigation.TILE_SIZE);
-		navigation.turn(90);
-		navigation.travel(2*Navigation.TILE_SIZE);
-		navigation.turn(90);
-		navigation.travel(2*Navigation.TILE_SIZE);
-		navigation.turn(90);
-		navigation.travel(2*Navigation.TILE_SIZE);
-		navigation.turn(90);
-		Sound.beep();
-		/*switch(serverData.getTeamColor()) {
+		switch(serverData.getTeamColor()) {
 		case RED:
 			redPlan();
 			break;
@@ -172,7 +146,7 @@ public class GamePlan {
 			greenPlan();
 			break;
 		}
-		*/
+		
 		//TODO victory tune
 	}
 	
@@ -194,7 +168,7 @@ public class GamePlan {
 	private void redPlan() throws Exception {
 		// TODO call the procedure for the red team
 		
-		USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
+		/*USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
 		usLoc.doLocalization(serverData.getStartingCorner());
 		LightLocalizer lightLoc=new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, CONFIG);
 		switch(serverData.getStartingCorner()) {
@@ -210,15 +184,17 @@ public class GamePlan {
 		case 3:
 			lightLoc.doLocalization(1, EV3WifiClient.Y_GRID_LINES-1, 3);
 			break;
-		}
-		goToBridge(getBridgeEntry());
-		crossBridge();
+		}*/
+		
 		
 		//TODO: look for flag
 		
 		
 		goToTunnel(getTunnelEntry());
 		crossTunnel();
+		Sound.beep();
+		goToBridge(getBridgeEntry());
+		crossBridge();
 		goToStartingCorner();
 	}
 
@@ -236,9 +212,10 @@ public class GamePlan {
 	 * @throws Exception When there is a problem with the data from the EV3WifiClass
 	 */
 	private void greenPlan() throws Exception {
-		USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
+		/*USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
 		usLoc.doLocalization(serverData.getStartingCorner());
 		LightLocalizer lightLoc=new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, CONFIG);
+		
 		switch(serverData.getStartingCorner()) {
 		case 0:
 			lightLoc.doLocalization(1, 1, 0);
@@ -255,7 +232,7 @@ public class GamePlan {
 		}
 		
 		
-		
+		*/
 		goToTunnel(getTunnelEntry());
 		crossTunnel();
 		

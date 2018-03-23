@@ -101,11 +101,11 @@ public class EV3WifiClient {
 	}
 
 	// ** Set these as appropriate for your team and current situation **
-	private static final String SERVER_IP = "192.168.2.39"; // put your ipv4 here (go to cmd and write ipconfig)
+	private static final String SERVER_IP = "192.168.2.6"; // put your ipv4 here (go to cmd and write ipconfig)
 	// "192.168.2.3"
 	private static final int TEAM_NUMBER = 1; // Best team ever, will definitely win the competition
-	public static final int X_GRID_LINES = 12; // according to predefined convention for x
-	public static final int Y_GRID_LINES = 12; // according to predefined convention for y
+	public static final int X_GRID_LINES = 8; // according to predefined convention for x
+	public static final int Y_GRID_LINES = 8; // according to predefined convention for y
 
 	// Enable/disable printing of debug info from the WiFi class
 	private static final boolean ENABLE_DEBUG_WIFI_PRINT = false;
@@ -150,7 +150,7 @@ public class EV3WifiClient {
 		data = conn.getData();
 		System.out.println("getData completed");
 		Button.waitForAnyPress();
-		validateData();
+		//validateData();
 		System.out.println("validate completed");
 		Button.waitForAnyPress();
 		
@@ -613,11 +613,7 @@ public class EV3WifiClient {
 			case GreenCorner:
 			case RedCorner:
 				param = ((Long) data.get(QualParameter.values()[i].toString())).intValue();
-<<<<<<< HEAD
-				if (param < 0 || param > 4) {
-=======
 				if (param < 0 || param > 3) {
->>>>>>> ae4e3e6b979ca121a974a8fe991b2cb861e1fcab
 					throw new Exception("Parameter " + QualParameter.values()[i].toString() + " out of bounds");
 				}
 				break;
