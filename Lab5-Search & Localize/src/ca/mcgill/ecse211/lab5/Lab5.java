@@ -44,19 +44,51 @@ public class Lab5 {
 	 */
 	public static void main(String[] args) throws Exception {
 		int buttonChoice;
+<<<<<<< HEAD
 //		try {
 //			
 //			
 			GamePlan game=new GamePlan();
 			
+=======
+		try {
+			
+			
+			GamePlan game=new GamePlan();
+			Button.waitForAnyPress();
+>>>>>>> a336ecbb10ce58862467f3f4a7957b6e8c15d21c
 			game.play();
 			Button.waitForAnyPress();
 			System.exit(0);
 			
+<<<<<<< HEAD
+=======
+//			
+//			try {
+//				System.out.println("please press any button");
+//				Button.waitForAnyPress();
+//			EV3WifiClient serverData=new EV3WifiClient();
+//
+//			System.out.println("severdata complete");
+//			Button.waitForAnyPress();
+//			
+//			System.out.println("Red_LL_x" + serverData.getCoordParam(CoordParameter.Red_LL_x));
+//			System.out.println("Red_LL_y" + serverData.getCoordParam(CoordParameter.Red_LL_y));
+//			System.out.println("BR_LL_x" + serverData.getCoordParam(CoordParameter.BR_LL_x));
+//			System.out.println("TN_LL_x" + serverData.getCoordParam(CoordParameter.TN_LL_x));
+//			
+//			Button.waitForAnyPress();
+//			
+//			}catch(Exception e) {
+//				 System.err.println("Error: main " + e.getMessage());
+//				 Button.waitForAnyPress();
+//			}
+//			
+//			
+>>>>>>> a336ecbb10ce58862467f3f4a7957b6e8c15d21c
 			
 		
 			
-			/*
 			
 			do {
 				// clear the display
@@ -80,12 +112,12 @@ public class Lab5 {
 			
 			
 			game.play();
-			*/
+			
 			
 				
 			
-//		} catch (OdometerExceptions exc) {
-//			// instance error, do nothing
-//		}
+		} catch (OdometerExceptions exc) {
+			// instance error, do nothing
+		}
 	}
 }

@@ -13,6 +13,7 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
+
 import ca.mcgill.ecse211.WiFiClient.*;
 
 /**
@@ -116,8 +117,26 @@ public class GamePlan {
 		Thread odoDisplayThread = new Thread(odometryDisplay);
 		odoDisplayThread.start();
 		Thread odoCorrectionThread=new Thread(odoCorrect);
+<<<<<<< HEAD
 		odoCorrectionThread.start();
 	}
+=======
+
+		//odoCorrectionThread.start();
+		
+		
+		
+	}
+		
+		
+				
+		
+		
+		
+		
+		
+
+>>>>>>> a336ecbb10ce58862467f3f4a7957b6e8c15d21c
 
 	/**
 	 * Calling for the procedure of the dynamic track adjustment for the SCREW_DESIGN. Calls the maximum
@@ -138,7 +157,44 @@ public class GamePlan {
 	public void play() throws Exception {
 		
 		
+<<<<<<< HEAD
 		switch(serverData.getTeamColor()) {
+=======
+		//testing slot
+		
+//		try {
+//			System.out.println("please press any button");
+//			Button.waitForAnyPress();
+//		EV3WifiClient serverData=new EV3WifiClient();
+//
+//		System.out.println("severdata complete");
+//		Button.waitForAnyPress();
+//		
+//		System.out.println("Red_LL_x" + serverData.getCoordParam(CoordParameter.Red_LL_x));
+//		System.out.println("Red_LL_y" + serverData.getCoordParam(CoordParameter.Red_LL_y));
+//		System.out.println("BR_LL_x" + serverData.getCoordParam(CoordParameter.BR_LL_x));
+//		System.out.println("TN_LL_x" + serverData.getCoordParam(CoordParameter.TN_LL_x));
+//		
+//		Button.waitForAnyPress();
+//		
+//		}catch(Exception e) {
+//			 System.err.println("Error: main " + e.getMessage());
+//			 Button.waitForAnyPress();
+//		}
+//		
+		
+		
+		navigation.travel(2*Navigation.TILE_SIZE);
+		navigation.turn(90);
+		navigation.travel(2*Navigation.TILE_SIZE);
+		navigation.turn(90);
+		navigation.travel(2*Navigation.TILE_SIZE);
+		navigation.turn(90);
+		navigation.travel(2*Navigation.TILE_SIZE);
+		navigation.turn(90);
+		Sound.beep();
+		/*switch(serverData.getTeamColor()) {
+>>>>>>> a336ecbb10ce58862467f3f4a7957b6e8c15d21c
 		case RED:
 			redPlan();
 			break;
