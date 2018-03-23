@@ -44,25 +44,16 @@ public class Lab5 {
 	 */
 	public static void main(String[] args) throws Exception {
 		int buttonChoice;
-<<<<<<< HEAD
-//		try {
-//			
-//			
-			GamePlan game=new GamePlan();
-			
-=======
-		try {
+
+	
 			
 			
 			GamePlan game=new GamePlan();
 			Button.waitForAnyPress();
->>>>>>> a336ecbb10ce58862467f3f4a7957b6e8c15d21c
 			game.play();
 			Button.waitForAnyPress();
 			System.exit(0);
 			
-<<<<<<< HEAD
-=======
 //			
 //			try {
 //				System.out.println("please press any button");
@@ -85,8 +76,7 @@ public class Lab5 {
 //			}
 //			
 //			
->>>>>>> a336ecbb10ce58862467f3f4a7957b6e8c15d21c
-			
+/*			
 		
 			
 			
@@ -118,6 +108,6 @@ public class Lab5 {
 			
 		} catch (OdometerExceptions exc) {
 			// instance error, do nothing
-		}
+		}*/
 	}
 }

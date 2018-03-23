@@ -145,16 +145,14 @@ public class EV3WifiClient {
 		 * invalid team number was specified and getData() will throw an exception
 		 * letting you know.
 		 */
-	
-		
+
 		data = conn.getData();
 		System.out.println("getData completed");
 		Button.waitForAnyPress();
-		//validateData();
+		// validateData();
 		System.out.println("validate completed");
 		Button.waitForAnyPress();
-		
-		
+
 	}
 
 	/**
@@ -380,7 +378,7 @@ public class EV3WifiClient {
 					&& targetX >= getCoordParam(CoordParameter.Red_LL_x) * Navigation.TILE_SIZE
 					&& targetY <= getCoordParam(CoordParameter.Red_UR_y) * Navigation.TILE_SIZE
 					&& targetY >= getCoordParam(CoordParameter.Red_LL_y) * Navigation.TILE_SIZE) {
-				if(!isInZone(targetX, targetY, Zone.SR)) { //if the robot is not in the search zone in red zone
+				if (!isInZone(targetX, targetY, Zone.SR)) { // if the robot is not in the search zone in red zone
 					return true;
 				}
 			}
@@ -390,7 +388,7 @@ public class EV3WifiClient {
 					&& targetX >= getCoordParam(CoordParameter.Green_LL_x) * Navigation.TILE_SIZE
 					&& targetY <= getCoordParam(CoordParameter.Green_UR_y) * Navigation.TILE_SIZE
 					&& targetY >= getCoordParam(CoordParameter.Green_LL_y) * Navigation.TILE_SIZE) {
-				if(!isInZone(targetX, targetY, Zone.SG)) { //if the robot is not in the search zone in green zone
+				if (!isInZone(targetX, targetY, Zone.SG)) { // if the robot is not in the search zone in green zone
 					return true;
 				}
 			}
@@ -440,52 +438,55 @@ public class EV3WifiClient {
 	}
 
 	/**
-	 * Gets on what side the specified coordinates are 
-	 * compared to the zone.
-	 * @param zone Zone specified
-	 * @param x X absolute coordinate (in cm)
-	 * @param y Y absolute coordinate (in cm)
+	 * Gets on what side the specified coordinates are compared to the zone.
+	 * 
+	 * @param zone
+	 *            Zone specified
+	 * @param x
+	 *            X absolute coordinate (in cm)
+	 * @param y
+	 *            Y absolute coordinate (in cm)
 	 * @return The side closest to the point (EAST and WEST are predominant)
 	 */
 	public GamePlan.Direction getSide(Zone zone, double x, double y) {
 		GamePlan.Direction side;
-		double lowerLeftX=0, lowerLeftY=0, upperRightX=0, upperRightY=0;
+		double lowerLeftX = 0, lowerLeftY = 0, upperRightX = 0, upperRightY = 0;
 		switch (zone) {
 		case BRIDGE:
-			lowerLeftX=getCoordParam(CoordParameter.BR_LL_x);
-			lowerLeftY=getCoordParam(CoordParameter.BR_LL_y);
-			upperRightX=getCoordParam(CoordParameter.BR_UR_x);
-			upperRightY=getCoordParam(CoordParameter.BR_UR_y);
+			lowerLeftX = getCoordParam(CoordParameter.BR_LL_x);
+			lowerLeftY = getCoordParam(CoordParameter.BR_LL_y);
+			upperRightX = getCoordParam(CoordParameter.BR_UR_x);
+			upperRightY = getCoordParam(CoordParameter.BR_UR_y);
 			break;
 		case TUNNEL:
-			lowerLeftX=getCoordParam(CoordParameter.TN_LL_x);
-			lowerLeftY=getCoordParam(CoordParameter.TN_LL_y);
-			upperRightX=getCoordParam(CoordParameter.TN_UR_x);
-			upperRightY=getCoordParam(CoordParameter.TN_UR_y);
+			lowerLeftX = getCoordParam(CoordParameter.TN_LL_x);
+			lowerLeftY = getCoordParam(CoordParameter.TN_LL_y);
+			upperRightX = getCoordParam(CoordParameter.TN_UR_x);
+			upperRightY = getCoordParam(CoordParameter.TN_UR_y);
 			break;
 		case GREEN:
-			lowerLeftX=getCoordParam(CoordParameter.Green_LL_x);
-			lowerLeftY=getCoordParam(CoordParameter.Green_LL_y);
-			upperRightX=getCoordParam(CoordParameter.Green_UR_x);
-			upperRightY=getCoordParam(CoordParameter.Green_UR_y);
+			lowerLeftX = getCoordParam(CoordParameter.Green_LL_x);
+			lowerLeftY = getCoordParam(CoordParameter.Green_LL_y);
+			upperRightX = getCoordParam(CoordParameter.Green_UR_x);
+			upperRightY = getCoordParam(CoordParameter.Green_UR_y);
 			break;
 		case RED:
-			lowerLeftX=getCoordParam(CoordParameter.Red_LL_x);
-			lowerLeftY=getCoordParam(CoordParameter.Red_LL_y);
-			upperRightX=getCoordParam(CoordParameter.Red_UR_x);
-			upperRightY=getCoordParam(CoordParameter.Red_UR_y);
+			lowerLeftX = getCoordParam(CoordParameter.Red_LL_x);
+			lowerLeftY = getCoordParam(CoordParameter.Red_LL_y);
+			upperRightX = getCoordParam(CoordParameter.Red_UR_x);
+			upperRightY = getCoordParam(CoordParameter.Red_UR_y);
 			break;
 		case SG:
-			lowerLeftX=getCoordParam(CoordParameter.SG_LL_x);
-			lowerLeftY=getCoordParam(CoordParameter.SG_LL_y);
-			upperRightX=getCoordParam(CoordParameter.SG_UR_x);
-			upperRightY=getCoordParam(CoordParameter.SG_UR_y);
+			lowerLeftX = getCoordParam(CoordParameter.SG_LL_x);
+			lowerLeftY = getCoordParam(CoordParameter.SG_LL_y);
+			upperRightX = getCoordParam(CoordParameter.SG_UR_x);
+			upperRightY = getCoordParam(CoordParameter.SG_UR_y);
 			break;
 		case SR:
-			lowerLeftX=getCoordParam(CoordParameter.SR_LL_x);
-			lowerLeftY=getCoordParam(CoordParameter.SR_LL_y);
-			upperRightX=getCoordParam(CoordParameter.SR_UR_x);
-			upperRightY=getCoordParam(CoordParameter.SR_UR_y);
+			lowerLeftX = getCoordParam(CoordParameter.SR_LL_x);
+			lowerLeftY = getCoordParam(CoordParameter.SR_LL_y);
+			upperRightX = getCoordParam(CoordParameter.SR_UR_x);
+			upperRightY = getCoordParam(CoordParameter.SR_UR_y);
 			break;
 		}
 		if (x <= lowerLeftX) {
@@ -503,51 +504,52 @@ public class EV3WifiClient {
 			return GamePlan.Direction.EAST;
 		}
 	}
-	
+
 	/**
-	 * Gets the tile width of the tunnel in line 
-	 * with the entry side (in grid line).
+	 * Gets the tile width of the tunnel in line with the entry side (in grid line).
 	 * 
-	 * @param entry Side of the entrance to the tunnel
+	 * @param entry
+	 *            Side of the entrance to the tunnel
 	 * @return The width in this axis (in grid lines)
-	 * @throws Exception If the entry point specified is erroneous
+	 * @throws Exception
+	 *             If the entry point specified is erroneous
 	 */
 	public int getTunnelWidth(GamePlan.Direction entry) throws Exception {
-		switch(entry) {
+		switch (entry) {
 		default:
 		case CENTER:
 			throw new Exception("getTunnelWidth(): no such entry point");
 		case NORTH:
 		case SOUTH:
-			return getCoordParam(CoordParameter.TN_UR_y)-getCoordParam(CoordParameter.TN_LL_y);
+			return getCoordParam(CoordParameter.TN_UR_y) - getCoordParam(CoordParameter.TN_LL_y);
 		case EAST:
 		case WEST:
-			return getCoordParam(CoordParameter.TN_UR_x)-getCoordParam(CoordParameter.TN_LL_x);
+			return getCoordParam(CoordParameter.TN_UR_x) - getCoordParam(CoordParameter.TN_LL_x);
 		}
 	}
-	
+
 	/**
-	 * Gets the tile width of the tunnel in line 
-	 * with the entry side (in grid line).
+	 * Gets the tile width of the tunnel in line with the entry side (in grid line).
 	 * 
-	 * @param entry Side of the entrance to the tunnel
+	 * @param entry
+	 *            Side of the entrance to the tunnel
 	 * @return The width in this axis (in grid lines)
-	 * @throws Exception If the entry point specified is erroneous
+	 * @throws Exception
+	 *             If the entry point specified is erroneous
 	 */
 	public int getBridgeWidth(GamePlan.Direction entry) throws Exception {
-		switch(entry) {
+		switch (entry) {
 		default:
 		case CENTER:
 			throw new Exception("getBridgeWidth(): no such entry point");
 		case NORTH:
 		case SOUTH:
-			return getCoordParam(CoordParameter.BR_UR_y)-getCoordParam(CoordParameter.BR_LL_y);
+			return getCoordParam(CoordParameter.BR_UR_y) - getCoordParam(CoordParameter.BR_LL_y);
 		case EAST:
 		case WEST:
-			return getCoordParam(CoordParameter.BR_UR_x)-getCoordParam(CoordParameter.BR_LL_x);
+			return getCoordParam(CoordParameter.BR_UR_x) - getCoordParam(CoordParameter.BR_LL_x);
 		}
 	}
-	
 
 	/**
 	 * Method for the validation of the server user input Checks every parameter and
@@ -613,19 +615,11 @@ public class EV3WifiClient {
 			case GreenCorner:
 			case RedCorner:
 				param = ((Long) data.get(QualParameter.values()[i].toString())).intValue();
-<<<<<<< HEAD
-				if (param < 0 || param > 3) {
-=======
-
-				if (param < 0 || param > 4) {
 
 				if (param < 0 || param > 3) {
-
->>>>>>> a336ecbb10ce58862467f3f4a7957b6e8c15d21c
 					throw new Exception("Parameter " + QualParameter.values()[i].toString() + " out of bounds");
 				}
 				break;
-				}
 			case OG:
 			case OR:
 				param = ((Long) data.get(QualParameter.values()[i].toString())).intValue();
@@ -635,7 +629,6 @@ public class EV3WifiClient {
 				break;
 			}
 		}
-
 		// Bridge in x
 		param = ((Long) data.get(CoordParameter.BR_UR_x.toString())).intValue()
 				- ((Long) data.get(CoordParameter.BR_LL_x.toString())).intValue();
@@ -697,7 +690,7 @@ public class EV3WifiClient {
 		if (param < 2 || param > 10) {
 			System.out.println(param);
 			throw new Exception("Green search zone length in x out of bounds");
-			
+
 		}
 
 		// Green search zone in y
@@ -705,7 +698,7 @@ public class EV3WifiClient {
 				- ((Long) data.get(CoordParameter.SG_LL_y.toString())).intValue();
 		System.out.println("abc" + param);
 		if (param < 2 || param > 10) {
-			
+
 			throw new Exception("Green search zone length in y out of bounds");
 		}
 		// Red search zone in x
@@ -722,4 +715,5 @@ public class EV3WifiClient {
 			throw new Exception("Red search zone length in y out of bounds");
 		}
 	}
+
 }
