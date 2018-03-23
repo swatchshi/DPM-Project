@@ -16,7 +16,7 @@ public class TrackExpansion {
 	// free space between wheels: 13.7 cm
 	// wheel width 2.2 (EACH)
 	// wheel diameter: 4.4
-	public static final double SCREW_WHEEL_RAD = 2.2;
+	public static final double SCREW_WHEEL_RAD = 2.4;
 	public static final double TANK_WHEEL_RAD = 1.68; 
 	public static final double TANK_TRACK = 19.0; //tested value
 	public static final double MIN_SCREW_TRACK = 16.3; // adjust from 13.7 to 18.1

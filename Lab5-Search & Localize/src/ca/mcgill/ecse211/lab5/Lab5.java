@@ -44,39 +44,39 @@ public class Lab5 {
 	 */
 	public static void main(String[] args) throws Exception {
 		int buttonChoice;
-//		try {
+		try {
+			
+			
+			GamePlan game=new GamePlan();
+			Button.waitForAnyPress();
+			game.play();
+			Button.waitForAnyPress();
+			System.exit(0);
+			
 //			
-//			
-//			GamePlan game=new GamePlan();
-//			
-//			game.play();
+//			try {
+//				System.out.println("please press any button");
+//				Button.waitForAnyPress();
+//			EV3WifiClient serverData=new EV3WifiClient();
+//
+//			System.out.println("severdata complete");
 //			Button.waitForAnyPress();
-//			System.exit(0);
+//			
+//			System.out.println("Red_LL_x" + serverData.getCoordParam(CoordParameter.Red_LL_x));
+//			System.out.println("Red_LL_y" + serverData.getCoordParam(CoordParameter.Red_LL_y));
+//			System.out.println("BR_LL_x" + serverData.getCoordParam(CoordParameter.BR_LL_x));
+//			System.out.println("TN_LL_x" + serverData.getCoordParam(CoordParameter.TN_LL_x));
+//			
+//			Button.waitForAnyPress();
+//			
+//			}catch(Exception e) {
+//				 System.err.println("Error: main " + e.getMessage());
+//				 Button.waitForAnyPress();
+//			}
+//			
+//			
 			
 			
-			try {
-				System.out.println("please press any button");
-				Button.waitForAnyPress();
-			EV3WifiClient serverData=new EV3WifiClient();
-
-			System.out.println("severdata complete");
-			Button.waitForAnyPress();
-			
-			System.out.println("Red_LL_x" + serverData.getCoordParam(CoordParameter.Red_LL_x));
-			System.out.println("Red_LL_y" + serverData.getCoordParam(CoordParameter.Red_LL_y));
-			System.out.println("BR_LL_x" + serverData.getCoordParam(CoordParameter.BR_LL_x));
-			System.out.println("TN_LL_x" + serverData.getCoordParam(CoordParameter.TN_LL_x));
-			
-			Button.waitForAnyPress();
-			
-			}catch(Exception e) {
-				 System.err.println("Error: main " + e.getMessage());
-				 Button.waitForAnyPress();
-			}
-			
-			
-			
-			/*
 			
 			do {
 				// clear the display
@@ -100,12 +100,12 @@ public class Lab5 {
 			
 			
 			game.play();
-			*/
+			
 			
 				
 			
-//		} catch (OdometerExceptions exc) {
-//			// instance error, do nothing
-//		}
+		} catch (OdometerExceptions exc) {
+			// instance error, do nothing
+		}
 	}
 }
