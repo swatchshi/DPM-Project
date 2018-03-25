@@ -219,6 +219,12 @@ public class GamePlan {
 		Sound.beep();
 		Sound.buzz();
 		System.out.println("                           99");
+		odometer.setTheta(0);
+		
+		gyroscope.setPreviousAngle(0);
+		gyroscope.resetToZero();
+		gyroscope.setAngle(0);
+		
 		Button.waitForAnyPress();
 		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer);
 		switch (serverData.getStartingCorner()) {
@@ -238,13 +244,18 @@ public class GamePlan {
 		///////////////////////////////////////////////////////////
 		Sound.beep();
 		Button.waitForAnyPress();
-		System.exit(0);
+		//System.exit(0);
+		Sound.beepSequenceUp();
 		/////////////////////////////////////////////////////////////////////////////
-		goToTunnel(getTunnelEntry());
-		crossTunnel();
-		Sound.beep();
 		goToBridge(getBridgeEntry());
 		crossBridge();
+		Sound.beepSequenceUp();
+		Button.waitForAnyPress();
+		
+		goToTunnel(getTunnelEntry());
+		crossTunnel();
+		
+		
 		goToStartingCorner();
 	}
 

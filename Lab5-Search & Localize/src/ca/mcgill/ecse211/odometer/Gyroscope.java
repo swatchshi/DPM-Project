@@ -34,6 +34,9 @@ public class Gyroscope {
 		previousAngle=0;
 	}
 	
+	public void setPreviousAngle(double previousAngle) {
+		previousAngle = this.previousAngle;
+	}
 	/**
 	 * Sets the angle by adding an offset to the gyroscope angle
 	 * 
