@@ -155,14 +155,14 @@ public class Odometer extends OdometerData implements Runnable {
 			      if(config==GamePlan.RobotConfig.PROPULSION) {
 			    	  dTheta=-Math.toDegrees(dTheta); //conversion to degrees
 			    	  position[2]+=dTheta;
-			    	  //position[2]=correctAngle(position[2]+dTheta); 			//new angle
+//uncomment to enable gyro correction 	  //position[2]=correctAngle(position[2]); 			//new angle
 				      
 				      dX=-0.5*(distL+distR)*Math.sin(Math.toRadians(position[2])); //displacement in X with new angle
 				      dY=-0.5*(distL+distR)*Math.cos(Math.toRadians(position[2])); //displacement in Y with new angle
 			      } else { //TRACTION
 			    	  dTheta=Math.toDegrees(dTheta); //conversion to degrees
 			    	  position[2]+=dTheta;
-			    	//  position[2]=correctAngle(position[2]+dTheta); 			//new angle
+//uncomment to enable gyro correction 	  //position[2]=correctAngle(position[2]); 			//new angle
 			          
 			          dX=0.5*(distL+distR)*Math.sin(Math.toRadians(position[2])); //displacement in X with new angle
 			          dY=0.5*(distL+distR)*Math.cos(Math.toRadians(position[2])); //displacement in Y with new angle

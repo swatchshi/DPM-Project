@@ -26,8 +26,10 @@ import ca.mcgill.ecse211.WiFiClient.*;
  */
 public class GamePlan {
 	/**
-	 * Enum for the wheel configuration of the robot TRACTION: wheels are in front
-	 * of the robot PROPULSION: wheels are at the back of the robot
+	 * Enum for the wheel configuration of the robot 
+	 * TRACTION: wheels are in front
+	 * of the robot 
+	 * PROPULSION: wheels are at the back of the robot
 	 * (motor.backward() is forward)
 	 */
 	public enum RobotConfig {
@@ -35,50 +37,115 @@ public class GamePlan {
 	}
 
 	/**
-	 * Enum for the chosen robot SCREW_DESIGN: design with the expanding track and
-	 * screw TANK: design with the tank tracks
+	 * Enum for the chosen robot 
+	 * SCREW_DESIGN: design with the expanding track and
+	 * screw 
+	 * TANK: design with the tank tracks
 	 */
 	public enum Robot {
 		SCREW_DESIGN, TANK
 	}
 
 	// Motor Objects, and Robot related parameters
+	/**
+	 * Left motor of the wheel base in PORT D
+	 */
 	public static final EV3LargeRegulatedMotor leftMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("D"));
+	/**
+	 * Right motor of the wheel base in PORT A
+	 */
 	public static final EV3LargeRegulatedMotor rightMotor = new EV3LargeRegulatedMotor(LocalEV3.get().getPort("A"));
-
+	/**
+	 * Motor of the Ultrasonic Sensor in PORT C
+	 */
 	public static final EV3MediumRegulatedMotor usSensorMotor = new EV3MediumRegulatedMotor(
 			LocalEV3.get().getPort("C"));
-
+	/**
+	 * Light sensor under the robot in PORT 1
+	 */
 	public static final EV3ColorSensor lightSensor = new EV3ColorSensor(LocalEV3.get().getPort("S1"));
+	/**
+	 * Light sensor at the front of the robot in PORT 2
+	 */
 	public static final EV3ColorSensor armSensor = new EV3ColorSensor(LocalEV3.get().getPort("S2"));
+	/**
+	 * Gyroscope on top of the robot in PORT 3
+	 */
 	public static final EV3GyroSensor gyroSensor = new EV3GyroSensor(LocalEV3.get().getPort("S3"));
+	/**
+	 * Ultrasonic sensor in front of the robot in PORT 4
+	 */
 	public static final EV3UltrasonicSensor ultraSSensor = new EV3UltrasonicSensor(LocalEV3.get().getPort("S4"));
+	/**
+	 * Screen of the EV3
+	 */
 	public static final TextLCD lcd = LocalEV3.get().getTextLCD();
-
+	/**
+	 * Configuration of the wheel base of the robot
+	 */
 	public static final RobotConfig CONFIG = RobotConfig.PROPULSION;
+	/**
+	 * Type of the robot used
+	 */
 	public static final Robot robot = Robot.TANK;
 
 	/**
 	 * Enum describing the cardinal point. Used to describe the side of a region.
-	 * NORTH: side with the highest y EAST: side with the highest x SOUTH: side with
-	 * the lowest y WEST: side with the lowest x CENTER: in the middle
+	 * NORTH: side with the highest y 
+	 * EAST: side with the highest x 
+	 * SOUTH: side with the lowest y 
+	 * WEST: side with the lowest x 
+	 * CENTER: in the middle
 	 */
 	public enum Direction {
 		NORTH, EAST, SOUTH, WEST, CENTER
 	}
 
+	/**
+	 * Object to help with where the robot is
+	 */
 	private Odometer odometer;
+	/**
+	 * Object to help with how the robot can move
+	 */
 	private Navigation navigation;
+	/**
+	 * Object to help with traction values
+	 */
 	private TrackExpansion dynamicTrack;
+	/**
+	 * Object to help with how the Light sensor at the head of the robot
+	 * detects colors
+	 */
 	private ColorSensor cSensor;
+	/**
+	 * Object to help with how the Light sensor under the robot
+	 * detects lines
+	 */
 	private ColorSensor lSensor;
+	/**
+	 * Object to help with how the Ultrasonic sensor at the head of the robot
+	 * detects distances
+	 */
 	private UltrasonicSensor ultraSensor;
+	/**
+	 * Object to help with how the Gyroscope sensor on top of the robot
+	 * detects angle changes
+	 */
 	private Gyroscope gyroscope;
+	/**
+	 * Object in charge of all variables from the game
+	 */
 	private EV3WifiClient serverData;
+	/**
+	 * Object in charge of displaying values periodically
+	 */
 	private Display odometryDisplay;
+	/**
+	 * Object in charge of correcting the trajectory
+	 */
 	private OdometerCorrection odoCorrect;
 
-	private boolean player; // green = true, red = false;
 
 	/**
 	 * Creates an object of the GamePlan class. Initializes all instances needed in
@@ -145,31 +212,43 @@ public class GamePlan {
 	}
 
 	/**
-	 * Game plan of the red team. 1- Localize (USLocalizer) 2-
-	 * Localize(LightLocalizer) 3- Travels to the bridge 4- Crosses the bridge 5-
-	 * Search the Green search zone for the OG flag 6- Travels to the tunnel 7-
-	 * Crosses the tunnel 8- finishes in its starting corner
+	 * Game plan of the red team. 
+	 * 1- Localize (USLocalizer) 
+	 * 2- Localize(LightLocalizer) 
+	 * 3- Travels to the bridge 
+	 * 4- Crosses the bridge 
+	 * 5- Search the Green search zone for the OG flag
+	 * 6- Travels to the tunnel 
+	 * 7- Crosses the tunnel 
+	 * 8- finishes in its starting corner
 	 * 
 	 * @throws Exception
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void redPlan() throws Exception {
-		// TODO call the procedure for the red team
-
 		
 		 USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
-		 usLoc.doLocalization(serverData.getStartingCorner()); LightLocalizer
-		 lightLoc=new LightLocalizer(navigation, dynamicTrack, lSensor, odometer,
-		 CONFIG); switch(serverData.getStartingCorner()) { case 0:
-		 lightLoc.doLocalization(1, 1, 0); break; case 1:
-		 lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1, 1, 1); break; case 2:
-		 lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1,
-		 serverData.Y_GRID_LINES-1, 2); break; case 3: lightLoc.doLocalization(1,
-		 EV3WifiClient.Y_GRID_LINES-1, 3); break; }
-		 
-
-		// TODO: look for flag
-
+		 usLoc.doLocalization(serverData.getStartingCorner()); 
+		 Sound.beep();
+		 LightLocalizer lightLoc=new LightLocalizer(navigation, dynamicTrack, lSensor, odometer); 
+		 switch(serverData.getStartingCorner()) { 
+		 case 0:
+			 lightLoc.doLocalization(1, 1, 0); 
+			 break; 
+		 case 1:
+			 lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1, 1, 1); 
+			 break; 
+		 case 2:
+			 lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1, EV3WifiClient.Y_GRID_LINES-1, 2); 
+			 break; 
+		 case 3: lightLoc.doLocalization(1,EV3WifiClient.Y_GRID_LINES-1, 3); 
+		 	break; 
+		 }
+		///////////////////////////////////////////////////////////
+		Sound.beep();
+		Button.waitForAnyPress();
+		System.exit(0);
+/////////////////////////////////////////////////////////////////////////////
 		goToTunnel(getTunnelEntry());
 		crossTunnel();
 		Sound.beep();
@@ -179,35 +258,48 @@ public class GamePlan {
 	}
 
 	/**
-	 * Game plan of the green team. 1- Localize (USLocalizer) 2-
-	 * Localize(LightLocalizer) 3- Travels to the tunnel 4- Crosses the tunnel 5-
-	 * Search the Red search zone for the OR flag 6- Travels to the bridge 7-
-	 * Crosses the bridge 8- finishes in its starting corner
+	 * Game plan of the green team. 
+	 * 1- Localize (USLocalizer) 
+	 * 2- Localize(LightLocalizer) 
+	 * 3- Travels to the tunnel 
+	 * 4- Crosses the tunnel 
+	 * 5- Search the Red search zone for the OR flag 
+	 * 6- Travels to the bridge 
+	 * 7- Crosses the bridge 
+	 * 8- finishes in its starting corner
 	 * 
 	 * @throws Exception
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void greenPlan() throws Exception {
-		
-		 USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
-		 usLoc.doLocalization(serverData.getStartingCorner()); LightLocalizer
-		 lightLoc=new LightLocalizer(navigation, dynamicTrack, lSensor, odometer,
-		 CONFIG);
-		 
-		 switch(serverData.getStartingCorner()) { case 0: lightLoc.doLocalization(1,
-		 1, 0); break; case 1: lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1,
-		 1, 1); break; case 2: lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1,
-		 serverData.Y_GRID_LINES-1, 2); break; case 3: lightLoc.doLocalization(1,
-		 EV3WifiClient.Y_GRID_LINES-1, 3); break; }
 
+		 USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
+		 usLoc.doLocalization(serverData.getStartingCorner()); 
+		 Sound.beep();
+		 LightLocalizer lightLoc=new LightLocalizer(navigation, dynamicTrack, lSensor, odometer); 
+		 switch(serverData.getStartingCorner()) { 
+		 case 0:
+			 lightLoc.doLocalization(1, 1, 0); 
+			 break; 
+		 case 1:
+			 lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1, 1, 1); 
+			 break; 
+		 case 2:
+			 lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1, EV3WifiClient.Y_GRID_LINES-1, 2); 
+			 break; 
+		 case 3: lightLoc.doLocalization(1,EV3WifiClient.Y_GRID_LINES-1, 3); 
+		 	break; 
+		 }
+		///////////////////////////////////////////////////////////
+		Sound.beep();
+		Button.waitForAnyPress();
+		System.exit(0);
+/////////////////////////////////////////////////////////////////////////////
 		goToTunnel(getTunnelEntry());
 		crossTunnel();
-
-		// TODO: look for flag
-
+		Sound.beep();
 		goToBridge(getBridgeEntry());
 		crossBridge();
-
 		goToStartingCorner();
 	}
 

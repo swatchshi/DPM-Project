@@ -20,7 +20,6 @@ public class LightLocalizer {
 	private final TrackExpansion dynamicTrack;
 	private final ColorSensor lightSensor;
 	private final Odometer odo;
-	private final GamePlan.RobotConfig config;
 	private boolean lightLocalizerDone; // tells when the localization is over
 
 	/**
@@ -35,13 +34,12 @@ public class LightLocalizer {
 	 * @param config
 	 *            The Lab5.RobotConfig, i.e. the wheel positioning
 	 */
-	public LightLocalizer(Navigation navigation, TrackExpansion dynamicTrack, ColorSensor lightSensor, Odometer odo, GamePlan.RobotConfig config) {
+	public LightLocalizer(Navigation navigation, TrackExpansion dynamicTrack, ColorSensor lightSensor, Odometer odo) {
 		this.odo = odo;
 		this.navigation = navigation;
 		this.dynamicTrack=dynamicTrack;
 		this.lightSensor = lightSensor;
 		this.lightLocalizerDone = false;
-		this.config = config;
 	}
 
 	/**
