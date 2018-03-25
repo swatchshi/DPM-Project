@@ -25,7 +25,8 @@ public class TrackExpansion {
 	public static final double MAX_SCREW_TRACK = 16.3; // 21.3 to 29.5
 	public static final double LIGHT_SENSOR_DISTANCE_SCREW = 6;
 	public static final double LIGHT_SENSOR_DISTANCE_TANK = -6; // -5.5 to -6.5 sensor at the back
-
+  
+    
 	public static final TextLCD lcd = LocalEV3.get().getTextLCD();
 	private static float SCREW_SPEED = 600;
 	private static float MAINTENANCE_SPEED = 400;
@@ -206,6 +207,10 @@ public class TrackExpansion {
 	 */
 	public double getTrack() {
 		return track;
+	}
+	
+	public void setTrack (double track) {
+		this.track = track;
 	}
 
 	/**

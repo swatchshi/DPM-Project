@@ -133,6 +133,7 @@ public class GamePlan {
 
 		switch (serverData.getTeamColor()) {
 		case RED:
+			System.out.println("1233333333333333333333");
 			redPlan();
 			break;
 		case GREEN:
@@ -155,17 +156,17 @@ public class GamePlan {
 	private void redPlan() throws Exception {
 		// TODO call the procedure for the red team
 
-		/*
-		 * USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
-		 * usLoc.doLocalization(serverData.getStartingCorner()); LightLocalizer
-		 * lightLoc=new LightLocalizer(navigation, dynamicTrack, lSensor, odometer,
-		 * CONFIG); switch(serverData.getStartingCorner()) { case 0:
-		 * lightLoc.doLocalization(1, 1, 0); break; case 1:
-		 * lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1, 1, 1); break; case 2:
-		 * lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1,
-		 * serverData.Y_GRID_LINES-1, 2); break; case 3: lightLoc.doLocalization(1,
-		 * EV3WifiClient.Y_GRID_LINES-1, 3); break; }
-		 */
+		
+		 USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
+		 usLoc.doLocalization(serverData.getStartingCorner()); LightLocalizer
+		 lightLoc=new LightLocalizer(navigation, dynamicTrack, lSensor, odometer,
+		 CONFIG); switch(serverData.getStartingCorner()) { case 0:
+		 lightLoc.doLocalization(1, 1, 0); break; case 1:
+		 lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1, 1, 1); break; case 2:
+		 lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1,
+		 serverData.Y_GRID_LINES-1, 2); break; case 3: lightLoc.doLocalization(1,
+		 EV3WifiClient.Y_GRID_LINES-1, 3); break; }
+		 
 
 		// TODO: look for flag
 
@@ -187,20 +188,18 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void greenPlan() throws Exception {
-		/*
-		 * USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
-		 * usLoc.doLocalization(serverData.getStartingCorner()); LightLocalizer
-		 * lightLoc=new LightLocalizer(navigation, dynamicTrack, lSensor, odometer,
-		 * CONFIG);
-		 * 
-		 * switch(serverData.getStartingCorner()) { case 0: lightLoc.doLocalization(1,
-		 * 1, 0); break; case 1: lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1,
-		 * 1, 1); break; case 2: lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1,
-		 * serverData.Y_GRID_LINES-1, 2); break; case 3: lightLoc.doLocalization(1,
-		 * EV3WifiClient.Y_GRID_LINES-1, 3); break; }
-		 * 
-		 * 
-		 */
+		
+		 USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
+		 usLoc.doLocalization(serverData.getStartingCorner()); LightLocalizer
+		 lightLoc=new LightLocalizer(navigation, dynamicTrack, lSensor, odometer,
+		 CONFIG);
+		 
+		 switch(serverData.getStartingCorner()) { case 0: lightLoc.doLocalization(1,
+		 1, 0); break; case 1: lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1,
+		 1, 1); break; case 2: lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1,
+		 serverData.Y_GRID_LINES-1, 2); break; case 3: lightLoc.doLocalization(1,
+		 EV3WifiClient.Y_GRID_LINES-1, 3); break; }
+
 		goToTunnel(getTunnelEntry());
 		crossTunnel();
 
