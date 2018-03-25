@@ -145,6 +145,7 @@ public class GamePlan {
 	 * Object in charge of correcting the trajectory
 	 */
 	private OdometerCorrection odoCorrect;
+	private boolean player; // green = true, red = false;
 
 
 	/**

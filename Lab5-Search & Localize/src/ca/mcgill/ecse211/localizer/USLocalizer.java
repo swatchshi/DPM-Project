@@ -5,6 +5,7 @@ import java.util.Stack;
 
 import ca.mcgill.ecse211.lab5.*;
 import ca.mcgill.ecse211.odometer.*;
+import lejos.hardware.Button;
 
 /**
  * Class for handling the ultrasonic localization procedure
@@ -68,7 +69,12 @@ public class USLocalizer{
 	 * Considers it is in the corner 0
 	 */
 	public void doLocalization() {
-		doLocalization(0); //do localization like it's in the corner 0
+		try {
+			doLocalization(0);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} //do localization like it's in the corner 0
 	}
 	
 	/**
@@ -76,10 +82,11 @@ public class USLocalizer{
 	 * Considers it is in the corner specified
 	 * @param corner (int) the corner where the localization takes place
 	 */
-	public void doLocalization(int corner) {
+	public void doLocalization(int corner) throws Exception{
+		
 		usLocalizerDone=false;
 		determineLocType();
-		
+		try {
 		if (loc == LocalizerType.FALLING_EDGE) {
 			
 			turnToNoWall(Navigation.Turn.CLOCK_WISE);
@@ -112,6 +119,11 @@ public class USLocalizer{
 		//Finally turn to absolute 0 degrees
 		navigation.turnTo(0);
 		usLocalizerDone=true;
+		}
+		catch(Exception e) {
+			 System.err.println("Error: main " + e.getMessage());
+			 Button.waitForAnyPress();
+		}
 	}
 	
 	
