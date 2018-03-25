@@ -26,10 +26,8 @@ import ca.mcgill.ecse211.WiFiClient.*;
  */
 public class GamePlan {
 	/**
-	 * Enum for the wheel configuration of the robot 
-	 * TRACTION: wheels are in front
-	 * of the robot 
-	 * PROPULSION: wheels are at the back of the robot
+	 * Enum for the wheel configuration of the robot TRACTION: wheels are in front
+	 * of the robot PROPULSION: wheels are at the back of the robot
 	 * (motor.backward() is forward)
 	 */
 	public enum RobotConfig {
@@ -37,10 +35,8 @@ public class GamePlan {
 	}
 
 	/**
-	 * Enum for the chosen robot 
-	 * SCREW_DESIGN: design with the expanding track and
-	 * screw 
-	 * TANK: design with the tank tracks
+	 * Enum for the chosen robot SCREW_DESIGN: design with the expanding track and
+	 * screw TANK: design with the tank tracks
 	 */
 	public enum Robot {
 		SCREW_DESIGN, TANK
@@ -91,11 +87,8 @@ public class GamePlan {
 
 	/**
 	 * Enum describing the cardinal point. Used to describe the side of a region.
-	 * NORTH: side with the highest y 
-	 * EAST: side with the highest x 
-	 * SOUTH: side with the lowest y 
-	 * WEST: side with the lowest x 
-	 * CENTER: in the middle
+	 * NORTH: side with the highest y EAST: side with the highest x SOUTH: side with
+	 * the lowest y WEST: side with the lowest x CENTER: in the middle
 	 */
 	public enum Direction {
 		NORTH, EAST, SOUTH, WEST, CENTER
@@ -114,13 +107,12 @@ public class GamePlan {
 	 */
 	private TrackExpansion dynamicTrack;
 	/**
-	 * Object to help with how the Light sensor at the head of the robot
-	 * detects colors
+	 * Object to help with how the Light sensor at the head of the robot detects
+	 * colors
 	 */
 	private ColorSensor cSensor;
 	/**
-	 * Object to help with how the Light sensor under the robot
-	 * detects lines
+	 * Object to help with how the Light sensor under the robot detects lines
 	 */
 	private ColorSensor lSensor;
 	/**
@@ -129,8 +121,8 @@ public class GamePlan {
 	 */
 	private UltrasonicSensor ultraSensor;
 	/**
-	 * Object to help with how the Gyroscope sensor on top of the robot
-	 * detects angle changes
+	 * Object to help with how the Gyroscope sensor on top of the robot detects
+	 * angle changes
 	 */
 	private Gyroscope gyroscope;
 	/**
@@ -146,7 +138,6 @@ public class GamePlan {
 	 */
 	private OdometerCorrection odoCorrect;
 	private boolean player; // green = true, red = false;
-
 
 	/**
 	 * Creates an object of the GamePlan class. Initializes all instances needed in
@@ -201,7 +192,7 @@ public class GamePlan {
 
 		switch (serverData.getTeamColor()) {
 		case RED:
-			System.out.println("1233333333333333333333");
+
 			redPlan();
 			break;
 		case GREEN:
@@ -213,43 +204,42 @@ public class GamePlan {
 	}
 
 	/**
-	 * Game plan of the red team. 
-	 * 1- Localize (USLocalizer) 
-	 * 2- Localize(LightLocalizer) 
-	 * 3- Travels to the bridge 
-	 * 4- Crosses the bridge 
-	 * 5- Search the Green search zone for the OG flag
-	 * 6- Travels to the tunnel 
-	 * 7- Crosses the tunnel 
-	 * 8- finishes in its starting corner
+	 * Game plan of the red team. 1- Localize (USLocalizer) 2-
+	 * Localize(LightLocalizer) 3- Travels to the bridge 4- Crosses the bridge 5-
+	 * Search the Green search zone for the OG flag 6- Travels to the tunnel 7-
+	 * Crosses the tunnel 8- finishes in its starting corner
 	 * 
 	 * @throws Exception
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void redPlan() throws Exception {
-		
-		 USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
-		 usLoc.doLocalization(serverData.getStartingCorner()); 
-		 Sound.beep();
-		 LightLocalizer lightLoc=new LightLocalizer(navigation, dynamicTrack, lSensor, odometer); 
-		 switch(serverData.getStartingCorner()) { 
-		 case 0:
-			 lightLoc.doLocalization(1, 1, 0); 
-			 break; 
-		 case 1:
-			 lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1, 1, 1); 
-			 break; 
-		 case 2:
-			 lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1, EV3WifiClient.Y_GRID_LINES-1, 2); 
-			 break; 
-		 case 3: lightLoc.doLocalization(1,EV3WifiClient.Y_GRID_LINES-1, 3); 
-		 	break; 
-		 }
+
+		USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
+		usLoc.doLocalization(serverData.getStartingCorner());
+		Sound.beep();
+		Sound.buzz();
+		System.out.println("                           99");
+		Button.waitForAnyPress();
+		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer);
+		switch (serverData.getStartingCorner()) {
+		case 0:
+			lightLoc.doLocalization(1, 1, 0);
+			break;
+		case 1:
+			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, 1, 1);
+			break;
+		case 2:
+			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, EV3WifiClient.Y_GRID_LINES - 1, 2);
+			break;
+		case 3:
+			lightLoc.doLocalization(1, EV3WifiClient.Y_GRID_LINES - 1, 3);
+			break;
+		}
 		///////////////////////////////////////////////////////////
 		Sound.beep();
 		Button.waitForAnyPress();
 		System.exit(0);
-/////////////////////////////////////////////////////////////////////////////
+		/////////////////////////////////////////////////////////////////////////////
 		goToTunnel(getTunnelEntry());
 		crossTunnel();
 		Sound.beep();
@@ -259,43 +249,39 @@ public class GamePlan {
 	}
 
 	/**
-	 * Game plan of the green team. 
-	 * 1- Localize (USLocalizer) 
-	 * 2- Localize(LightLocalizer) 
-	 * 3- Travels to the tunnel 
-	 * 4- Crosses the tunnel 
-	 * 5- Search the Red search zone for the OR flag 
-	 * 6- Travels to the bridge 
-	 * 7- Crosses the bridge 
-	 * 8- finishes in its starting corner
+	 * Game plan of the green team. 1- Localize (USLocalizer) 2-
+	 * Localize(LightLocalizer) 3- Travels to the tunnel 4- Crosses the tunnel 5-
+	 * Search the Red search zone for the OR flag 6- Travels to the bridge 7-
+	 * Crosses the bridge 8- finishes in its starting corner
 	 * 
 	 * @throws Exception
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void greenPlan() throws Exception {
 
-		 USLocalizer usLoc=new USLocalizer(odometer, navigation, ultraSensor);
-		 usLoc.doLocalization(serverData.getStartingCorner()); 
-		 Sound.beep();
-		 LightLocalizer lightLoc=new LightLocalizer(navigation, dynamicTrack, lSensor, odometer); 
-		 switch(serverData.getStartingCorner()) { 
-		 case 0:
-			 lightLoc.doLocalization(1, 1, 0); 
-			 break; 
-		 case 1:
-			 lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1, 1, 1); 
-			 break; 
-		 case 2:
-			 lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES-1, EV3WifiClient.Y_GRID_LINES-1, 2); 
-			 break; 
-		 case 3: lightLoc.doLocalization(1,EV3WifiClient.Y_GRID_LINES-1, 3); 
-		 	break; 
-		 }
+		USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
+		usLoc.doLocalization(serverData.getStartingCorner());
+		Sound.beep();
+		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer);
+		switch (serverData.getStartingCorner()) {
+		case 0:
+			lightLoc.doLocalization(1, 1, 0);
+			break;
+		case 1:
+			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, 1, 1);
+			break;
+		case 2:
+			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, EV3WifiClient.Y_GRID_LINES - 1, 2);
+			break;
+		case 3:
+			lightLoc.doLocalization(1, EV3WifiClient.Y_GRID_LINES - 1, 3);
+			break;
+		}
 		///////////////////////////////////////////////////////////
 		Sound.beep();
 		Button.waitForAnyPress();
 		System.exit(0);
-/////////////////////////////////////////////////////////////////////////////
+		/////////////////////////////////////////////////////////////////////////////
 		goToTunnel(getTunnelEntry());
 		crossTunnel();
 		Sound.beep();
@@ -340,11 +326,48 @@ public class GamePlan {
 	 */
 	private Direction getBridgeEntry() throws Exception {
 
-		if (player == true) {// green
-			return Direction.SOUTH;
-		} else if (player == false) {// red
-			return Direction.NORTH;
+		int diffX = serverData.getCoordParam(CoordParameter.BR_UR_x) - serverData.getCoordParam(CoordParameter.BR_LL_x);
+		int diffY = serverData.getCoordParam(CoordParameter.BR_UR_y) - serverData.getCoordParam(CoordParameter.BR_LL_y);
+		if (diffX == 1 && diffY == 2) { // horizontal
+			switch (serverData.getStartingCorner()) {
+			case 0:
+				return Direction.WEST;
+
+			case 1:
+				return Direction.EAST;
+
+			case 2:
+				return Direction.EAST;
+
+			case 3:
+				return Direction.WEST;
+
+			}
+
+		} else if (diffX == 2 && diffY == 1) { // vertical
+			switch (serverData.getStartingCorner()) {
+			case 0:
+				return Direction.SOUTH;
+
+			case 1:
+				return Direction.SOUTH;
+
+			case 2:
+				return Direction.NORTH;
+
+			case 3:
+				return Direction.NORTH;
+
+			}
+
+		} else { // fail
+			Sound.buzz();
+			Sound.buzz();
+			Sound.buzz();
+			System.out.println("            failed -----");
+			Button.waitForAnyPress();
 		}
+
 		return null;
 	}
 
@@ -356,15 +379,48 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private Direction getTunnelEntry() throws Exception {
-		switch (serverData.getTeamColor()) {
-		case RED:
-			// Need to find the green entrance
-			break;
-		case GREEN:
-			// Need to find the green entrance
-			break;
+		int diffX = serverData.getCoordParam(CoordParameter.BR_UR_x) - serverData.getCoordParam(CoordParameter.BR_LL_x);
+		int diffY = serverData.getCoordParam(CoordParameter.BR_UR_y) - serverData.getCoordParam(CoordParameter.BR_LL_y);
+		if (diffX == 1 && diffY == 2) { // horizontal
+			switch (serverData.getStartingCorner()) {
+			case 0:
+				return Direction.WEST;
+
+			case 1:
+				return Direction.EAST;
+
+			case 2:
+				return Direction.EAST;
+
+			case 3:
+				return Direction.WEST;
+
+			}
+
+		} else if (diffX == 2 && diffY == 1) { // vertical
+			switch (serverData.getStartingCorner()) {
+			case 0:
+				return Direction.SOUTH;
+
+			case 1:
+				return Direction.SOUTH;
+
+			case 2:
+				return Direction.NORTH;
+
+			case 3:
+				return Direction.NORTH;
+
+			}
+
+		} else { // fail
+			Sound.buzz();
+			Sound.buzz();
+			Sound.buzz();
+			System.out.println("            failed -----");
+			Button.waitForAnyPress();
 		}
-		return Direction.EAST;
+		return null;
 	}
 
 	/**

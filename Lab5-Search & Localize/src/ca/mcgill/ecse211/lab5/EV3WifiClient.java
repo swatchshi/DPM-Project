@@ -125,7 +125,7 @@ public class EV3WifiClient {
 	 *             wrong
 	 */
 	public EV3WifiClient() throws Exception {
-		System.out.println("Running..");
+		System.out.println("                            00");
 
 		// Initialize WifiConnection class
 		WifiConnection conn = new WifiConnection(SERVER_IP, TEAM_NUMBER, ENABLE_DEBUG_WIFI_PRINT);
@@ -247,10 +247,10 @@ public class EV3WifiClient {
 		TeamColor teamColor = getTeamColor();
 		if (teamColor == teamColor.RED) {
 			// Red team
-			return ((Long) data.get(QualParameter.RedCorner)).intValue();
+			return ((Long) data.get(QualParameter.RedCorner.toString())).intValue();
 		} else {
 			// Green team
-			return ((Long) data.get(QualParameter.GreenCorner)).intValue();
+			return ((Long) data.get(QualParameter.GreenCorner.toString())).intValue();
 		}
 	}
 

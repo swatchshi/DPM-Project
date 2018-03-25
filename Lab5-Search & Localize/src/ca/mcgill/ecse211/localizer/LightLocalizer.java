@@ -2,6 +2,7 @@ package ca.mcgill.ecse211.localizer;
 
 import ca.mcgill.ecse211.lab5.*;
 import ca.mcgill.ecse211.odometer.*;
+import lejos.hardware.Button;
 import lejos.hardware.Sound;
 import lejos.utility.Delay;
 
@@ -58,6 +59,7 @@ public class LightLocalizer {
 	public void doLocalization(int xLine, int yLine, int corner) {
 		Sound.beep();
 		navigation.turnTo(45-90*corner);
+		Button.waitForAnyPress();
 		navigation.travelForward();
 		if (lightSensor.lineCrossed()) { // wait to cross a line
 			navigation.stopMotors();
