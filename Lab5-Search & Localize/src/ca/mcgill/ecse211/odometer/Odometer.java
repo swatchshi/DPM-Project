@@ -21,9 +21,8 @@ public class Odometer extends OdometerData implements Runnable {
 	  private EV3LargeRegulatedMotor leftMotor;
 	  private EV3LargeRegulatedMotor rightMotor;
 	  private GamePlan.RobotConfig config;
-	  private Gyroscope gyroscope;
 	  private TrackExpansion dynamicTrack;
-	  private static final int MAX_ANGLE_ERROR=2;
+	
 	
 	  private double[] position;
 	
@@ -44,8 +43,8 @@ public class Odometer extends OdometerData implements Runnable {
 	  private Odometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor,
 	      TrackExpansion dynamicTrack, Gyroscope gyroscope, GamePlan.RobotConfig config) throws OdometerExceptions {
 	                                                  // manipulation methods
+		  super(gyroscope); //creates OdometerData object
 		  this.config=config;
-		  this.gyroscope=gyroscope;
 		  switch(config) {
 			case PROPULSION:
 			 	this.leftMotor = leftMotor;
@@ -109,21 +108,7 @@ public class Odometer extends OdometerData implements Runnable {
 		    return odo;
 	  }
 	  
-	  /**
-	   * Correction of the angle with the gyroscope angle value
-	   * if the difference is greater than the max angle error
-	   * 
-	   * @return a linear combination of the two angle if there is a big difference
-	   */
-	  public void correctAngle() {
-		  double odoAngle=getTheta();
-		  double gyroAngle=gyroscope.getAngle();
-		  if(Math.abs(odoAngle-gyroAngle)>MAX_ANGLE_ERROR) {
-			  double angle=odoAngle * 0.2 + gyroAngle * 0.8; //change proportions to get more accurate correction
-			  odo.setTheta(angle); 
-			  gyroscope.setAngle(angle);
-		  }
-	  }
+	 
 	
 	  /**
 	   * This method is where the logic for the odometer will run. Use the methods provided from the
@@ -155,14 +140,12 @@ public class Odometer extends OdometerData implements Runnable {
 			      if(config==GamePlan.RobotConfig.PROPULSION) {
 			    	  dTheta=-Math.toDegrees(dTheta); //conversion to degrees
 			    	  position[2]+=dTheta;
-//uncomment to enable gyro correction 	  //position[2]=correctAngle(position[2]); 			//new angle
 				      
 				      dX=-0.5*(distL+distR)*Math.sin(Math.toRadians(position[2])); //displacement in X with new angle
 				      dY=-0.5*(distL+distR)*Math.cos(Math.toRadians(position[2])); //displacement in Y with new angle
 			      } else { //TRACTION
 			    	  dTheta=Math.toDegrees(dTheta); //conversion to degrees
 			    	  position[2]+=dTheta;
-//uncomment to enable gyro correction 	  //position[2]=correctAngle(position[2]); 			//new angle
 			          
 			          dX=0.5*(distL+distR)*Math.sin(Math.toRadians(position[2])); //displacement in X with new angle
 			          dY=0.5*(distL+distR)*Math.cos(Math.toRadians(position[2])); //displacement in Y with new angle

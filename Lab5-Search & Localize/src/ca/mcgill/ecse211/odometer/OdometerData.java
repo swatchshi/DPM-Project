@@ -40,17 +40,24 @@ public class OdometerData {
 															// know that a reset
 															// operation is
 															// over.
+	protected static final int MAX_ANGLE_ERROR = 2;
+	protected boolean doThetaCorrection = true;
 
 	private static OdometerData odoData = null;
+	protected Gyroscope gyroscope;
 
 	/**
 	 * Default constructor. The constructor is private. A factory is used instead
 	 * such that only one instance of this class is ever created.
+	 * 
+	 * @param gyroscope
+	 *            used by the Odometer
 	 */
-	protected OdometerData() {
+	protected OdometerData(Gyroscope gyroscope) {
 		this.x = 0;
 		this.y = 0;
 		this.theta = 0;
+		this.gyroscope = gyroscope;
 	}
 
 	/**
@@ -58,15 +65,17 @@ public class OdometerData {
 	 * only one instance is ever created. If the user tries to instantiate multiple
 	 * objects, the method throws a MultipleOdometerDataException.
 	 * 
+	 * @param gyroscope
+	 *            used
 	 * @return An OdometerData object
 	 * @throws OdometerExceptions
 	 */
-	public synchronized static OdometerData getOdometerData() throws OdometerExceptions {
+	public synchronized static OdometerData getOdometerData(Gyroscope gyroscope) throws OdometerExceptions {
 		if (odoData != null) { // Return existing object
 			return odoData;
 		} else if (numberOfIntances < MAX_INSTANCES) { // create object and
 														// return it
-			odoData = new OdometerData();
+			odoData = new OdometerData(gyroscope);
 			numberOfIntances += 1;
 			return odoData;
 		} else {
@@ -109,7 +118,6 @@ public class OdometerData {
 		return position;
 	}
 
-	
 	/**
 	 * Gets the theta
 	 * 
@@ -154,6 +162,7 @@ public class OdometerData {
 			theta = (theta + (360 + dtheta) % 360) % 360; // keeps the updates
 															// within 360
 															// degrees
+			correctAngle();
 			isReseting = false; // Done reseting
 			doneReseting.signalAll(); // Let the other threads know that you are
 										// done reseting
@@ -180,6 +189,7 @@ public class OdometerData {
 			this.x = x;
 			this.y = y;
 			this.theta = theta;
+			gyroscope.setAngle(this.theta);
 			isReseting = false; // Done reseting
 			doneReseting.signalAll(); // Let the other threads know that you are
 										// done reseting
@@ -237,11 +247,38 @@ public class OdometerData {
 		isReseting = true;
 		try {
 			this.theta = theta % 360;
+			gyroscope.setAngle(this.theta);
 			isReseting = false; // Done reseting
 			doneReseting.signalAll(); // Let the other threads know that you are
 										// done reseting
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	/**
+	 * Correction of the angle with the gyroscope angle value if the difference is
+	 * greater than the max angle error
+	 * 
+	 * @return a linear combination of the two angle if there is a big difference
+	 */
+	public void correctAngle() {
+		if (doThetaCorrection) {
+			double gyroAngle = gyroscope.getAngle();
+			if (Math.abs(theta - gyroAngle) > MAX_ANGLE_ERROR) {
+				this.theta = theta * 0.2 + gyroAngle * 0.8; // change proportions to get more accurate correction
+				gyroscope.setAngle(this.theta);
+			}
+		}
+	}
+
+	/**
+	 * Sets the mode for the theta correction by the gyroscope.
+	 * 
+	 * @param doThetaCorrection
+	 *            True if the theta will be corrected
+	 */
+	public void setDoThetaCorrection(boolean doThetaCorrection) {
+		this.doThetaCorrection = doThetaCorrection;
 	}
 }
