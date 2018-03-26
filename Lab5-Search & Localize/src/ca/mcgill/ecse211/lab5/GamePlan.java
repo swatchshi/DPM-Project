@@ -217,8 +217,6 @@ public class GamePlan {
 		USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
 		usLoc.doLocalization(serverData.getStartingCorner());
 		Sound.beep();
-		Sound.buzz();
-		System.out.println("                           99");
 		
 		
 		Button.waitForAnyPress();
@@ -240,8 +238,7 @@ public class GamePlan {
 		///////////////////////////////////////////////////////////
 		Sound.beep();
 		Button.waitForAnyPress();
-		//System.exit(0);
-		Sound.beepSequenceUp();
+		System.exit(0);
 		/////////////////////////////////////////////////////////////////////////////
 		goToBridge(getBridgeEntry());
 		crossBridge();

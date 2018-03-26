@@ -272,7 +272,7 @@ public class EV3WifiClient {
 		if (teamColor == teamColor.RED) {
 			// Red team
 			// looks for flag of green team
-			switch (((Long) data.get(QualParameter.OG)).intValue()) {
+			switch (((Long) data.get(QualParameter.OG.toString())).intValue()) {
 			case 1:
 				// Red
 				return ColorSensor.BlockColor.RED;
@@ -291,7 +291,7 @@ public class EV3WifiClient {
 		} else {
 			// Green team
 			// looks for flag of red team
-			switch (((Long) data.get(QualParameter.OR)).intValue()) {
+			switch (((Long) data.get(QualParameter.OR.toString())).intValue()) {
 			case 1:
 				// Red
 				return ColorSensor.BlockColor.RED;
