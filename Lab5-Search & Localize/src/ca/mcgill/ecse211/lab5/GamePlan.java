@@ -216,14 +216,15 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void redPlan() throws Exception {
-		int corner=0;
-		
+		int corner=3;
+
 		USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
 		
-		usLoc.doLocalization(corner); /*serverData.getStartingCorner()*/
+		usLoc.doLocalization(0); /*serverData.getStartingCorner()*/
 		navigation.turnTo(0);
 		gyroscope.setAngle((-corner*90)%360);
 		Button.waitForAnyPress();
+		Sound.beepSequenceUp();
 		
 		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer);
 		switch (corner) { /*serverData.getStartingCorner()*/
@@ -234,31 +235,35 @@ public class GamePlan {
 //			//odometer.correctAngle();
 //			navigation.turnTo(0);
 			
-			lightLoc.lightloc();
+			lightLoc.lightloc(0);
 			
 			
 			
 			break;
 		case 1:
-			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, 1, 1);
-			navigation.goToPoint(EV3WifiClient.X_GRID_LINES - 1, 1);
-			navigation.turnTo(270);
-			odometer.correctAngle();
-			navigation.turnTo(270);
+//			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, 1, 1);
+//			navigation.goToPoint(EV3WifiClient.X_GRID_LINES - 1, 1);
+//			navigation.turnTo(270);
+//			odometer.correctAngle();
+//			navigation.turnTo(270);
+			lightLoc.lightloc(1);
+			
 			break;
 		case 2:
-			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, EV3WifiClient.Y_GRID_LINES - 1, 2);
-			navigation.goToPoint(EV3WifiClient.X_GRID_LINES - 1, EV3WifiClient.Y_GRID_LINES - 1);
-			navigation.turnTo(180);
-			odometer.correctAngle();
-			navigation.turnTo(180);
+//			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, EV3WifiClient.Y_GRID_LINES - 1, 2);
+//			navigation.goToPoint(EV3WifiClient.X_GRID_LINES - 1, EV3WifiClient.Y_GRID_LINES - 1);
+//			navigation.turnTo(180);
+//			odometer.correctAngle();
+//			navigation.turnTo(180);
+			lightLoc.lightloc(2);
 			break;
 		case 3:
-			lightLoc.doLocalization(1, EV3WifiClient.Y_GRID_LINES - 1, 3);
-			navigation.goToPoint(1,EV3WifiClient.Y_GRID_LINES - 1);
-			navigation.turnTo(90);
-			odometer.correctAngle();
-			navigation.turnTo(90);
+//			lightLoc.doLocalization(1, EV3WifiClient.Y_GRID_LINES - 1, 3);
+//			navigation.goToPoint(1,EV3WifiClient.Y_GRID_LINES - 1);
+//			navigation.turnTo(90);
+//			odometer.correctAngle();
+//			navigation.turnTo(90);
+			lightLoc.lightloc(3);
 			break;
 		}
 		///////////////////////////////////////////////////////////
