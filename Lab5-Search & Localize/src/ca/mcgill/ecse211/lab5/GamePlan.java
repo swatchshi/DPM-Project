@@ -171,6 +171,7 @@ public class GamePlan {
 		odoDisplayThread.start();
 		Thread odoCorrectionThread = new Thread(odoCorrect);
 		odoCorrectionThread.start();
+		odoCorrect.setDoCorrection(false);
 	}
 
 	/**
@@ -213,7 +214,7 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void redPlan() throws Exception {
-
+		
 		USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
 		usLoc.doLocalization(serverData.getStartingCorner());
 		Sound.beep();
@@ -224,6 +225,9 @@ public class GamePlan {
 		switch (serverData.getStartingCorner()) {
 		case 0:
 			lightLoc.doLocalization(1, 1, 0);
+			Button.waitForAnyPress();
+			navigation.goToPoint(1, 1);
+			navigation.turnTo(0);
 			break;
 		case 1:
 			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, 1, 1);

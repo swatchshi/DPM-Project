@@ -41,7 +41,7 @@ public class OdometerData {
 															// operation is
 															// over.
 	protected static final int MAX_ANGLE_ERROR = 2;
-	protected boolean doThetaCorrection = true;
+	protected boolean doThetaCorrection = false;
 
 	private static OdometerData odoData = null;
 	protected Gyroscope gyroscope;

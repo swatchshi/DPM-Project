@@ -99,21 +99,22 @@ public class LightLocalizer {
 		
 		switch (corner) {
 		// correct coordinates
+		// end corner may change due to Light Sensor distance
 		case 0:
-			x = dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2) + Navigation.TILE_SIZE; // ends more in upper right
-			y = dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2) + Navigation.TILE_SIZE;
+			x = dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2); // ends more in upper right
+			y = -dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2);
 			break;
 		case 1:
-			x = -dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2) + Navigation.TILE_SIZE; // ends more in upper left
-			y = dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2) + Navigation.TILE_SIZE;
+			x = -dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2); // ends more in upper left
+			y = -dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2);
 			break;
 		case 2:
-			x = -dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2) + Navigation.TILE_SIZE; // ends more in lower left
-			y = -dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2) + Navigation.TILE_SIZE;
+			x = -dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2); // ends more in lower left
+			y = dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2);
 			break;
 		case 3:
-			x = dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2) + Navigation.TILE_SIZE; // ends more in lower right
-			y = -dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2) + Navigation.TILE_SIZE;
+			x = dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2); // ends more in lower right
+			y = dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2);
 			break;
 		}
 		double dTheta = Math.toDegrees(thetaY) / 2 + 270 - lineAngles[((index-1)%4)];

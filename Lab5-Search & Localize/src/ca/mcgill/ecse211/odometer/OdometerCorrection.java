@@ -16,6 +16,7 @@ public class OdometerCorrection extends Thread{
 	private final ColorSensor lightSensor;
 	private final TrackExpansion dynamicTrack;
 	private Odometer odo;
+	private boolean  doCorrection=true;
 	
 	/**
 	 * Constructor of the OdometerCorrection class.
@@ -32,7 +33,13 @@ public class OdometerCorrection extends Thread{
 																		//normally is times 1
 	}
 	
-	
+	/**
+	 * Sets the correction state for lines seen 
+	 * @param doCorrection true if correction enabled 
+	 */
+	public void setDoCorrection(boolean doCorrection) {
+		this.doCorrection = doCorrection;
+	}
 	
 	/**
 	 * Run method of the OdometerCorrection
@@ -45,6 +52,7 @@ public class OdometerCorrection extends Thread{
 	public void run() {
 		double x,y,theta,lineX, lineY;
 		while(true){
+			if(doCorrection) {
 			if(lightSensor.lineCrossed()) { //does not return until a line is crossed
 				x=odo.getX();
 				y=odo.getY();
@@ -62,6 +70,7 @@ public class OdometerCorrection extends Thread{
 					odo.setY(lineY*Navigation.TILE_SIZE-dynamicTrack.getLightSensorDistance()*Math.cos(Math.toRadians(theta))); //correct Y
 				}
 			}
+		}
 		}
 	}
 	
