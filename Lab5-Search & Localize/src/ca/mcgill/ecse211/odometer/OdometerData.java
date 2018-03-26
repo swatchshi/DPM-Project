@@ -162,7 +162,9 @@ public class OdometerData {
 			theta = (theta + (360 + dtheta) % 360) % 360; // keeps the updates
 															// within 360
 															// degrees
-			correctAngle();
+			if (doThetaCorrection) {
+				correctAngle();
+			}
 			isReseting = false; // Done reseting
 			doneReseting.signalAll(); // Let the other threads know that you are
 										// done reseting
@@ -263,12 +265,10 @@ public class OdometerData {
 	 * @return a linear combination of the two angle if there is a big difference
 	 */
 	public void correctAngle() {
-		if (doThetaCorrection) {
-			double gyroAngle = gyroscope.getAngle();
-			if (Math.abs(theta - gyroAngle) > MAX_ANGLE_ERROR) {
-				this.theta = theta * 0.2 + gyroAngle * 0.8; // change proportions to get more accurate correction
-				gyroscope.setAngle(this.theta);
-			}
+		double gyroAngle = gyroscope.getAngle();
+		if (Math.abs(theta - gyroAngle) > MAX_ANGLE_ERROR) {
+			this.theta = theta * 0.2 + gyroAngle * 0.8; // change proportions to get more accurate correction
+			gyroscope.setAngle(this.theta);
 		}
 	}
 

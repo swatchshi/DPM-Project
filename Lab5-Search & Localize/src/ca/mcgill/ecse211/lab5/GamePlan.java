@@ -270,6 +270,8 @@ public class GamePlan {
 		switch (serverData.getStartingCorner()) {
 		case 0:
 			lightLoc.doLocalization(1, 1, 0);
+			navigation.goToPoint(1, 1);
+			navigation.turnTo(0);
 			break;
 		case 1:
 			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, 1, 1);
@@ -322,57 +324,52 @@ public class GamePlan {
 
 	/**
 	 * Finds the entry side the robot has to take in order to cross the bridge
+	 * Returns Direction.CENTER if unable to find the entrance.
 	 * 
 	 * @return The Direction (side) which the robot needs to enter the bridge
 	 * 
 	 * @throws Exception
-	 *             Exception thrown if the robot is not playing
+	 *             Exception thrown if the robot is not playing or a problem with the zone
 	 */
 	private Direction getBridgeEntry() throws Exception {
-
-		int diffX = serverData.getCoordParam(CoordParameter.BR_UR_x) - serverData.getCoordParam(CoordParameter.BR_LL_x);
-		int diffY = serverData.getCoordParam(CoordParameter.BR_UR_y) - serverData.getCoordParam(CoordParameter.BR_LL_y);
-		if (diffX == 1 && diffY == 2) { // horizontal
-			switch (serverData.getStartingCorner()) {
-			case 0:
+		double lowerLeftX = serverData.getCoordParam(CoordParameter.BR_LL_x) * Navigation.TILE_SIZE;
+		double lowerLeftY = serverData.getCoordParam(CoordParameter.BR_LL_y) * Navigation.TILE_SIZE;
+		double upperRightX = serverData.getCoordParam(CoordParameter.BR_UR_x) * Navigation.TILE_SIZE;
+		double upperRightY = serverData.getCoordParam(CoordParameter.BR_UR_y) * Navigation.TILE_SIZE;
+		
+		
+		//look North of the bridge, to see what zone is there, desired zone is the RED zone
+		switch(serverData.getZone(lowerLeftX + (upperRightX-lowerLeftX)/2, upperRightY+Navigation.TILE_SIZE/2)) {
+		case BRIDGE:
+		case TUNNEL:
+			throw new Exception("Error in the zone for bridge entry");
+		case GREEN:
+		case SG:
+			//entry in RED zone is in the south because GREEN entry is in the North
+			return Direction.SOUTH;
+		case RED:
+		case SR:
+			//entry in RED zone is in the North
+			return Direction.NORTH;
+		case WATER:
+			//look EAST of the bridge, to see what zone is there
+			switch(serverData.getZone(upperRightX+Navigation.TILE_SIZE/2, lowerLeftY+ (upperRightY-lowerLeftY)/2)) {
+			case BRIDGE:
+			case TUNNEL:
+			case WATER:
+				throw new Exception("Error in the zone for bridge entry");
+			case GREEN:
+			case SG:
+				//EAST entry is the GREEN entry point
 				return Direction.WEST;
-
-			case 1:
+			case RED:
+			case SR:
 				return Direction.EAST;
-
-			case 2:
-				return Direction.EAST;
-
-			case 3:
-				return Direction.WEST;
-
 			}
-
-		} else if (diffX == 2 && diffY == 1) { // vertical
-			switch (serverData.getStartingCorner()) {
-			case 0:
-				return Direction.SOUTH;
-
-			case 1:
-				return Direction.SOUTH;
-
-			case 2:
-				return Direction.NORTH;
-
-			case 3:
-				return Direction.NORTH;
-
-			}
-
-		} else { // fail
-			Sound.buzz();
-			Sound.buzz();
-			Sound.buzz();
-			System.out.println("            failed -----");
-			Button.waitForAnyPress();
+			break;
 		}
-
-		return null;
+		//default
+		return Direction.CENTER;
 	}
 
 	/**
@@ -383,48 +380,44 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private Direction getTunnelEntry() throws Exception {
-		int diffX = serverData.getCoordParam(CoordParameter.BR_UR_x) - serverData.getCoordParam(CoordParameter.BR_LL_x);
-		int diffY = serverData.getCoordParam(CoordParameter.BR_UR_y) - serverData.getCoordParam(CoordParameter.BR_LL_y);
-		if (diffX == 1 && diffY == 2) { // horizontal
-			switch (serverData.getStartingCorner()) {
-			case 0:
-				return Direction.WEST;
-
-			case 1:
+		double lowerLeftX = serverData.getCoordParam(CoordParameter.TN_LL_x) * Navigation.TILE_SIZE;
+		double lowerLeftY = serverData.getCoordParam(CoordParameter.TN_LL_y) * Navigation.TILE_SIZE;
+		double upperRightX = serverData.getCoordParam(CoordParameter.TN_UR_x) * Navigation.TILE_SIZE;
+		double upperRightY = serverData.getCoordParam(CoordParameter.TN_UR_y) * Navigation.TILE_SIZE;
+		
+		
+		//look North of the tunnel, to see what zone is there, desired zone is the GREEN zone
+		switch(serverData.getZone(lowerLeftX + (upperRightX-lowerLeftX)/2, upperRightY+Navigation.TILE_SIZE/2)) {
+		case BRIDGE:
+		case TUNNEL:
+			throw new Exception("Error in the zone for tunnel entry");
+		case GREEN:
+		case SG:
+			//entry in GREEN zone is in the North 
+			return Direction.NORTH;
+		case RED:
+		case SR:
+			//entry in GREEN zone is in the South because RED entry is in the North
+			return Direction.SOUTH;
+		case WATER:
+			//look EAST of the tunnel, to see what zone is there
+			switch(serverData.getZone(upperRightX+Navigation.TILE_SIZE/2, lowerLeftY+ (upperRightY-lowerLeftY)/2)) {
+			case BRIDGE:
+			case TUNNEL:
+			case WATER:
+				throw new Exception("Error in the zone for tunnel entry");
+			case GREEN:
+			case SG:
+				//EAST entry is the GREEN entry point
 				return Direction.EAST;
-
-			case 2:
-				return Direction.EAST;
-
-			case 3:
+			case RED:
+			case SR:
 				return Direction.WEST;
-
 			}
-
-		} else if (diffX == 2 && diffY == 1) { // vertical
-			switch (serverData.getStartingCorner()) {
-			case 0:
-				return Direction.SOUTH;
-
-			case 1:
-				return Direction.SOUTH;
-
-			case 2:
-				return Direction.NORTH;
-
-			case 3:
-				return Direction.NORTH;
-
-			}
-
-		} else { // fail
-			Sound.buzz();
-			Sound.buzz();
-			Sound.buzz();
-			System.out.println("            failed -----");
-			Button.waitForAnyPress();
+			break;
 		}
-		return null;
+		//default
+		return Direction.CENTER;
 	}
 
 	/**

@@ -78,7 +78,7 @@ public class Gyroscope {
 	public double getAngle() {
 		float[] sample=new float[gyro.sampleSize()];
 		gyro.fetchSample(sample, 0);
-		return (double) ((-1*(sample[0]+angleOffset) % 360) % 360);
+		return (double) ((-1*((sample[0]+angleOffset) % 360)) % 360);
 	}
 	
 	/**
