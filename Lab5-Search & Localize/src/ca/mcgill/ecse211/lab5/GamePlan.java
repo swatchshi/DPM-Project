@@ -236,12 +236,24 @@ public class GamePlan {
 			break;
 		case 1:
 			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, 1, 1);
+			navigation.goToPoint(EV3WifiClient.X_GRID_LINES - 1, 1);
+			navigation.turnTo(270);
+			odometer.correctAngle();
+			navigation.turnTo(270);
 			break;
 		case 2:
 			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, EV3WifiClient.Y_GRID_LINES - 1, 2);
+			navigation.goToPoint(EV3WifiClient.X_GRID_LINES - 1, EV3WifiClient.Y_GRID_LINES - 1);
+			navigation.turnTo(180);
+			odometer.correctAngle();
+			navigation.turnTo(180);
 			break;
 		case 3:
 			lightLoc.doLocalization(1, EV3WifiClient.Y_GRID_LINES - 1, 3);
+			navigation.goToPoint(1,EV3WifiClient.Y_GRID_LINES - 1);
+			navigation.turnTo(90);
+			odometer.correctAngle();
+			navigation.turnTo(90);
 			break;
 		}
 		///////////////////////////////////////////////////////////
@@ -291,12 +303,24 @@ public class GamePlan {
 			break;
 		case 1:
 			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, 1, 1);
+			navigation.goToPoint(EV3WifiClient.X_GRID_LINES - 1, 1);
+			navigation.turnTo(270);
+			odometer.correctAngle();
+			navigation.turnTo(270);
 			break;
 		case 2:
 			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, EV3WifiClient.Y_GRID_LINES - 1, 2);
+			navigation.goToPoint(EV3WifiClient.X_GRID_LINES - 1, EV3WifiClient.Y_GRID_LINES - 1);
+			navigation.turnTo(180);
+			odometer.correctAngle();
+			navigation.turnTo(180);
 			break;
 		case 3:
 			lightLoc.doLocalization(1, EV3WifiClient.Y_GRID_LINES - 1, 3);
+			navigation.goToPoint(1,EV3WifiClient.Y_GRID_LINES - 1);
+			navigation.turnTo(90);
+			odometer.correctAngle();
+			navigation.turnTo(90);
 			break;
 		}
 		///////////////////////////////////////////////////////////
