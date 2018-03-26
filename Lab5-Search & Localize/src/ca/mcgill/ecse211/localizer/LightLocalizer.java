@@ -59,16 +59,15 @@ public class LightLocalizer {
 	public void doLocalization(int xLine, int yLine, int corner) {
 		Sound.beep();
 		navigation.turnTo(45-90*corner);
-		Button.waitForAnyPress();
 		navigation.travelForward();
 		if (lightSensor.lineCrossed()) { // wait to cross a line
 			navigation.stopMotors();
 		}
-		// travel to "center" the robot on the cross
+		// travel to "center" the robot on the cross (actually makes it deliberately offset)
 		if(dynamicTrack.getLightSensorDistance()>0) {
-			navigation.travel(dynamicTrack.getLightSensorDistance());
+			navigation.travel(1.2*dynamicTrack.getLightSensorDistance());
 		}else {
-			navigation.backUp(dynamicTrack.getLightSensorDistance());
+			navigation.backUp(1.2*dynamicTrack.getLightSensorDistance());
 		}
 
 		// Read in the angles
@@ -102,19 +101,19 @@ public class LightLocalizer {
 		// end corner may change due to Light Sensor distance
 		case 0:
 			x = dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2); // ends more in upper right
-			y = -dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2);
+			y = dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2);
 			break;
 		case 1:
 			x = -dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2); // ends more in upper left
-			y = -dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2);
+			y = dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2);
 			break;
 		case 2:
 			x = -dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2); // ends more in lower left
-			y = dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2);
+			y = -dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2);
 			break;
 		case 3:
 			x = dynamicTrack.getLightSensorDistance() * Math.cos(thetaY / 2); // ends more in lower right
-			y = dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2);
+			y = -dynamicTrack.getLightSensorDistance() * Math.cos(ThetaX / 2);
 			break;
 		}
 		double dTheta = Math.toDegrees(thetaY) / 2 + 270 - lineAngles[((index-1)%4)];

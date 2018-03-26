@@ -162,16 +162,12 @@ public class OdometerData {
 			theta = (theta + (360 + dtheta) % 360) % 360; // keeps the updates
 															// within 360
 															// degrees
-			if (doThetaCorrection) {
-				correctAngle();
-			}
 			isReseting = false; // Done reseting
 			doneReseting.signalAll(); // Let the other threads know that you are
 										// done reseting
 		} finally {
 			lock.unlock();
 		}
-
 	}
 
 	/**
@@ -191,7 +187,6 @@ public class OdometerData {
 			this.x = x;
 			this.y = y;
 			this.theta = theta;
-			gyroscope.setAngle(this.theta);
 			isReseting = false; // Done reseting
 			doneReseting.signalAll(); // Let the other threads know that you are
 										// done reseting
@@ -249,7 +244,6 @@ public class OdometerData {
 		isReseting = true;
 		try {
 			this.theta = theta % 360;
-			gyroscope.setAngle(this.theta);
 			isReseting = false; // Done reseting
 			doneReseting.signalAll(); // Let the other threads know that you are
 										// done reseting

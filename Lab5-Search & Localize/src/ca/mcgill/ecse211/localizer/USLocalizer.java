@@ -6,6 +6,7 @@ import java.util.Stack;
 import ca.mcgill.ecse211.lab5.*;
 import ca.mcgill.ecse211.odometer.*;
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 
 /**
  * Class for handling the ultrasonic localization procedure
@@ -86,7 +87,6 @@ public class USLocalizer{
 		
 		usLocalizerDone=false;
 		determineLocType();
-		try {
 		if (loc == LocalizerType.FALLING_EDGE) {
 			
 			turnToNoWall(Navigation.Turn.CLOCK_WISE);
@@ -114,16 +114,8 @@ public class USLocalizer{
 			
 			odo.setTheta(odo.getTheta() +225 - angle); //reset angle
 		}
-		
 		odo.setTheta(odo.getTheta()-90*corner);
-		//Finally turn to absolute 0 degrees
-		navigation.turnTo(0);
 		usLocalizerDone=true;
-		}
-		catch(Exception e) {
-			 System.err.println("Error: main " + e.getMessage());
-			 Button.waitForAnyPress();
-		}
 	}
 	
 	

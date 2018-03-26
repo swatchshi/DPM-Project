@@ -267,7 +267,6 @@ public class Navigation {
 		   rotation= Math.abs(rotation);
 		}
 		turn(rotation);
-		odo.correctAngle();
 	}
 	
 	/**

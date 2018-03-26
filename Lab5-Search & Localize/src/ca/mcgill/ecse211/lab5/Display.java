@@ -77,6 +77,7 @@ public class Display implements Runnable {
       lcd.drawString("T: " + numberFormat.format(position[2]), 0, 2);
       lcd.drawString("U: " + us.getDistance(), 0, 3);
       lcd.drawString("G: " + gyroscope.getAngle(), 0, 4);
+      lcd.drawString("O: " + gyroscope.getOffset(), 0, 5);
       
       }catch(Exception e) {}
       

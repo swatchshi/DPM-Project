@@ -43,7 +43,7 @@ public class Gyroscope {
 	 * @param angle Angle at which to reset the gyroscope
 	 */
 	public void setAngle(double angle) {
-		angleOffset=angle-getAngle();
+		angleOffset=angle-getCalculatedAngle();
 	}
 	
 	/**
@@ -78,7 +78,7 @@ public class Gyroscope {
 	public double getAngle() {
 		float[] sample=new float[gyro.sampleSize()];
 		gyro.fetchSample(sample, 0);
-		return (double) ((-1*((sample[0]+angleOffset) % 360)) % 360);
+		return (double) ((((-1*sample[0])+angleOffset +360) % 360) % 360);
 	}
 	
 	/**
@@ -91,7 +91,7 @@ public class Gyroscope {
 	public double getCalculatedAngle() {
 		float[] sample=new float[gyro.sampleSize()];
 		gyro.fetchSample(sample, 0);
-		return (double) ((-1*(sample[0]) % 360) % 360);
+		return (double) ((((-1*sample[0]) % 360) +360 ) % 360);
 	}
 	
 	/**
@@ -105,5 +105,9 @@ public class Gyroscope {
 		float[] sample=new float[gyro.sampleSize()];
 		gyro.fetchSample(sample, 0);
 		return (double) ((sample[0]) % 360);
+	}
+	
+	public double getOffset() {
+		return angleOffset;
 	}
 }

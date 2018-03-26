@@ -13,7 +13,7 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
-
+import lejos.utility.Delay;
 import ca.mcgill.ecse211.WiFiClient.*;
 
 /**
@@ -162,7 +162,7 @@ public class GamePlan {
 		odoCorrect = new OdometerCorrection(lSensor, odometer, dynamicTrack);
 
 		navigation = new Navigation(odometer, dynamicTrack, CONFIG);
-		serverData = new EV3WifiClient(); //////////////////////////////////////////// uncomment to enable data
+		//serverData = new EV3WifiClient(); //////////////////////////////////////////// uncomment to enable data
 											//////////////////////////////////////////// retrieval
 
 		Thread odoThread = new Thread(odometer);
@@ -172,6 +172,7 @@ public class GamePlan {
 		Thread odoCorrectionThread = new Thread(odoCorrect);
 		odoCorrectionThread.start();
 		odoCorrect.setDoCorrection(false);
+		odometer.setDoThetaCorrection(false);
 	}
 
 	/**
@@ -190,7 +191,8 @@ public class GamePlan {
 	 *             Exception thrown if the robot is not playing
 	 */
 	public void play() throws Exception {
-
+		redPlan();
+		/*
 		switch (serverData.getTeamColor()) {
 		case RED:
 
@@ -200,7 +202,7 @@ public class GamePlan {
 			greenPlan();
 			break;
 		}
-
+	*/
 		// TODO victory tune
 	}
 
@@ -214,19 +216,22 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void redPlan() throws Exception {
+		int corner=0;
 		
 		USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
-		usLoc.doLocalization(serverData.getStartingCorner());
-		Sound.beep();
+		
+		usLoc.doLocalization(corner); /*serverData.getStartingCorner()*/
+		navigation.turnTo(0);
+		gyroscope.setAngle((-corner*90)%360);
 		
 		
-		Button.waitForAnyPress();
 		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer);
-		switch (serverData.getStartingCorner()) {
+		switch (corner) { /*serverData.getStartingCorner()*/
 		case 0:
 			lightLoc.doLocalization(1, 1, 0);
-			Button.waitForAnyPress();
 			navigation.goToPoint(1, 1);
+			navigation.turnTo(0);
+			odometer.correctAngle();
 			navigation.turnTo(0);
 			break;
 		case 1:
@@ -266,15 +271,22 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void greenPlan() throws Exception {
-
+		int corner=0;
+		
 		USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
-		usLoc.doLocalization(serverData.getStartingCorner());
-		Sound.beep();
+		
+		usLoc.doLocalization(corner); /*serverData.getStartingCorner()*/
+		navigation.turnTo(0);
+		gyroscope.setAngle((-corner*90)%360);
+		
+		
 		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer);
-		switch (serverData.getStartingCorner()) {
+		switch (corner) { /*serverData.getStartingCorner()*/
 		case 0:
 			lightLoc.doLocalization(1, 1, 0);
 			navigation.goToPoint(1, 1);
+			navigation.turnTo(0);
+			odometer.correctAngle();
 			navigation.turnTo(0);
 			break;
 		case 1:
