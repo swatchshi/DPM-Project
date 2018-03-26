@@ -124,6 +124,25 @@ public class LightLocalizer {
 		lightLocalizerDone = true;
 	}
 
+	public void lightloc() {
+		//navigation.backUp(30);
+		navigation.travelForward();
+		while (!lightSensor.lineCrossed());
+		navigation.stopMotors();
+		navigation.backUp(10);
+		
+		navigation.turn(90);
+		navigation.travelForward();
+		while (!lightSensor.lineCrossed());
+		navigation.stopMotors();
+		navigation.backUp(10);
+		navigation.turn(-90);
+		navigation.stopMotors();
+		odo.setXYT(navigation.TILE_SIZE, navigation.TILE_SIZE, 0);
+		
+	}
+
+	
 	/**
 	 * Gets if the localization is done
 	 * 

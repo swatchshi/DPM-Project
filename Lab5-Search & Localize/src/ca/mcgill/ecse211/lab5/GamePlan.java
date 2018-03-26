@@ -223,16 +223,21 @@ public class GamePlan {
 		usLoc.doLocalization(corner); /*serverData.getStartingCorner()*/
 		navigation.turnTo(0);
 		gyroscope.setAngle((-corner*90)%360);
-		
+		Button.waitForAnyPress();
 		
 		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer);
 		switch (corner) { /*serverData.getStartingCorner()*/
 		case 0:
-			lightLoc.doLocalization(1, 1, 0);
-			navigation.goToPoint(1, 1);
-			navigation.turnTo(0);
-			odometer.correctAngle();
-			navigation.turnTo(0);
+//			lightLoc.doLocalization(1, 1, 0);
+//			navigation.goToPoint(1, 1);
+//			navigation.turnTo(0);
+//			//odometer.correctAngle();
+//			navigation.turnTo(0);
+			
+			lightLoc.lightloc();
+			
+			
+			
 			break;
 		case 1:
 			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, 1, 1);
