@@ -40,7 +40,8 @@ public class OdometerData {
 															// know that a reset
 															// operation is
 															// over.
-	protected static final int MAX_ANGLE_ERROR = 2;
+	protected static final int MAX_ANGLE_ERROR = 20;
+	protected static final int MIN_ANGLE_ERROR = 2;
 	protected boolean doThetaCorrection = false;
 
 	private static OdometerData odoData = null;
@@ -260,8 +261,10 @@ public class OdometerData {
 	 */
 	public void correctAngle() {
 		double gyroAngle = gyroscope.getAngle();
-		if (Math.abs(theta - gyroAngle) > MAX_ANGLE_ERROR) {
+		if (Math.abs(theta - gyroAngle) < MAX_ANGLE_ERROR && Math.abs(theta - gyroAngle) > MIN_ANGLE_ERROR) {
 			this.theta = theta * 0.2 + gyroAngle * 0.8; // change proportions to get more accurate correction
+			gyroscope.setAngle(this.theta);
+		}else {
 			gyroscope.setAngle(this.theta);
 		}
 	}
