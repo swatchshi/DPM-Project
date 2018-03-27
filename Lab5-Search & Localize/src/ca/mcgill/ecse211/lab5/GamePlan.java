@@ -229,21 +229,24 @@ public class GamePlan {
 		
 		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, gyroscope);
 		lightLoc.lightloc(corner);
-
-		Sound.beepSequenceUp();
-
-
+		///////////////////////////////////////////////////////////
+		Sound.beep();
+		
+		//System.exit(0);
+		/////////////////////////////////////////////////////////////////////////////
 		goToBridge(getBridgeEntry());
+		
 		
 		crossBridge();
 		Sound.beepSequenceUp();
+
 		
-		goToTunnel(getTunnelEntry());
+		//goToTunnel(getTunnelEntry());
+		goToTunnel(directionSwitch(getBridgeEntry()));
 		crossTunnel();
-		Sound.beepSequenceUp();
-		odometer.correctAngle();
+		
+		
 		goToStartingCorner();
-		Button.waitForAnyPress();
 		System.exit(0);
 	}
 
@@ -258,6 +261,8 @@ public class GamePlan {
 	 */
 	private void greenPlan() throws Exception {
 		int corner=serverData.getStartingCorner();
+
+		
 		
 		USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
 		
@@ -269,24 +274,34 @@ public class GamePlan {
 		
 		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, gyroscope);
 		lightLoc.lightloc(corner);
-
+		///////////////////////////////////////////////////////////
 		Sound.beepSequenceUp();
-
+		Button.waitForAnyPress();
+		/////////////////////////////////////////////////////////////////////////////
 		goToTunnel(getTunnelEntry());
+		Button.waitForAnyPress();
 		crossTunnel();
+		Button.waitForAnyPress();
 		Sound.beepSequenceUp();
-		goToBridge(getBridgeEntry());
+		
+		goToBridge(directionSwitch(getTunnelEntry()));
+		Button.waitForAnyPress();
 		crossBridge();
-		Sound.beepSequenceUp();
+		Button.waitForAnyPress();
+		
 		odometer.correctAngle();
 		goToStartingCorner();
 	}
 
 	/**
-	 * Gets the direction opposite to the one specified
+	 * Procedure to cross the bridge
+	 * @return 
 	 * 
-	 * @return The new direction which is opposite
+	 * @return True when the bridge has been crossed
+	 * @throws Exception
+	 *             if the specified entry point is incorrect
 	 */
+	
 	public Direction directionSwitch(Direction direction) {
 		this.direction = direction;
 		if (direction == Direction.NORTH) {
@@ -309,13 +324,10 @@ public class GamePlan {
 		
 	}
 	
-	/**
-	 * Procedure to cross the bridge
-	 * 
-	 * @return True when the bridge has been crossed
-	 * @throws Exception
-	 *             if the specified entry point is incorrect
-	 */
+	
+	
+	
+	
 	private boolean crossBridge() throws Exception { // expansion method, travel directly
 		navigation.travel(navigation.TILE_SIZE * (1 + serverData.getBridgeWidth(getBridgeEntry())));
 		// travels the width of the bridge plus an extra tile
