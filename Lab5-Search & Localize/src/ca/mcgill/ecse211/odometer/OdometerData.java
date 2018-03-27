@@ -265,7 +265,7 @@ public class OdometerData {
 			this.theta = theta * 0.2 + gyroAngle * 0.8; // change proportions to get more accurate correction
 			gyroscope.setAngle(this.theta);
 		}else {
-			gyroscope.setAngle(this.theta);
+			//do nothing
 		}
 	}
 

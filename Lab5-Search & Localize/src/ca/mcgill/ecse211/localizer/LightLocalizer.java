@@ -21,6 +21,7 @@ public class LightLocalizer {
 	private final TrackExpansion dynamicTrack;
 	private final ColorSensor lightSensor;
 	private final Odometer odo;
+	private final Gyroscope gyroscope;
 	private boolean lightLocalizerDone; // tells when the localization is over
 
 	/**
@@ -35,11 +36,12 @@ public class LightLocalizer {
 	 * @param config
 	 *            The Lab5.RobotConfig, i.e. the wheel positioning
 	 */
-	public LightLocalizer(Navigation navigation, TrackExpansion dynamicTrack, ColorSensor lightSensor, Odometer odo) {
+	public LightLocalizer(Navigation navigation, TrackExpansion dynamicTrack, ColorSensor lightSensor, Odometer odo, Gyroscope gyro) {
 		this.odo = odo;
 		this.navigation = navigation;
 		this.dynamicTrack=dynamicTrack;
 		this.lightSensor = lightSensor;
+		this.gyroscope=gyro;
 		this.lightLocalizerDone = false;
 	}
 
@@ -124,23 +126,39 @@ public class LightLocalizer {
 		lightLocalizerDone = true;
 	}
 
+	
+	/**
+	 * Localization method for when the robot is in a corner tile
+	 * Works only for TANK design with propulsion
+	 * @param corner Corner where the robot is
+	 * 0: robot is in lower left corner of the map
+	 * 1: robot is in lower right corner of the map
+	 * 2: robot is in upper right corner of the map
+	 * 3: robot is in upper left corner of the map
+	 */
 	public void lightloc(int corner) {
 		
-		navigation.backUp(15);
-		odo.setXYT(0, 10, 0);
+		navigation.backUp(Navigation.TILE_SIZE/2);
+		odo.setTheta(0);
+		gyroscope.setAngle(0);
 		
 		navigation.travelForward();
 		while (!lightSensor.lineCrossed());
+		odo.setY(Navigation.TILE_SIZE+Math.abs(dynamicTrack.getLightSensorDistance()));
 		navigation.stopMotors();
-		navigation.backUp(12);
+		
+		navigation.backUp(Math.abs(dynamicTrack.getLightSensorDistance()));
 		
 		navigation.turn(90);
 		navigation.travelForward();
 		while (!lightSensor.lineCrossed());
+		odo.setX(Navigation.TILE_SIZE+Math.abs(dynamicTrack.getLightSensorDistance()));
 		navigation.stopMotors();
-		navigation.backUp(7);
-		navigation.turn(-90);
-		navigation.stopMotors();
+		
+		navigation.goToPoint(1, 1);
+		navigation.turnTo(0);
+		odo.correctAngle();
+		navigation.turnTo(0);
 		
 		switch (corner) {		
 		case 0:
@@ -148,12 +166,15 @@ public class LightLocalizer {
 			break;
 		case 1:
 			odo.setXYT(navigation.TILE_SIZE, navigation.TILE_SIZE, 270);
+			gyroscope.setAngle(270);
 			break;
 		case 2:
 			odo.setXYT(navigation.TILE_SIZE, navigation.TILE_SIZE, 180);
+			gyroscope.setAngle(180);
 			break;
 		case 3:
 			odo.setXYT(navigation.TILE_SIZE, navigation.TILE_SIZE, 90);
+			gyroscope.setAngle(90);
 			break;
 		}
 		

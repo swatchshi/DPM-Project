@@ -144,7 +144,7 @@ public class GamePlan {
 	 * the game
 	 * 
 	 * @throws Exception
-	 *             error with Odometer instances or with data server retreival
+	 *             error with Odometer instances or with data server retrieval
 	 */
 	public GamePlan() throws Exception {
 
@@ -191,7 +191,6 @@ public class GamePlan {
 	 *             Exception thrown if the robot is not playing
 	 */
 	public void play() throws Exception {
-		//redPlan();
 		
 		switch (serverData.getTeamColor()) {
 		case RED:
@@ -216,62 +215,24 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void redPlan() throws Exception {
-		int corner= serverData.getStartingCorner();
+		int corner=2; //serverData.getStartingCorner();
 
 		
 		
 		USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
 		
-		usLoc.doLocalization(0); /*serverData.getStartingCorner()*/
+		usLoc.doLocalization(0); 
 		navigation.turnTo(0);
-		gyroscope.setAngle((-corner*90)%360);
-		Button.waitForAnyPress();
+		
+		
 		Sound.beepSequenceUp();
 		
-		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer);
-		switch (corner) { /*serverData.getStartingCorner()*/
-		case 0:
-//			lightLoc.doLocalization(1, 1, 0);
-//			navigation.goToPoint(1, 1);
-//			navigation.turnTo(0);
-//			//odometer.correctAngle();
-//			navigation.turnTo(0);
-			
-			lightLoc.lightloc(0);
-			
-			
-			
-			break;
-		case 1:
-//			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, 1, 1);
-//			navigation.goToPoint(EV3WifiClient.X_GRID_LINES - 1, 1);
-//			navigation.turnTo(270);
-//			odometer.correctAngle();
-//			navigation.turnTo(270);
-			lightLoc.lightloc(1);
-			
-			break;
-		case 2:
-//			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, EV3WifiClient.Y_GRID_LINES - 1, 2);
-//			navigation.goToPoint(EV3WifiClient.X_GRID_LINES - 1, EV3WifiClient.Y_GRID_LINES - 1);
-//			navigation.turnTo(180);
-//			odometer.correctAngle();
-//			navigation.turnTo(180);
-			lightLoc.lightloc(2);
-			break;
-		case 3:
-//			lightLoc.doLocalization(1, EV3WifiClient.Y_GRID_LINES - 1, 3);
-//			navigation.goToPoint(1,EV3WifiClient.Y_GRID_LINES - 1);
-//			navigation.turnTo(90);
-//			odometer.correctAngle();
-//			navigation.turnTo(90);
-			lightLoc.lightloc(3);
-			break;
-		}
+		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, gyroscope);
+		lightLoc.lightloc(corner);
 		///////////////////////////////////////////////////////////
 		Sound.beep();
 		Button.waitForAnyPress();
-		//System.exit(0);
+		System.exit(0);
 		/////////////////////////////////////////////////////////////////////////////
 		goToBridge(getBridgeEntry());
 		Button.waitForAnyPress();
@@ -301,56 +262,30 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void greenPlan() throws Exception {
-		int corner=0;
+		int corner=serverData.getStartingCorner();
+
+		
 		
 		USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
 		
-		usLoc.doLocalization(corner); /*serverData.getStartingCorner()*/
+		usLoc.doLocalization(0); 
 		navigation.turnTo(0);
-		gyroscope.setAngle((-corner*90)%360);
 		
 		
-		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer);
-		switch (corner) { /*serverData.getStartingCorner()*/
-		case 0:
-			lightLoc.doLocalization(1, 1, 0);
-			navigation.goToPoint(1, 1);
-			navigation.turnTo(0);
-			odometer.correctAngle();
-			navigation.turnTo(0);
-			break;
-		case 1:
-			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, 1, 1);
-			navigation.goToPoint(EV3WifiClient.X_GRID_LINES - 1, 1);
-			navigation.turnTo(270);
-			odometer.correctAngle();
-			navigation.turnTo(270);
-			break;
-		case 2:
-			lightLoc.doLocalization(EV3WifiClient.X_GRID_LINES - 1, EV3WifiClient.Y_GRID_LINES - 1, 2);
-			navigation.goToPoint(EV3WifiClient.X_GRID_LINES - 1, EV3WifiClient.Y_GRID_LINES - 1);
-			navigation.turnTo(180);
-			odometer.correctAngle();
-			navigation.turnTo(180);
-			break;
-		case 3:
-			lightLoc.doLocalization(1, EV3WifiClient.Y_GRID_LINES - 1, 3);
-			navigation.goToPoint(1,EV3WifiClient.Y_GRID_LINES - 1);
-			navigation.turnTo(90);
-			odometer.correctAngle();
-			navigation.turnTo(90);
-			break;
-		}
+		Sound.beepSequenceUp();
+		
+		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, gyroscope);
+		lightLoc.lightloc(corner);
 		///////////////////////////////////////////////////////////
-		Sound.beep();
+		Sound.beepSequenceUp();
 		Button.waitForAnyPress();
-		System.exit(0);
 		/////////////////////////////////////////////////////////////////////////////
 		goToTunnel(getTunnelEntry());
 		crossTunnel();
-		Sound.beep();
+		Sound.beepSequenceUp();
 		goToBridge(getBridgeEntry());
 		crossBridge();
+		odometer.correctAngle();
 		goToStartingCorner();
 	}
 
@@ -362,8 +297,8 @@ public class GamePlan {
 	 *             if the specified entry point is incorrect
 	 */
 	private boolean crossBridge() throws Exception { // expansion method, travel directly
-		navigation.travel(navigation.TILE_SIZE * (0.5 + serverData.getBridgeWidth(getBridgeEntry())));
-		// travels the width of the bridge plus an extra half tile
+		navigation.travel(navigation.TILE_SIZE * (1 + serverData.getBridgeWidth(getBridgeEntry())));
+		// travels the width of the bridge plus an extra tile
 		return true;
 	}
 
@@ -375,8 +310,8 @@ public class GamePlan {
 	 *             if the specified entry point is incorrect
 	 */
 	private boolean crossTunnel() throws Exception {
-		navigation.travel(navigation.TILE_SIZE * (0.5 + serverData.getTunnelWidth(getTunnelEntry())));
-		// travels the width of the tunnel plus an extra half tile
+		navigation.travel(navigation.TILE_SIZE * (1 + serverData.getTunnelWidth(getTunnelEntry())));
+		// travels the width of the tunnel plus an extra tile
 		return true;
 	}
 
@@ -1646,6 +1581,7 @@ public class GamePlan {
 			}
 			break;
 		}
+		navigation.travelTo(startingX, startingY);
 		return true;
 	}
 

@@ -43,6 +43,7 @@ public class Gyroscope {
 	 * @param angle Angle at which to reset the gyroscope
 	 */
 	public void setAngle(double angle) {
+		angle=(angle+360)%360;
 		angleOffset=angle-getCalculatedAngle();
 	}
 	

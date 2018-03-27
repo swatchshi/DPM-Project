@@ -17,8 +17,9 @@ public class Navigation {
 	/**
 	 * Variables for traveling
 	 */
-	private static final int FORWARD_SPEED = 400;
-	private static final int ROTATE_SPEED = 200;
+	public static final int FORWARD_SPEED = 400;
+	public static final int ROTATE_SPEED = 200;
+	public static final int SLOW_ROTATE_SPEED = 100;
 	private static final int ACCELERATION = 1000;
 	private static final int DECELERATION = 2000;
 	public static final double TILE_SIZE = 30.48;
@@ -148,8 +149,7 @@ public class Navigation {
 	 */
 	public void travelForward() {
 		navigating=true;
-		GamePlan.leftMotor.setSpeed(FORWARD_SPEED);
-		GamePlan.rightMotor.setSpeed(FORWARD_SPEED);
+		setMotorSpeed(FORWARD_SPEED);
 		switch(config) {
 			case PROPULSION:
 				GamePlan.rightMotor.backward();
@@ -221,8 +221,7 @@ public class Navigation {
 	 */
 	public void travelBackward() {
 		navigating=true;
-		GamePlan.leftMotor.setSpeed(FORWARD_SPEED);
-		GamePlan.rightMotor.setSpeed(FORWARD_SPEED);
+		setMotorSpeed(FORWARD_SPEED);
 		switch(config) {
 			case TRACTION:
 				GamePlan.rightMotor.backward();
@@ -276,8 +275,7 @@ public class Navigation {
 	 */
 	public void turn(double rotation) {
 		navigating=true;
-		GamePlan.leftMotor.setSpeed(ROTATE_SPEED);
-	    GamePlan.rightMotor.setSpeed(ROTATE_SPEED);
+		setMotorSpeed(ROTATE_SPEED);
 	    GamePlan.leftMotor.rotate(-convertAngle(dynamicTrack.getWheelRad(), dynamicTrack.getTrack(), rotation), true);
 	    GamePlan.rightMotor.rotate(convertAngle(dynamicTrack.getWheelRad(), dynamicTrack.getTrack(), rotation), false);
 	    navigating=false;
@@ -292,8 +290,7 @@ public class Navigation {
 	 */
 	public void rotate(Turn direction) {
 		navigating=true;
-		GamePlan.leftMotor.setSpeed(ROTATE_SPEED);
-	    GamePlan.rightMotor.setSpeed(ROTATE_SPEED);
+		setMotorSpeed(ROTATE_SPEED);
 	    switch(direction) {
 			case CLOCK_WISE:
 				GamePlan.rightMotor.forward();
@@ -396,6 +393,16 @@ public class Navigation {
 	 */
 	public static void setInterrupt(boolean interrupt) {
 	   Navigation.interrupt=interrupt;
+	}
+	
+	/**
+	 * Sets the speed of the motors
+	 * 
+	 * @param speed The desired speed
+	 */
+	public void setMotorSpeed(int speed) {
+		GamePlan.leftMotor.setSpeed(speed);
+	    GamePlan.rightMotor.setSpeed(speed);
 	}
 	
 }

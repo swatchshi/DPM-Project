@@ -20,11 +20,11 @@ public class TrackExpansion {
 	// wheel diameter: 4.4
 	public static final double SCREW_WHEEL_RAD = 2.4;
 	public static final double TANK_WHEEL_RAD = 1.68;
-	public static final double TANK_TRACK = 19.0; // tested value
+	public static final double TANK_TRACK = 19.25; // tested value
 	public static final double MIN_SCREW_TRACK = 16.3; // adjust from 13.7 to 18.1
 	public static final double MAX_SCREW_TRACK = 16.3; // 21.3 to 29.5
 	public static final double LIGHT_SENSOR_DISTANCE_SCREW = 6;
-	public static final double LIGHT_SENSOR_DISTANCE_TANK = -6; // -5.5 to -6.5 sensor at the back
+	public static final double LIGHT_SENSOR_DISTANCE_TANK = -8; // -7.8 to -8.8 sensor at the back
   
     
 	public static final TextLCD lcd = LocalEV3.get().getTextLCD();
