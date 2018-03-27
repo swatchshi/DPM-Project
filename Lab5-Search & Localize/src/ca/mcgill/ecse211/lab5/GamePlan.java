@@ -216,8 +216,10 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void redPlan() throws Exception {
-		int corner=3;
+		int corner=2;
 
+		
+		
 		USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
 		
 		usLoc.doLocalization(0); /*serverData.getStartingCorner()*/

@@ -126,18 +126,22 @@ public class LightLocalizer {
 
 	public void lightloc(int corner) {
 		
+		navigation.backUp(15);
+		odo.setXYT(0, 10, 0);
+		
 		navigation.travelForward();
 		while (!lightSensor.lineCrossed());
 		navigation.stopMotors();
-		navigation.backUp(10);
+		navigation.backUp(12);
 		
 		navigation.turn(90);
 		navigation.travelForward();
 		while (!lightSensor.lineCrossed());
 		navigation.stopMotors();
-		navigation.backUp(10);
+		navigation.backUp(7);
 		navigation.turn(-90);
 		navigation.stopMotors();
+		
 		switch (corner) {		
 		case 0:
 			odo.setXYT(navigation.TILE_SIZE, navigation.TILE_SIZE, 0);
