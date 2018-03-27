@@ -162,7 +162,7 @@ public class GamePlan {
 		odoCorrect = new OdometerCorrection(lSensor, odometer, dynamicTrack);
 
 		navigation = new Navigation(odometer, dynamicTrack, CONFIG);
-		//serverData = new EV3WifiClient(); //////////////////////////////////////////// uncomment to enable data
+		serverData = new EV3WifiClient(); //////////////////////////////////////////// uncomment to enable data
 											//////////////////////////////////////////// retrieval
 
 		Thread odoThread = new Thread(odometer);
@@ -191,8 +191,8 @@ public class GamePlan {
 	 *             Exception thrown if the robot is not playing
 	 */
 	public void play() throws Exception {
-		redPlan();
-		/*
+		//redPlan();
+		
 		switch (serverData.getTeamColor()) {
 		case RED:
 
@@ -202,7 +202,7 @@ public class GamePlan {
 			greenPlan();
 			break;
 		}
-	*/
+	
 		// TODO victory tune
 	}
 
@@ -216,7 +216,7 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void redPlan() throws Exception {
-		int corner=2;
+		int corner= serverData.getStartingCorner();
 
 		
 		
@@ -271,18 +271,24 @@ public class GamePlan {
 		///////////////////////////////////////////////////////////
 		Sound.beep();
 		Button.waitForAnyPress();
-		System.exit(0);
+		//System.exit(0);
 		/////////////////////////////////////////////////////////////////////////////
 		goToBridge(getBridgeEntry());
+		Button.waitForAnyPress();
+		
 		crossBridge();
 		Sound.beepSequenceUp();
 		Button.waitForAnyPress();
 		
 		goToTunnel(getTunnelEntry());
+		Button.waitForAnyPress();
 		crossTunnel();
+		Button.waitForAnyPress();
 		
 		
 		goToStartingCorner();
+		Button.waitForAnyPress();
+		System.exit(0);
 	}
 
 	/**
