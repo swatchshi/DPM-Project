@@ -137,7 +137,7 @@ public class GamePlan {
 	 * Object in charge of correcting the trajectory
 	 */
 	private OdometerCorrection odoCorrect;
-	private boolean player; // green = true, red = false;
+	public Direction direction;
 
 	/**
 	 * Creates an object of the GamePlan class. Initializes all instances needed in
@@ -241,7 +241,8 @@ public class GamePlan {
 		Sound.beepSequenceUp();
 		Button.waitForAnyPress();
 		
-		goToTunnel(getTunnelEntry());
+		//goToTunnel(getTunnelEntry());
+		goToTunnel(directionSwitch(getBridgeEntry()));
 		Button.waitForAnyPress();
 		crossTunnel();
 		Button.waitForAnyPress();
@@ -291,11 +292,39 @@ public class GamePlan {
 
 	/**
 	 * Procedure to cross the bridge
+	 * @return 
 	 * 
 	 * @return True when the bridge has been crossed
 	 * @throws Exception
 	 *             if the specified entry point is incorrect
 	 */
+	
+	public Direction directionSwitch(Direction direction) {
+		this.direction = direction;
+		if (direction == Direction.NORTH) {
+			return Direction.SOUTH;
+		}
+		else if (direction == Direction.SOUTH) {
+			return Direction.NORTH;			
+		}
+		else if (direction == Direction.WEST) {
+			return Direction.EAST;
+		}
+		else if (direction == Direction.EAST) {
+			return Direction.WEST;
+		}
+		else {
+			Sound.buzz();
+			Sound.buzz();
+			return null;
+		}
+		
+	}
+	
+	
+	
+	
+	
 	private boolean crossBridge() throws Exception { // expansion method, travel directly
 		navigation.travel(navigation.TILE_SIZE * (1 + serverData.getBridgeWidth(getBridgeEntry())));
 		// travels the width of the bridge plus an extra tile
@@ -1332,20 +1361,20 @@ public class GamePlan {
 		double startingX = 0, startingY = 0;
 		switch (serverData.getStartingCorner()) {
 		case 0:
-			startingX = Navigation.TILE_SIZE / 2;
-			startingY = Navigation.TILE_SIZE / 2;
+			startingX = Navigation.TILE_SIZE ;//
+			startingY = Navigation.TILE_SIZE ;
 			break;
 		case 1:
-			startingX = EV3WifiClient.X_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE / 2;
-			startingY = Navigation.TILE_SIZE / 2;
+			startingX = EV3WifiClient.X_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE ;
+			startingY = Navigation.TILE_SIZE ;
 			break;
 		case 2:
-			startingX = EV3WifiClient.X_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE / 2;
-			startingY = EV3WifiClient.Y_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE / 2;
+			startingX = EV3WifiClient.X_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE;
+			startingY = EV3WifiClient.Y_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE ;
 			break;
 		case 3:
-			startingX = Navigation.TILE_SIZE / 2;
-			startingY = EV3WifiClient.Y_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE / 2;
+			startingX = Navigation.TILE_SIZE;
+			startingY = EV3WifiClient.Y_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE ;
 			break;
 		}
 		switch (serverData.getTeamColor()) {
