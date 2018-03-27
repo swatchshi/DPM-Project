@@ -215,7 +215,7 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void redPlan() throws Exception {
-		int corner=2; //serverData.getStartingCorner();
+		int corner=serverData.getStartingCorner();
 
 		
 		
@@ -232,7 +232,7 @@ public class GamePlan {
 		///////////////////////////////////////////////////////////
 		Sound.beep();
 		Button.waitForAnyPress();
-		System.exit(0);
+		//System.exit(0);
 		/////////////////////////////////////////////////////////////////////////////
 		goToBridge(getBridgeEntry());
 		Button.waitForAnyPress();
