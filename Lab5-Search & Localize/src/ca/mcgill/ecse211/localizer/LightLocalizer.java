@@ -137,29 +137,44 @@ public class LightLocalizer {
 	 * 3: robot is in upper left corner of the map
 	 */
 	public void lightloc(int corner) {
+		//This method only works when the robot is
+		//In one of the corner tiles
+		// A wall parallel to it on its left
+		// A wall perpendicular to it behind
+		// no wall to the right
+		// so like theta=0 in corner 0
 		
+		//makes it think its in the middle of the tile in corner 0
+		odo.setXYT(navigation.TILE_SIZE/2, navigation.TILE_SIZE/2, 0);
+		
+		//back up into the back wall
 		navigation.backUp(Navigation.TILE_SIZE/2);
 		odo.setTheta(0);
 		gyroscope.setAngle(0);
 		
+		//go forward until you detect the first y line
 		navigation.travelForward();
 		while (!lightSensor.lineCrossed());
 		odo.setY(Navigation.TILE_SIZE+Math.abs(dynamicTrack.getLightSensorDistance()));
 		navigation.stopMotors();
 		
+		//back up a bit
 		navigation.backUp(Math.abs(dynamicTrack.getLightSensorDistance()));
 		
+		//turn right and go see the first x line
 		navigation.turn(90);
 		navigation.travelForward();
 		while (!lightSensor.lineCrossed());
 		odo.setX(Navigation.TILE_SIZE+Math.abs(dynamicTrack.getLightSensorDistance()));
 		navigation.stopMotors();
 		
+		// go the the first crossing 
 		navigation.goToPoint(1, 1);
 		navigation.turnTo(0);
 		odo.correctAngle();
 		navigation.turnTo(0);
 		
+		//updates the odometer values to their right values
 		switch (corner) {		
 		case 0:
 			odo.setXYT(navigation.TILE_SIZE, navigation.TILE_SIZE, 0);
@@ -177,13 +192,6 @@ public class LightLocalizer {
 			gyroscope.setAngle(90);
 			break;
 		}
-		
-		
-		
-		
-		
-		
-		
 	}
 
 	

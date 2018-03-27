@@ -336,7 +336,7 @@ public class GamePlan {
 	}
 
 	/**
-	 * Finds the entry side the robot has to take in order to cross the bridge
+	 * Finds the entry side the robot has to take in order to cross the bridge.
 	 * Returns Direction.CENTER if unable to find the entrance.
 	 * 
 	 * @return The Direction (side) which the robot needs to enter the bridge
@@ -345,38 +345,48 @@ public class GamePlan {
 	 *             Exception thrown if the robot is not playing or a problem with the zone
 	 */
 	private Direction getBridgeEntry() throws Exception {
+		//Saving coordinates of the bridge to local variables to make the code more readable
 		double lowerLeftX = serverData.getCoordParam(CoordParameter.BR_LL_x) * Navigation.TILE_SIZE;
 		double lowerLeftY = serverData.getCoordParam(CoordParameter.BR_LL_y) * Navigation.TILE_SIZE;
 		double upperRightX = serverData.getCoordParam(CoordParameter.BR_UR_x) * Navigation.TILE_SIZE;
 		double upperRightY = serverData.getCoordParam(CoordParameter.BR_UR_y) * Navigation.TILE_SIZE;
 		
-		
-		//look North of the bridge, to see what zone is there, desired zone is the RED zone
+		//Algorithm works for any bridge length
+		//Looks North of the bridge, to see what zone is there
+		//The robot has to enter the bridge from the RED zone no matter what its team color
 		switch(serverData.getZone(lowerLeftX + (upperRightX-lowerLeftX)/2, upperRightY+Navigation.TILE_SIZE/2)) {
 		case BRIDGE:
 		case TUNNEL:
+			//Cases where the getZone method gives nonsense
 			throw new Exception("Error in the zone for bridge entry");
 		case GREEN:
 		case SG:
-			//entry in RED zone is in the south because GREEN entry is in the North
+			//Green zone is North of the bridge
+			//so entry in RED zone is in the south because GREEN entry is in the North
 			return Direction.SOUTH;
 		case RED:
 		case SR:
+			//Red zone is North of the bridge
 			//entry in RED zone is in the North
 			return Direction.NORTH;
 		case WATER:
+			//Water is North of the bridge
 			//look EAST of the bridge, to see what zone is there
 			switch(serverData.getZone(upperRightX+Navigation.TILE_SIZE/2, lowerLeftY+ (upperRightY-lowerLeftY)/2)) {
 			case BRIDGE:
 			case TUNNEL:
 			case WATER:
+				//Cases where getZone gives nonsense
 				throw new Exception("Error in the zone for bridge entry");
 			case GREEN:
 			case SG:
-				//EAST entry is the GREEN entry point
+				//Green zone is East of bridge
+				//so RED entry point is in the West
 				return Direction.WEST;
 			case RED:
 			case SR:
+				//Red zone is East of bridge
+				//so RED entry point is in the East
 				return Direction.EAST;
 			}
 			break;
@@ -393,38 +403,48 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private Direction getTunnelEntry() throws Exception {
+		//Saving coordinates of the tunnel to local variables to make the code more readable
 		double lowerLeftX = serverData.getCoordParam(CoordParameter.TN_LL_x) * Navigation.TILE_SIZE;
 		double lowerLeftY = serverData.getCoordParam(CoordParameter.TN_LL_y) * Navigation.TILE_SIZE;
 		double upperRightX = serverData.getCoordParam(CoordParameter.TN_UR_x) * Navigation.TILE_SIZE;
 		double upperRightY = serverData.getCoordParam(CoordParameter.TN_UR_y) * Navigation.TILE_SIZE;
 		
-		
-		//look North of the tunnel, to see what zone is there, desired zone is the GREEN zone
+		//Algorithm works for any tunnel length
+		//Looks North of the tunnel, to see what zone is there
+		//The robot has to enter the tunnel from the GREEN zone no matter what its team color
 		switch(serverData.getZone(lowerLeftX + (upperRightX-lowerLeftX)/2, upperRightY+Navigation.TILE_SIZE/2)) {
 		case BRIDGE:
 		case TUNNEL:
+			//cases where getZone gives nonsense
 			throw new Exception("Error in the zone for tunnel entry");
 		case GREEN:
 		case SG:
-			//entry in GREEN zone is in the North 
+			//Green zone is North of the tunnel
+			//entry of tunnel is in the North 
 			return Direction.NORTH;
 		case RED:
 		case SR:
-			//entry in GREEN zone is in the South because RED entry is in the North
+			//Red zone is in the North
+			//entry of tunnel (in GREEN zone) is in the South 
 			return Direction.SOUTH;
 		case WATER:
+			//Water is North of the tunnel
 			//look EAST of the tunnel, to see what zone is there
 			switch(serverData.getZone(upperRightX+Navigation.TILE_SIZE/2, lowerLeftY+ (upperRightY-lowerLeftY)/2)) {
 			case BRIDGE:
 			case TUNNEL:
 			case WATER:
+				//cases where getZone gives nonsense
 				throw new Exception("Error in the zone for tunnel entry");
 			case GREEN:
 			case SG:
-				//EAST entry is the GREEN entry point
+				//Green zone is east of the tunnel
+				//EAST entry is the tunnel entry point
 				return Direction.EAST;
 			case RED:
 			case SR:
+				//Red zone is east of the tunnel
+				//West entry is the tunnel entry point
 				return Direction.WEST;
 			}
 			break;
@@ -445,26 +465,31 @@ public class GamePlan {
 	 *             with the entry point
 	 */
 	private void goToBridge(Direction direction) throws Exception {
+		//Saving coordinates of the bridge to local variables to make the code more readable
 		double lowerLeftX = serverData.getCoordParam(CoordParameter.BR_LL_x) * Navigation.TILE_SIZE;
 		double lowerLeftY = serverData.getCoordParam(CoordParameter.BR_LL_y) * Navigation.TILE_SIZE;
 		double upperRightX = serverData.getCoordParam(CoordParameter.BR_UR_x) * Navigation.TILE_SIZE;
 		double upperRightY = serverData.getCoordParam(CoordParameter.BR_UR_y) * Navigation.TILE_SIZE;
-
+		
+		//Looks at what is the entry side of the bridge
 		switch (direction) {
 		// Entrance is in the North
 		case NORTH:
 			// entrance of the bridge is on the North side
 			// avoid SR
+			// look where the North entrance is relative to the SR zone
 			switch (serverData.getSide(EV3WifiClient.Zone.SR, lowerLeftX + (upperRightX - lowerLeftX) / 2,
 					upperRightY)) {
 			case CENTER:
-				throw new Exception("Brigde entry in search zone");
+				//Bridge entry in SR zone
+				throw new Exception("Bridge entry in search zone");
 			case NORTH:
 				// the search zone is south of the north bridge entry
 				// very unlikely considering rectangular zones
 				throw new Exception("No good trajectory to go to bridge entrance");
 			case SOUTH:
 				// the search zone is north of the north bridge entry
+				// look where the robot is compared to the SR zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -493,6 +518,7 @@ public class GamePlan {
 				break;
 			case EAST:
 				// the search zone is west of the north bridge entry
+				// look where the robot is compared to the SR zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -522,6 +548,7 @@ public class GamePlan {
 				break;
 			case WEST:
 				// the search zone is east of the north bridge entry
+				// look where the robot is compared to the SR zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -570,6 +597,7 @@ public class GamePlan {
 				throw new Exception("No good trajectory to go to bridge entrance");
 			case SOUTH:
 				// the search zone is north of the east bridge entry
+				// look where the robot is compared to the SR zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -600,6 +628,7 @@ public class GamePlan {
 				break;
 			case NORTH:
 				// the search zone is south of the east bridge entry
+				// look where the robot is compared to the SR zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -630,6 +659,7 @@ public class GamePlan {
 				break;
 			case WEST:
 				// the search zone is east of the east bridge entry
+				// look where the robot is compared to the SR zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -682,6 +712,7 @@ public class GamePlan {
 				throw new Exception("No good trajectory to go to bridge entrance");
 			case SOUTH:
 				// the search zone is north of the west bridge entry
+				// look where the robot is compared to the SR zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -712,6 +743,7 @@ public class GamePlan {
 				break;
 			case NORTH:
 				// the search zone is south of the west bridge entry
+				// look where the robot is compared to the SR zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -740,6 +772,7 @@ public class GamePlan {
 				break;
 			case EAST:
 				// the search zone is west of the west bridge entry
+				// look where the robot is compared to the SR zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -792,6 +825,7 @@ public class GamePlan {
 				throw new Exception("No good trajectory to go to bridge entrance");
 			case NORTH:
 				// the search zone is south of the south bridge entry
+				// look where the robot is compared to the SR zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// robot in center of search zone
@@ -821,6 +855,7 @@ public class GamePlan {
 				break;
 			case EAST:
 				// the search zone is west of the south bridge entry
+				// look where the robot is compared to the SR zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -850,6 +885,7 @@ public class GamePlan {
 				break;
 			case WEST:
 				// the search zone is east of the south bridge entry
+				// look where the robot is compared to the SR zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SR, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -898,6 +934,7 @@ public class GamePlan {
 	 *             with the entry point
 	 */
 	private void goToTunnel(Direction direction) throws Exception {
+		//Saving coordinates of the tunnel to local variables to make the code more readable
 		double lowerLeftX = serverData.getCoordParam(CoordParameter.TN_LL_x) * Navigation.TILE_SIZE;
 		double lowerLeftY = serverData.getCoordParam(CoordParameter.TN_LL_y) * Navigation.TILE_SIZE;
 		double upperRightX = serverData.getCoordParam(CoordParameter.TN_UR_x) * Navigation.TILE_SIZE;
@@ -918,6 +955,7 @@ public class GamePlan {
 				throw new Exception("No good trajectory to go to tunnel entrance");
 			case SOUTH:
 				// the search zone is north of the north tunnel entry
+				// look where the robot is compared to the SG zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SG, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -946,6 +984,7 @@ public class GamePlan {
 				break;
 			case EAST:
 				// the search zone is west of the north tunnel entry
+				// look where the robot is compared to the SG zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SG, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -975,6 +1014,7 @@ public class GamePlan {
 				break;
 			case WEST:
 				// the search zone is east of the north tunnel entry
+				// look where the robot is compared to the SG zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SG, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -1023,6 +1063,7 @@ public class GamePlan {
 				throw new Exception("No good trajectory to go to tunnel entrance");
 			case SOUTH:
 				// the search zone is north of the east tunnel entry
+				// look where the robot is compared to the SG zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SG, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -1053,6 +1094,7 @@ public class GamePlan {
 				break;
 			case NORTH:
 				// the search zone is south of the east tunnel entry
+				// look where the robot is compared to the SG zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SG, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -1083,6 +1125,7 @@ public class GamePlan {
 				break;
 			case WEST:
 				// the search zone is east of the east tunnel entry
+				// look where the robot is compared to the SG zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SG, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -1135,6 +1178,7 @@ public class GamePlan {
 				throw new Exception("No good trajectory to go to tunnel entrance");
 			case SOUTH:
 				// the search zone is north of the west tunnel entry
+				// look where the robot is compared to the SG zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SG, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -1165,6 +1209,7 @@ public class GamePlan {
 				break;
 			case NORTH:
 				// the search zone is south of the west tunnel entry
+				// look where the robot is compared to the SG zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SG, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -1193,6 +1238,7 @@ public class GamePlan {
 				break;
 			case EAST:
 				// the search zone is west of the west tunnel entry
+				// look where the robot is compared to the SG zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SG, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -1245,6 +1291,7 @@ public class GamePlan {
 				throw new Exception("No good trajectory to go to tunnel entrance");
 			case NORTH:
 				// the search zone is south of the south tunnel entry
+				// look where the robot is compared to the SG zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SG, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// robot in center of search zone
@@ -1274,6 +1321,7 @@ public class GamePlan {
 				break;
 			case EAST:
 				// the search zone is west of the south tunnel entry
+				// look where the robot is compared to the SG zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SG, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -1303,6 +1351,7 @@ public class GamePlan {
 				break;
 			case WEST:
 				// the search zone is east of the south tunnel entry
+				// look where the robot is compared to the SG zone
 				switch (serverData.getSide(EV3WifiClient.Zone.SG, odometer.getX(), odometer.getY())) {
 				case CENTER:
 					// rush for it
@@ -1331,7 +1380,6 @@ public class GamePlan {
 				}
 				break;
 			}
-
 			// finally rush to South entrance of the tunnel
 			navigation.travelTo(lowerLeftX + (upperRightX - lowerLeftX) / 2, lowerLeftY - Navigation.TILE_SIZE / 2);
 			navigation.turnTo(0);
@@ -1349,37 +1397,52 @@ public class GamePlan {
 	 *             When there is an error with EV3WifiClient variables
 	 */
 	private boolean goToStartingCorner() throws Exception {
+		//Saving coordinates of the starting corner to local variables to make the code more readable
 		double startingX = 0, startingY = 0;
 		switch (serverData.getStartingCorner()) {
+		//Middle point of the respective corner tile
 		case 0:
-			startingX = Navigation.TILE_SIZE ;//
-			startingY = Navigation.TILE_SIZE ;
+			startingX = Navigation.TILE_SIZE/2 ;
+			startingY = Navigation.TILE_SIZE/2 ;
 			break;
 		case 1:
-			startingX = EV3WifiClient.X_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE ;
-			startingY = Navigation.TILE_SIZE ;
+			startingX = EV3WifiClient.X_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE/2 ;
+			startingY = Navigation.TILE_SIZE/2 ;
 			break;
 		case 2:
-			startingX = EV3WifiClient.X_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE;
-			startingY = EV3WifiClient.Y_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE ;
+			startingX = EV3WifiClient.X_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE/2;
+			startingY = EV3WifiClient.Y_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE/2 ;
 			break;
 		case 3:
-			startingX = Navigation.TILE_SIZE;
-			startingY = EV3WifiClient.Y_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE ;
+			startingX = Navigation.TILE_SIZE/2;
+			startingY = EV3WifiClient.Y_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE/2 ;
 			break;
 		}
+		
+		//Going back to the starting corner of its team color
 		switch (serverData.getTeamColor()) {
 		case GREEN:
+			//Green team
+			//Gets where the starting corner is with respect to the Green search zone (SG)
+			//Helps avoid the SG zone when going back to the corner
 			switch (serverData.getSide(Zone.SG, startingX, startingY)) {
 			case CENTER:
-				throw new Exception("Starting corner in center of search zone");
-				// Since rectangle, always east or west
+			case NORTH:
+			case SOUTH:
+				// Since the zone are always rectangles,
+				// the starting corner is always east or west
+				// of the search zone
+				throw new Exception("GoToStarting corner: \nerror with the green starting corner position");
+				
 			case EAST:
 				// starting corner is east of SG zone
+				//look if the robot is South of the starting corner
 				if (odometer.getY() < startingY) {
 					// robot is south of starting corner
+					// Get where the robot is with respect to the Green search zone to avoid it
 					switch (serverData.getSide(Zone.SG, odometer.getX(), odometer.getY())) {
 					case CENTER:
+						//robot is in the middle of the SG
 						// rush for it
 					case NORTH:
 						// robot north of the search zone, which is south west of the starting corner
@@ -1392,10 +1455,12 @@ public class GamePlan {
 						break;
 					case SOUTH:
 						// robot south of the search zone, which is south west of the starting corner
+						// go east a bit
 						goToSGLowerRight();
 						break;
 					case WEST:
 						// robot west of the search zone, which is south west of the starting corner
+						// go north and then east
 						goToSGUpperLeft();
 						goToSGUpperRight();
 						break;
@@ -1417,10 +1482,12 @@ public class GamePlan {
 						break;
 					case SOUTH:
 						// robot south of the search zone, which is north west of the starting corner
+						// go east a bit
 						goToSGUpperRight();
 						break;
 					case WEST:
 						// robot west of the search zone, which is north west of the starting corner
+						// go south then east
 						goToSGLowerLeft();
 						goToSGLowerRight();
 						break;
@@ -1430,6 +1497,7 @@ public class GamePlan {
 				break;
 			case WEST:
 				// starting corner is west of SG zone
+				//look if the robot is South of the starting corner
 				if (odometer.getY() < startingY) {
 					// robot is south of starting corner
 					switch (serverData.getSide(Zone.SG, odometer.getX(), odometer.getY())) {
@@ -1442,16 +1510,18 @@ public class GamePlan {
 						break;
 					case EAST:
 						// robot east of the search zone, which is south east of the starting corner
-						// rush for it
+						// go north then west
+						goToSGUpperRight();
+						goToSGUpperLeft();
 						break;
 					case SOUTH:
 						// robot south of the search zone, which is south east of the starting corner
+						// go west a bit
 						goToSGLowerLeft();
 						break;
 					case WEST:
 						// robot west of the search zone, which is south east of the starting corner
-						goToSGUpperRight();
-						goToSGUpperLeft();
+						// rush for it
 						break;
 					}
 
@@ -1467,33 +1537,43 @@ public class GamePlan {
 						break;
 					case EAST:
 						// robot east of the search zone, which is north east of the starting corner
-						// rush for it
+						// go south then west
+						goToSGLowerRight();
+						goToSGLowerLeft();
 						break;
 					case SOUTH:
 						// robot south of the search zone, which is north east of the starting corner
+						// go west a but
 						goToSGUpperLeft();
 						break;
 					case WEST:
 						// robot west of the search zone, which is north east of the starting corner
-						goToSGLowerRight();
-						goToSGLowerLeft();
+						// rush for it
 						break;
 					}
 				}
-
 				break;
 			}
 			break;
 		case RED:
+			//Robot is in RED team
 			// red starting corner
+			//Gets where the starting corner is with respect to the RED search zone (SR)
+			//Helps avoid the SR zone when going back to the corner
 			switch (serverData.getSide(Zone.SR, startingX, startingY)) {
 			case CENTER:
-				throw new Exception("Starting corner in center of search zone");
-				// Since rectangle, always east or west
+			case NORTH:
+			case SOUTH:
+				// Since the zone are always rectangles,
+				// the starting corner is always east or west
+				// of the search zone
+				throw new Exception("GoToStarting corner: \nerror with the red starting corner position");
 			case EAST:
 				// starting corner is east of SR zone
+				// Looks if robot is South of the starting corner
 				if (odometer.getY() < startingY) {
 					// robot is south of starting corner
+					// Looks at on what side of the SR zone the robot is
 					switch (serverData.getSide(Zone.SR, odometer.getX(), odometer.getY())) {
 					case CENTER:
 						// rush for it
@@ -1508,10 +1588,12 @@ public class GamePlan {
 						break;
 					case SOUTH:
 						// robot south of the search zone, which is south west of the starting corner
+						// go east a bit
 						goToSRLowerRight();
 						break;
 					case WEST:
 						// robot west of the search zone, which is south west of the starting corner
+						// go north then east
 						goToSRUpperLeft();
 						goToSRUpperRight();
 						break;
@@ -1519,6 +1601,7 @@ public class GamePlan {
 
 				} else {
 					// robot is north of starting corner
+					// Looks at on what side of the SR zone the robot is
 					switch (serverData.getSide(Zone.SR, odometer.getX(), odometer.getY())) {
 					case CENTER:
 						// rush for it
@@ -1533,10 +1616,12 @@ public class GamePlan {
 						break;
 					case SOUTH:
 						// robot south of the search zone, which is north west of the starting corner
+						// go east a bit
 						goToSRUpperRight();
 						break;
 					case WEST:
 						// robot west of the search zone, which is north west of the starting corner
+						// go south then east
 						goToSRLowerLeft();
 						goToSRLowerRight();
 						break;
@@ -1546,8 +1631,10 @@ public class GamePlan {
 				break;
 			case WEST:
 				// starting corner is west of SR zone
+				// Looks if robot is South of the starting corner
 				if (odometer.getY() < startingY) {
 					// robot is south of starting corner
+					// Looks at on what side of the SR zone the robot is
 					switch (serverData.getSide(Zone.SR, odometer.getX(), odometer.getY())) {
 					case CENTER:
 						// rush for it
@@ -1558,16 +1645,18 @@ public class GamePlan {
 						break;
 					case EAST:
 						// robot east of the search zone, which is south east of the starting corner
-						// rush for it
+						// go north then west
+						goToSRUpperRight();
+						goToSRUpperLeft();
 						break;
 					case SOUTH:
 						// robot south of the search zone, which is south east of the starting corner
+						// go west a bit
 						goToSRLowerLeft();
 						break;
 					case WEST:
 						// robot west of the search zone, which is south east of the starting corner
-						goToSRUpperRight();
-						goToSRUpperLeft();
+						// rush for it
 						break;
 					}
 
@@ -1583,24 +1672,27 @@ public class GamePlan {
 						break;
 					case EAST:
 						// robot east of the search zone, which is north east of the starting corner
-						// rush for it
+						// go south then west
+						goToSRLowerRight();
+						goToSRLowerLeft();
 						break;
 					case SOUTH:
 						// robot south of the search zone, which is north east of the starting corner
+						// go west a bit
 						goToSRUpperLeft();
 						break;
 					case WEST:
 						// robot west of the search zone, which is north east of the starting corner
-						goToSRLowerRight();
-						goToSRLowerLeft();
+						// rush for it
 						break;
 					}
 				}
-
 				break;
 			}
 			break;
 		}
+		// robot is finally able to go the its starting corner normally
+		// Go ahead robot, be free
 		navigation.travelTo(startingX, startingY);
 		return true;
 	}
