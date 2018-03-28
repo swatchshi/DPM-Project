@@ -162,17 +162,18 @@ public class GamePlan {
 		odoCorrect = new OdometerCorrection(lSensor, odometer, dynamicTrack);
 
 		navigation = new Navigation(odometer, dynamicTrack, CONFIG);
+		Thread odoDisplayThread = new Thread(odometryDisplay);
+		Thread odoThread = new Thread(odometer);
+		Thread odoCorrectionThread = new Thread(odoCorrect);
+		odoCorrect.setDoCorrection(false);
+		odometer.setDoThetaCorrection(false);
 		serverData = new EV3WifiClient(); //////////////////////////////////////////// uncomment to enable data
 											//////////////////////////////////////////// retrieval
 
-		Thread odoThread = new Thread(odometer);
+		
 		odoThread.start();
-		Thread odoDisplayThread = new Thread(odometryDisplay);
 		odoDisplayThread.start();
-		Thread odoCorrectionThread = new Thread(odoCorrect);
 		odoCorrectionThread.start();
-		odoCorrect.setDoCorrection(false);
-		odometer.setDoThetaCorrection(false);
 	}
 
 	/**
@@ -217,8 +218,6 @@ public class GamePlan {
 	private void redPlan() throws Exception {
 		int corner=serverData.getStartingCorner();
 
-		
-		
 		USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
 		
 		usLoc.doLocalization(0); 
@@ -229,24 +228,24 @@ public class GamePlan {
 		
 		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, gyroscope);
 		lightLoc.lightloc(corner);
-		///////////////////////////////////////////////////////////
-		Sound.beep();
-		
-		//System.exit(0);
-		/////////////////////////////////////////////////////////////////////////////
+
+		Sound.beepSequenceUp();
+		odoCorrect.setDoCorrection(true);
 		goToBridge(getBridgeEntry());
-		
-		
+		odoCorrect.setDoCorrection(false);
 		crossBridge();
 		Sound.beepSequenceUp();
-
+		odoCorrect.setDoCorrection(true);
 		
-		//goToTunnel(getTunnelEntry());
-		goToTunnel(directionSwitch(getBridgeEntry()));
+		goToTunnel(getTunnelEntry());
+		odoCorrect.setDoCorrection(false);
 		crossTunnel();
+		odoCorrect.setDoCorrection(true);
+		Sound.beepSequenceUp();
 		
 		
 		goToStartingCorner();
+		Button.waitForAnyPress();
 		System.exit(0);
 	}
 
@@ -263,7 +262,7 @@ public class GamePlan {
 		int corner=serverData.getStartingCorner();
 
 		
-		
+		navigation.setForwardSpeed(Navigation.LOCALIZATION_SPEED);
 		USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
 		
 		usLoc.doLocalization(0); 
@@ -274,60 +273,90 @@ public class GamePlan {
 		
 		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, gyroscope);
 		lightLoc.lightloc(corner);
-		///////////////////////////////////////////////////////////
+		odoCorrect.setDoCorrection(true);
 		Sound.beepSequenceUp();
-		//Button.waitForAnyPress();
-		/////////////////////////////////////////////////////////////////////////////
+		navigation.setForwardSpeed(Navigation.FORWARD_SPEED);
 		goToTunnel(getTunnelEntry());
-		//Button.waitForAnyPress();
+		odoCorrect.setDoCorrection(false);
 		crossTunnel();
-		//Button.waitForAnyPress();
 		Sound.beepSequenceUp();
-		
-		goToBridge(directionSwitch(getTunnelEntry()));
-		//Button.waitForAnyPress();
+		odoCorrect.setDoCorrection(true);
+		goToBridge(getBridgeEntry());
+		odoCorrect.setDoCorrection(false);
 		crossBridge();
-		//Button.waitForAnyPress();
-		
-		//odometer.correctAngle();
+		Sound.beepSequenceUp();
+		odometer.correctAngle();
+		odoCorrect.setDoCorrection(true);
 		goToStartingCorner();
+		Sound.beepSequence();
+		Button.waitForAnyPress();
+		System.exit(0);
 	}
 
+	
+	/**
+	 * Gets the direction opposite to the one specified
+	 * 
+	 * @param direction (North, South, East, West, Center)
+	 * @return The opposite direction
+	 */
+	public Direction directionSwitch(Direction direction) {
+		this.direction = direction;
+		switch(direction) {
+		case CENTER:
+			return Direction.CENTER;
+		case EAST:
+			return Direction.WEST;
+		case WEST: 
+			return Direction.EAST;
+		case NORTH:
+			return Direction.SOUTH;
+		case SOUTH:
+			return Direction.NORTH;
+		default:
+			return Direction.CENTER;
+		}
+	}
+	
+	
+	/**
+	 * Drives the robot in squares 
+	 * Waits for user input after
+	 * Continues of user presses any button but the enter button
+	 * 
+	 * @param tiles Number of tiles per side
+	 * @return True when the user ends the procedure
+	 */
+	public boolean squareDrive(int tiles) {
+		int buttonID=0;
+		do {
+			navigation.travel(tiles*Navigation.TILE_SIZE);
+			navigation.turn(90);
+			navigation.travel(tiles*Navigation.TILE_SIZE);
+			navigation.turn(90);
+			navigation.travel(tiles*Navigation.TILE_SIZE);
+			navigation.turn(90);
+			navigation.travel(tiles*Navigation.TILE_SIZE);
+			navigation.turn(90);
+			buttonID=Button.waitForAnyPress();
+			if(buttonID==Button.ID_UP) {
+				dynamicTrack.setTrack(dynamicTrack.getTrack()+0.05);
+			}else if(buttonID==Button.ID_DOWN) {
+				dynamicTrack.setTrack(dynamicTrack.getTrack()-0.05);
+			}
+		}while(buttonID!=Button.ID_ENTER);
+		System.exit(0);
+		return true;
+	}
+	
+	
 	/**
 	 * Procedure to cross the bridge
-	 * @return 
 	 * 
 	 * @return True when the bridge has been crossed
 	 * @throws Exception
 	 *             if the specified entry point is incorrect
 	 */
-	
-	public Direction directionSwitch(Direction direction) {
-		this.direction = direction;
-		if (direction == Direction.NORTH) {
-			return Direction.SOUTH;
-		}
-		else if (direction == Direction.SOUTH) {
-			return Direction.NORTH;			
-		}
-		else if (direction == Direction.WEST) {
-			return Direction.EAST;
-		}
-		else if (direction == Direction.EAST) {
-			return Direction.WEST;
-		}
-		else {
-			Sound.buzz();
-			Sound.buzz();
-			return null;
-		}
-		
-	}
-	
-	
-	
-	
-	
 	private boolean crossBridge() throws Exception { // expansion method, travel directly
 		navigation.travel(navigation.TILE_SIZE * (1 + serverData.getBridgeWidth(getBridgeEntry())));
 		// travels the width of the bridge plus an extra tile

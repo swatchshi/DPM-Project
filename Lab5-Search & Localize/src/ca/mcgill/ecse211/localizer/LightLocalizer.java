@@ -158,8 +158,6 @@ public class LightLocalizer {
 		odo.setY(Navigation.TILE_SIZE+Math.abs(dynamicTrack.getLightSensorDistance()));
 		navigation.stopMotors();
 		
-		//back up a bit
-		navigation.backUp(Math.abs(dynamicTrack.getLightSensorDistance()));
 		
 		//turn right and go see the first x line
 		navigation.turn(90);

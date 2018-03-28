@@ -17,8 +17,9 @@ public class Navigation {
 	/**
 	 * Variables for traveling
 	 */
-	public static final int FORWARD_SPEED = 400;
-	public static final int ROTATE_SPEED = 200;
+	public static final int FORWARD_SPEED = 550;
+	public static final int LOCALIZATION_SPEED = 400;
+	public static final int ROTATE_SPEED = 300;
 	public static final int SLOW_ROTATE_SPEED = 100;
 	private static final int ACCELERATION = 1000;
 	private static final int DECELERATION = 2000;
@@ -26,6 +27,7 @@ public class Navigation {
 	private Odometer odo;
 	private double lastX;
 	private double lastY;
+	private int forwardSpeed;
 	private TrackExpansion dynamicTrack;
 	private static boolean navigating=false;
 	private static boolean interrupt=false;
@@ -149,7 +151,7 @@ public class Navigation {
 	 */
 	public void travelForward() {
 		navigating=true;
-		setMotorSpeed(FORWARD_SPEED);
+		setMotorSpeed(forwardSpeed);
 		switch(config) {
 			case PROPULSION:
 				GamePlan.rightMotor.backward();
@@ -221,7 +223,7 @@ public class Navigation {
 	 */
 	public void travelBackward() {
 		navigating=true;
-		setMotorSpeed(FORWARD_SPEED);
+		setMotorSpeed(forwardSpeed);
 		switch(config) {
 			case TRACTION:
 				GamePlan.rightMotor.backward();
@@ -403,6 +405,14 @@ public class Navigation {
 	public void setMotorSpeed(int speed) {
 		GamePlan.leftMotor.setSpeed(speed);
 	    GamePlan.rightMotor.setSpeed(speed);
+	}
+	
+	/**
+	 * Sets the forward speed value
+	 * @param forwardSpeed
+	 */
+	public void setForwardSpeed(int forwardSpeed) {
+		this.forwardSpeed = forwardSpeed;
 	}
 	
 }

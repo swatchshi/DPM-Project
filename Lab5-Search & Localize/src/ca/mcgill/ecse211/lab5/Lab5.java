@@ -46,12 +46,11 @@ public class Lab5 {
 		try {
 
 
-			//int buttonChoice;
-
 			GamePlan game = new GamePlan();
 			Sound.beep();
 			game.play();
 			/*
+			int buttonChoice;
 			do {
 				// clear the display
 				lcd.clear();
