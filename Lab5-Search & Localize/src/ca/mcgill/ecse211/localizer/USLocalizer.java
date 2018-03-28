@@ -88,32 +88,34 @@ public class USLocalizer{
 		usLocalizerDone=false;
 		determineLocType();
 		if (loc == LocalizerType.FALLING_EDGE) {
-			
+			//go to see the back wall
 			turnToNoWall(Navigation.Turn.CLOCK_WISE);
 			turnToWall(Navigation.Turn.CLOCK_WISE);
 			double angle1 = odo.getTheta(); //Record back wall angle
-			
+			//go to see the left wall
 			turnToNoWall(Navigation.Turn.COUNTER_CLOCK_WISE);
 			turnToWall(Navigation.Turn.COUNTER_CLOCK_WISE);
 			double angle2 = odo.getTheta(); //Record left wall angle
-			
+			//compute the difference
 			double angle = Math.toDegrees(getDiffAngle(Math.toRadians(angle1), Math.toRadians(angle2))) / 2 + angle1;
-			
+			//set the new calculated theta
 			odo.setTheta(odo.getTheta() +225 - angle); //reset angle
 			
 		} else if (loc == LocalizerType.RISING_EDGE) {
+			//go to see the back wall
 			turnToWall(Navigation.Turn.CLOCK_WISE);
 			turnToNoWall(Navigation.Turn.COUNTER_CLOCK_WISE);
 			double angle1 = odo.getTheta();	//Back wall angle
-			
+			//go to see the left wall
 			turnToWall(Navigation.Turn.CLOCK_WISE);
 			turnToNoWall(Navigation.Turn.CLOCK_WISE);
 			double angle2 = odo.getTheta(); //Left wall angle
-			
+			//compute the difference
 			double angle = Math.toDegrees(getDiffAngle(Math.toRadians(angle1), Math.toRadians(angle2))) / 2 + angle1;
-			
+			//set the new calculated theta
 			odo.setTheta(odo.getTheta() +225 - angle); //reset angle
 		}
+		//Adjust the theta depending on what the corner is
 		odo.setTheta(odo.getTheta()-90*corner);
 		usLocalizerDone=true;
 	}
