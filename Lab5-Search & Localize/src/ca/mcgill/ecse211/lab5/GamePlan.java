@@ -276,20 +276,20 @@ public class GamePlan {
 		lightLoc.lightloc(corner);
 		///////////////////////////////////////////////////////////
 		Sound.beepSequenceUp();
-		Button.waitForAnyPress();
+		//Button.waitForAnyPress();
 		/////////////////////////////////////////////////////////////////////////////
 		goToTunnel(getTunnelEntry());
-		Button.waitForAnyPress();
+		//Button.waitForAnyPress();
 		crossTunnel();
-		Button.waitForAnyPress();
+		//Button.waitForAnyPress();
 		Sound.beepSequenceUp();
 		
 		goToBridge(directionSwitch(getTunnelEntry()));
-		Button.waitForAnyPress();
+		//Button.waitForAnyPress();
 		crossBridge();
-		Button.waitForAnyPress();
+		//Button.waitForAnyPress();
 		
-		odometer.correctAngle();
+		//odometer.correctAngle();
 		goToStartingCorner();
 	}
 
