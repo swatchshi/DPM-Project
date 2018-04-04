@@ -57,7 +57,7 @@ public class OdometerCorrection extends Thread {
 		double x, y, theta, lineX, lineY;
 		while (true) {
 			if (doCorrection) {
-				if (lightSensor.lineCrossed()) { // does not return until a line is crossed
+				if (lightSensor.lineDetected()) { // does not return until a line is crossed
 					x = odo.getX();
 					y = odo.getY();
 					theta = odo.getTheta();

@@ -17,7 +17,7 @@ public class UltrasonicSensor {
 	private SampleProvider us;
 	private float[] usData;
 	private static final int US_FILTER=2;
-	public static final int US_ERROR=10;
+	public static final int US_ERROR=2;
 	private int distance=0;
 
 

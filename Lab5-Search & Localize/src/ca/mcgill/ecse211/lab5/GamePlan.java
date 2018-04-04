@@ -3,6 +3,7 @@ package ca.mcgill.ecse211.lab5;
 import ca.mcgill.ecse211.lab5.EV3WifiClient.CoordParameter;
 import ca.mcgill.ecse211.lab5.EV3WifiClient.Zone;
 import ca.mcgill.ecse211.localizer.*;
+import ca.mcgill.ecse211.localizer.ColorSensor.BlockColor;
 import ca.mcgill.ecse211.odometer.*;
 import lejos.hardware.Button;
 import lejos.hardware.Sound;
@@ -84,6 +85,7 @@ public class GamePlan {
 	 * Type of the robot used
 	 */
 	public static final Robot robot = Robot.TANK;
+	
 
 	/**
 	 * Enum describing the cardinal point. Used to describe the side of a region.
@@ -137,8 +139,23 @@ public class GamePlan {
 	 * Object in charge of correcting the trajectory
 	 */
 	private OdometerCorrection odoCorrect;
-	public Direction direction;
-
+	/**
+	 * Object in charge of the initial wall angle localization
+	 */
+	private USLocalizer usLoc;
+	/**
+	 * Object in charge of localizing at crossings and crash localizations
+	 */
+	private LightLocalizer lightLoc;
+	/**
+	 * Object in charge of the search algorithm for the flag
+	 */
+	private FlagFinding flagFinder;
+	/**
+	 * Object in charge of keeping track of the time passed
+	 */
+	private InternalClock internalClock;
+	
 	/**
 	 * Creates an object of the GamePlan class. Initializes all instances needed in
 	 * the game
@@ -160,17 +177,20 @@ public class GamePlan {
 		odometer = Odometer.getOdometer(leftMotor, rightMotor, dynamicTrack, gyroscope, CONFIG);
 		odometryDisplay = new Display(lcd, ultraSensor, gyroscope);
 		odoCorrect = new OdometerCorrection(lSensor, odometer, dynamicTrack);
-
 		navigation = new Navigation(odometer, dynamicTrack, CONFIG);
+		//procedure objects
+		usLoc = new USLocalizer(odometer, navigation, ultraSensor);
+		lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, gyroscope);
+		internalClock=new InternalClock();
+		flagFinder=new FlagFinding(dynamicTrack, cSensor, ultraSensor, internalClock);
 		Thread odoDisplayThread = new Thread(odometryDisplay);
 		Thread odoThread = new Thread(odometer);
 		Thread odoCorrectionThread = new Thread(odoCorrect);
 		odoCorrect.setDoCorrection(false);
 		odometer.setDoThetaCorrection(false);
-		serverData = new EV3WifiClient(); //////////////////////////////////////////// uncomment to enable data
-											//////////////////////////////////////////// retrieval
-
 		
+		//serverData = new EV3WifiClient(); //////////////////////////////////////////// uncomment to enable data
+											//////////////////////////////////////////// retrieval
 		odoThread.start();
 		odoDisplayThread.start();
 		odoCorrectionThread.start();
@@ -184,6 +204,22 @@ public class GamePlan {
 		dynamicTrack.adjustToMax();
 		dynamicTrack.adjustToMin();
 	}
+	/**
+	 * Display the colors seen by the color sensor
+	 * until the escape button is pressed.
+	 * Press any other button to display the next color
+	 */
+	public void colorTest() {
+		odometryDisplay.setEnablePrint(false);
+		lcd.clear();
+		int buttonID;
+		do {
+			lcd.drawString(cSensor.getColorSeen().toString(), 0, 0);
+			buttonID=Button.waitForAnyPress();
+		}while(buttonID!=Button.ID_ESCAPE);
+		lcd.clear();
+		odometryDisplay.setEnablePrint(true);
+	}
 
 	/**
 	 * Procedure to determine what Team color plan should be followed
@@ -192,107 +228,22 @@ public class GamePlan {
 	 *             Exception thrown if the robot is not playing
 	 */
 	public void play() throws Exception {
-		
-		switch (serverData.getTeamColor()) {
+		//threads
+				
+				
+		internalClock.startClock();
+		greenPlan();
+		/*switch (serverData.getTeamColor()) {
 		case RED:
-
 			redPlan();
 			break;
 		case GREEN:
 			greenPlan();
 			break;
-		}
+		}*/
+	}
+
 	
-		// TODO victory tune
-	}
-
-	/**
-	 * Game plan of the red team. 1- Localize (USLocalizer) 2-
-	 * Localize(LightLocalizer) 3- Travels to the bridge 4- Crosses the bridge 5-
-	 * Search the Green search zone for the OG flag 6- Travels to the tunnel 7-
-	 * Crosses the tunnel 8- finishes in its starting corner
-	 * 
-	 * @throws Exception
-	 *             When there is a problem with the data from the EV3WifiClass
-	 */
-	private void redPlan() throws Exception {
-		int corner=serverData.getStartingCorner();
-
-		USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
-		
-		usLoc.doLocalization(0); 
-		navigation.turnTo(0);
-		
-		
-		Sound.beepSequenceUp();
-		
-		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, gyroscope);
-		lightLoc.lightloc(corner);
-
-		Sound.beepSequenceUp();
-		odoCorrect.setDoCorrection(true);
-		goToBridge(getBridgeEntry());
-		odoCorrect.setDoCorrection(false);
-		crossBridge();
-		Sound.beepSequenceUp();
-		odoCorrect.setDoCorrection(true);
-		
-		goToTunnel(getTunnelEntry());
-		odoCorrect.setDoCorrection(false);
-		crossTunnel();
-		odoCorrect.setDoCorrection(true);
-		Sound.beepSequenceUp();
-		
-		
-		goToStartingCorner();
-		Button.waitForAnyPress();
-		System.exit(0);
-	}
-
-	/**
-	 * Game plan of the green team. 1- Localize (USLocalizer) 2-
-	 * Localize(LightLocalizer) 3- Travels to the tunnel 4- Crosses the tunnel 5-
-	 * Search the Red search zone for the OR flag 6- Travels to the bridge 7-
-	 * Crosses the bridge 8- finishes in its starting corner
-	 * 
-	 * @throws Exception
-	 *             When there is a problem with the data from the EV3WifiClass
-	 */
-	private void greenPlan() throws Exception {
-		int corner=serverData.getStartingCorner();
-
-		
-		navigation.setForwardSpeed(Navigation.LOCALIZATION_SPEED);
-		USLocalizer usLoc = new USLocalizer(odometer, navigation, ultraSensor);
-		
-		usLoc.doLocalization(0); 
-		navigation.turnTo(0);
-		
-		
-		Sound.beepSequenceUp();
-		
-		LightLocalizer lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, gyroscope);
-		lightLoc.lightloc(corner);
-		odoCorrect.setDoCorrection(true);
-		Sound.beepSequenceUp();
-		navigation.setForwardSpeed(Navigation.FORWARD_SPEED);
-		goToTunnel(getTunnelEntry());
-		odoCorrect.setDoCorrection(false);
-		crossTunnel();
-		Sound.beepSequenceUp();
-		odoCorrect.setDoCorrection(true);
-		goToBridge(getBridgeEntry());
-		odoCorrect.setDoCorrection(false);
-		crossBridge();
-		Sound.beepSequenceUp();
-		odometer.correctAngle();
-		odoCorrect.setDoCorrection(true);
-		goToStartingCorner();
-		Sound.beepSequence();
-		Button.waitForAnyPress();
-		System.exit(0);
-	}
-
 	
 	/**
 	 * Gets the direction opposite to the one specified
@@ -301,7 +252,6 @@ public class GamePlan {
 	 * @return The opposite direction
 	 */
 	public Direction directionSwitch(Direction direction) {
-		this.direction = direction;
 		switch(direction) {
 		case CENTER:
 			return Direction.CENTER;
@@ -350,6 +300,113 @@ public class GamePlan {
 	}
 	
 	
+	
+	/**
+	 * Game plan of the red team. 1- Localize (USLocalizer) 2-
+	 * Localize(LightLocalizer) 3- Travels to the bridge 4- Crosses the bridge 5-
+	 * Search the Green search zone for the OG flag 6- Travels to the tunnel 7-
+	 * Crosses the tunnel 8- finishes in its starting corner
+	 * 
+	 * @throws Exception
+	 *             When there is a problem with the data from the EV3WifiClass
+	 */
+	private void redPlan() throws Exception {
+		int corner=serverData.getStartingCorner();
+
+		
+		usLoc.doLocalization(0); 
+		navigation.turnTo(0);
+		
+		
+		Sound.beepSequenceUp();
+		
+		lightLoc.crashLocalizer(corner);
+
+		Sound.beepSequenceUp();
+		odoCorrect.setDoCorrection(true);
+		//goToBridge(getBridgeEntry());
+		odoCorrect.setDoCorrection(false);
+		localizeBeforeBridge(getBridgeEntry());
+		crossBridge();
+		Sound.beepSequenceUp();
+		odoCorrect.setDoCorrection(true);
+		
+		//goToTunnel(getTunnelEntry());
+		localizeBeforeTunnel(getTunnelEntry());
+		odoCorrect.setDoCorrection(false);
+		crossTunnel();
+		odoCorrect.setDoCorrection(true);
+		Sound.beepSequenceUp();
+		
+		
+		goToStartingCorner();
+		Button.waitForAnyPress();
+		System.exit(0);
+	}
+
+	/**
+	 * Game plan of the green team. 1- Localize (USLocalizer) 2-
+	 * Localize(LightLocalizer) 3- Travels to the tunnel 4- Crosses the tunnel 5-
+	 * Search the Red search zone for the OR flag 6- Travels to the bridge 7-
+	 * Crosses the bridge 8- finishes in its starting corner
+	 * 
+	 * @throws Exception
+	 *             When there is a problem with the data from the EV3WifiClass
+	 */
+	private void greenPlan() throws Exception {
+		/*
+		int corner=serverData.getStartingCorner();
+		odometer.setXYT(7*Navigation.TILE_SIZE, 30.48, 270);
+		
+		//Localizing at the corner
+		navigation.setForwardSpeed(Navigation.LOCALIZATION_SPEED);
+		
+		usLoc.doLocalization(0); 
+		navigation.turnTo(0);
+		Sound.beepSequenceUp();
+		
+		//Light localizing at the closest crossing
+		
+		lightLoc.crashLocalizer(corner);
+		
+		//Going to the tunnel
+		Sound.beepSequenceUp();
+		navigation.setForwardSpeed(Navigation.FORWARD_SPEED);
+		//goToTunnel(getTunnelEntry());
+		localizeBeforeTunnel(getTunnelEntry());
+		crossTunnel();
+		Sound.beepSequenceUp();
+		
+		//find the flag in the red search zone
+		
+		
+		flagFinder.findBlock(getSearchStartSide(Zone.SR, directionSwitch(getTunnelEntry())),
+				serverData.getCoordParam(CoordParameter.SR_LL_x), serverData.getCoordParam(CoordParameter.SR_LL_y),
+				serverData.getCoordParam(CoordParameter.SR_UR_x), serverData.getCoordParam(CoordParameter.SR_UR_y), 
+				serverData.getFlagColor());
+		
+		//Going to the bridge
+		//goToBridge(getBridgeEntry());
+		
+		localizeBeforeBridge(getBridgeEntry());
+		crossBridge();
+		Sound.beepSequenceUp();
+		odometer.correctAngle();
+		goToStartingCorner();
+		Sound.beepSequence();
+		*/
+		do {
+			odometer.setXYT(Navigation.TILE_SIZE, Navigation.TILE_SIZE*2, 0);
+			odoCorrect.setDoCorrection(true);
+			flagFinder.findBlock(Direction.SOUTH,
+					2, 2,
+					4, 4, 
+					BlockColor.BLUE);
+			Button.waitForAnyPress();
+		}while(true);
+	}
+
+	
 	/**
 	 * Procedure to cross the bridge
 	 * 
@@ -358,8 +415,10 @@ public class GamePlan {
 	 *             if the specified entry point is incorrect
 	 */
 	private boolean crossBridge() throws Exception { // expansion method, travel directly
+		odoCorrect.setDoCorrection(false);
 		navigation.travel(navigation.TILE_SIZE * (1 + serverData.getBridgeWidth(getBridgeEntry())));
 		// travels the width of the bridge plus an extra tile
+		odoCorrect.setDoCorrection(true);
 		return true;
 	}
 
@@ -371,8 +430,10 @@ public class GamePlan {
 	 *             if the specified entry point is incorrect
 	 */
 	private boolean crossTunnel() throws Exception {
+		odoCorrect.setDoCorrection(false);
 		navigation.travel(navigation.TILE_SIZE * (1 + serverData.getTunnelWidth(getTunnelEntry())));
 		// travels the width of the tunnel plus an extra tile
+		odoCorrect.setDoCorrection(true);
 		return true;
 	}
 
@@ -493,6 +554,276 @@ public class GamePlan {
 		//default
 		return Direction.CENTER;
 	}
+	
+	/**
+	 * Method to get the side of the search zone which will
+	 * make the robot travel the least distance to begin the 
+	 * flag finding algorithm.
+	 * Because the robot starts its search in the left corner of a side
+	 * (WEST: upper left
+	 *  SOUTH: lower left
+	 *  EAST: lower right
+	 *  NORTH: upper right)
+	 *  And does the algorithm by going around couter-clockwise
+	 *  Therefore, this method prevents the robot from doing
+	 *  a detour to start the flag finding algorithm by specifying
+	 *  the side of the nearest corner of the search zone.
+	 *  
+	 * @param searchZone The search zone in question
+	 * @param exit 
+	 * 			The Direction of the exit point of the water feature the robot just
+	 * 			finished crossing before the search. (tip: use directionSwitch
+	 * 			ex: directionSwitch(getTunnelEntry()) to get exit point of the tunnel)
+	 * @return The side where the robot should start the search
+	 */
+	private Direction getSearchStartSide(Zone searchZone, Direction exit) {
+		Direction flagSearchStartSide;
+		//looks first at where the robot will exit the water feature on the map
+		switch(exit) {
+		case NORTH:
+			//looks where the robot is with respect to the search zone desired
+			switch(serverData.getSide(searchZone, odometer.getX(), odometer.getY())) {
+			case CENTER:
+			case WEST:
+				flagSearchStartSide=Direction.SOUTH;
+				break;
+			default:
+				flagSearchStartSide=serverData.getSide(searchZone, odometer.getX(), odometer.getY());
+				break;
+			}
+			break;
+		case EAST:
+			//looks where the robot is with respect to the search zone desired
+			switch(serverData.getSide(searchZone, odometer.getX(), odometer.getY())) {
+			case CENTER:
+			case NORTH:
+				flagSearchStartSide=Direction.WEST;
+				break;
+			default:
+				flagSearchStartSide=serverData.getSide(searchZone, odometer.getX(), odometer.getY());
+				break;
+			}
+			break;
+		case SOUTH:
+			//looks where the robot is with respect to the search zone desired
+			switch(serverData.getSide(searchZone, odometer.getX(), odometer.getY())) {
+			case CENTER:
+			case EAST:
+				flagSearchStartSide=Direction.NORTH;
+				break;
+			default:
+				flagSearchStartSide=serverData.getSide(searchZone, odometer.getX(), odometer.getY());
+				break;
+			}
+			break;
+		case WEST:
+			//looks where the robot is with respect to the search zone desired
+			switch(serverData.getSide(searchZone, odometer.getX(), odometer.getY())) {
+			case CENTER:
+			case SOUTH:
+				flagSearchStartSide=Direction.EAST;
+				break;
+			default:
+				flagSearchStartSide=serverData.getSide(searchZone, odometer.getX(), odometer.getY());
+				break;
+			}
+			break;
+		default: flagSearchStartSide=Direction.SOUTH;
+		}
+		return flagSearchStartSide;
+	}
+	
+	/**
+	 * Method for localizing before crossing the bridge
+	 * Also goes to the bridge entry after doing the localization
+	 * 
+	 * @param direction Entry direction of the bridge
+	 * @throws Exception if unable to retrieve the bridge data
+	 */
+	private void localizeBeforeBridge(Direction direction) throws Exception {
+		//Saving coordinates of the bridge to local variables to make the code more readable
+		int lowerLeftXLine = serverData.getCoordParam(CoordParameter.BR_LL_x);
+		int lowerLeftYLine = serverData.getCoordParam(CoordParameter.BR_LL_y);
+		int upperRightXLine = serverData.getCoordParam(CoordParameter.BR_UR_x);
+		int upperRightYLine = serverData.getCoordParam(CoordParameter.BR_UR_y);
+		
+		switch(direction) {
+		case NORTH:
+			//Entry of bridge is in the North part of the bridge
+			//look in what half of the field the bridge is
+			if(upperRightXLine<=EV3WifiClient.X_GRID_LINES/2) {
+				//bridge in west part of the field
+				//localize one crossing north of the upper right bridge corner
+				navigation.goToPoint(upperRightXLine, upperRightYLine+1);
+				lightLoc.angleLocalizer();
+			}else {
+				//bridge in east part of the field
+				//localize one crossing north of the upper left bridge corner
+				navigation.goToPoint(lowerLeftXLine, upperRightYLine+1);
+				lightLoc.angleLocalizer();
+			}
+			
+			navigation.travelTo((lowerLeftXLine+(upperRightXLine-lowerLeftXLine)/2)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.turnTo(180);
+			break;
+		case SOUTH:
+			//Entry of bridge is in the South part of the bridge
+			//look in what half of the field the bridge is
+			if(upperRightXLine<=EV3WifiClient.X_GRID_LINES/2) {
+				//bridge in west part of the field
+				//localize one crossing south of the upper right bridge corner
+				navigation.goToPoint(upperRightXLine,lowerLeftYLine-1);
+				lightLoc.angleLocalizer();
+			}else {
+				//bridge in east part of the field
+				//localize one crossing north of the upper left bridge corner
+				navigation.goToPoint(lowerLeftXLine, lowerLeftYLine-1);
+				lightLoc.angleLocalizer();
+			}
+			navigation.travelTo((lowerLeftXLine+(upperRightXLine-lowerLeftXLine)/2)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
+			navigation.turnTo(0);
+			break;
+		case EAST:
+			//Entry of bridge is in the East part of the bridge
+			//look in what half of the field the bridge is
+			if(upperRightYLine<=EV3WifiClient.Y_GRID_LINES/2) {
+				//bridge in south part of the field
+				//localize one crossing east of the upper right bridge corner
+				navigation.goToPoint(upperRightXLine+1,upperRightYLine);
+				lightLoc.angleLocalizer();
+			}else {
+				//bridge in north part of the field
+				//localize one crossing east of the lower right bridge corner
+				navigation.goToPoint(upperRightXLine+1, lowerLeftYLine);
+				lightLoc.angleLocalizer();
+			}
+			navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE,(lowerLeftYLine+(upperRightYLine-lowerLeftYLine)/2)*Navigation.TILE_SIZE);
+			navigation.turnTo(270);
+			break;
+		case WEST:
+			//Entry of bridge is in the West part of the bridge
+			//look in what half of the field the bridge is
+			if(upperRightYLine<=EV3WifiClient.Y_GRID_LINES/2) {
+				//bridge in South part of the field
+				//localize one crossing west of the upper left bridge corner
+				navigation.goToPoint(lowerLeftXLine-1,upperRightYLine);
+				lightLoc.angleLocalizer();
+			}else {
+				//bridge in North part of the field
+				//localize one crossing west of the lower left bridge corner
+				navigation.goToPoint(lowerLeftXLine-1, lowerLeftYLine);
+				lightLoc.angleLocalizer();
+			}
+			navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE,(lowerLeftYLine+(upperRightYLine-lowerLeftYLine)/2)*Navigation.TILE_SIZE);
+			navigation.turnTo(90);
+			break;
+		case CENTER:
+			//do nothing
+			break;
+		}
+	}
+	
+	/**
+	 * Method for localizing before crossing the tunnel
+	 * Also goes to the tunnel entry after doing the localization
+	 * 
+	 * @param direction Entry direction of the tunnel
+	 * @throws Exception if unable to retrieve the tunnel data
+	 */
+	private void localizeBeforeTunnel(Direction direction) throws Exception {
+		//Saving coordinates of the bridge to local variables to make the code more readable
+		int lowerLeftXLine = serverData.getCoordParam(CoordParameter.TN_LL_x);
+		int lowerLeftYLine = serverData.getCoordParam(CoordParameter.TN_LL_y);
+		int upperRightXLine = serverData.getCoordParam(CoordParameter.TN_UR_x);
+		int upperRightYLine = serverData.getCoordParam(CoordParameter.TN_UR_y);
+		
+		switch(direction) {
+		case NORTH:
+			//Entry of tunnel is in the North part of the bridge
+			//look in what half of the field the tunnel is
+			if(upperRightXLine<=EV3WifiClient.X_GRID_LINES/2) {
+				//tunnel in west part of the field
+				//localize one crossing north of the upper right tunnel corner
+				navigation.goToPoint(upperRightXLine, upperRightYLine+1);
+				odoCorrect.setDoCorrection(false);
+				lightLoc.angleLocalizer();
+			}else {
+				//tunnel in east part of the field
+				//localize one crossing north of the upper left tunnel corner
+				navigation.goToPoint(lowerLeftXLine, upperRightYLine+1);
+				odoCorrect.setDoCorrection(false);
+				lightLoc.angleLocalizer();
+			}
+			odoCorrect.setDoCorrection(true);
+			navigation.travelTo((lowerLeftXLine+(upperRightXLine-lowerLeftXLine)/2)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.turnTo(180);
+			break;
+		case SOUTH:
+			//Entry of tunnel is in the South part of the tunnel
+			//look in what half of the field the tunnel is
+			if(upperRightXLine<=EV3WifiClient.X_GRID_LINES/2) {
+				//tunnel in west part of the field
+				//localize one crossing south of the upper right tunnel corner
+				navigation.goToPoint(upperRightXLine,lowerLeftYLine-1);
+				odoCorrect.setDoCorrection(false);
+				lightLoc.angleLocalizer();
+			}else {
+				//tunnel in east part of the field
+				//localize one crossing north of the upper left tunnel corner
+				navigation.goToPoint(lowerLeftXLine, lowerLeftYLine-1);
+				odoCorrect.setDoCorrection(false);
+				lightLoc.angleLocalizer();
+			}
+			odoCorrect.setDoCorrection(true);
+			navigation.travelTo((lowerLeftXLine+(upperRightXLine-lowerLeftXLine)/2)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
+			navigation.turnTo(0);
+			break;
+		case EAST:
+			//Entry of tunnel is in the East part of the tunnel
+			//look in what half of the field the tunnel is
+			if(upperRightYLine<=EV3WifiClient.Y_GRID_LINES/2) {
+				//tunnel in south part of the field
+				//localize one crossing east of the upper right tunnel corner
+				navigation.goToPoint(upperRightXLine+1,upperRightYLine);
+				odoCorrect.setDoCorrection(false);
+				lightLoc.angleLocalizer();
+			}else {
+				//tunnel in north part of the field
+				//localize one crossing east of the lower right tunnel corner
+				navigation.goToPoint(upperRightXLine+1, lowerLeftYLine);
+				odoCorrect.setDoCorrection(false);
+				lightLoc.angleLocalizer();
+			}
+			odoCorrect.setDoCorrection(true);
+			navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE,(lowerLeftYLine+(upperRightYLine-lowerLeftYLine)/2)*Navigation.TILE_SIZE);
+			navigation.turnTo(270);
+			break;
+		case WEST:
+			//Entry of tunnel is in the West part of the tunnel
+			//look in what half of the field the tunnel is
+			if(upperRightYLine<=EV3WifiClient.Y_GRID_LINES/2) {
+				//tunnel in South part of the field
+				//localize one crossing west of the upper left tunnel corner
+				navigation.goToPoint(lowerLeftXLine-1,upperRightYLine);
+				odoCorrect.setDoCorrection(false);
+				lightLoc.angleLocalizer();
+			}else {
+				//tunnel in North part of the field
+				//localize one crossing west of the lower left tunnel corner
+				navigation.goToPoint(lowerLeftXLine-1, lowerLeftYLine);
+				odoCorrect.setDoCorrection(false);
+				lightLoc.angleLocalizer();
+			}
+			odoCorrect.setDoCorrection(true);
+			navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE,(lowerLeftYLine+(upperRightYLine-lowerLeftYLine)/2)*Navigation.TILE_SIZE);
+			navigation.turnTo(90);
+			break;
+		case CENTER:
+			//do nothing
+			break;
+		}
+	}
+	
 
 	/**
 	 * Procedure method to avoid the search zone and water areas and go to the
@@ -500,7 +831,6 @@ public class GamePlan {
 	 * 
 	 * @param direction
 	 *            Direction (side) of the bridge entry
-	 * @return True when reached
 	 * @throws Exception
 	 *             When there is a problem with the data from the EV3WifiClass or
 	 *             with the entry point
@@ -618,10 +948,6 @@ public class GamePlan {
 				}
 				break;
 			}
-
-			// finally rush to North entrance of the bridge
-			navigation.travelTo(lowerLeftX + (upperRightX - lowerLeftX) / 2, upperRightY + Navigation.TILE_SIZE / 2);
-			navigation.turnTo(180);
 			break;
 
 		// Entrance is in the East
@@ -734,9 +1060,6 @@ public class GamePlan {
 				}
 				break;
 			}
-			// finally rush to East entrance of the bridge
-			navigation.travelTo(upperRightX + Navigation.TILE_SIZE / 2, lowerLeftY + (upperRightY - lowerLeftY) / 2);
-			navigation.turnTo(270);
 			break;
 
 		// Entrance is in the West
@@ -847,9 +1170,6 @@ public class GamePlan {
 				}
 				break;
 			}
-			// finally rush to West entrance of the bridge
-			navigation.travelTo(lowerLeftX - Navigation.TILE_SIZE / 2, lowerLeftY + (upperRightY - lowerLeftY) / 2);
-			navigation.turnTo(90);
 			break;
 
 		// Entrance is in the south
@@ -955,21 +1275,18 @@ public class GamePlan {
 				}
 				break;
 			}
-
-			// finally rush to South entrance of the bridge
-			navigation.travelTo(lowerLeftX + (upperRightX - lowerLeftX) / 2, lowerLeftY - Navigation.TILE_SIZE / 2);
-			navigation.turnTo(0);
 			break;
 		}
+		//go to the bridge and localize
+		localizeBeforeBridge(direction);
 	}
 
 	/**
-	 * Procedure method to avoid the search zone and water areas and go to the
+	 * Procedure method to avoid the search zone and water areas to go to the
 	 * specified side of the tunnel.
 	 * 
 	 * @param direction
 	 *            Direction (side) of the tunnel entry
-	 * @return True when reached
 	 * @throws Exception
 	 *             When there is a problem with the data from the EV3WifiClass or
 	 *             with the entry point
@@ -1084,10 +1401,6 @@ public class GamePlan {
 				}
 				break;
 			}
-
-			// finally rush to North entrance of the tunnel
-			navigation.travelTo(lowerLeftX + (upperRightX - lowerLeftX) / 2, upperRightY + Navigation.TILE_SIZE / 2);
-			navigation.turnTo(180);
 			break;
 
 		// Entrance is in the East
@@ -1200,9 +1513,6 @@ public class GamePlan {
 				}
 				break;
 			}
-			// finally rush to East entrance of the tunnel
-			navigation.travelTo(upperRightX + Navigation.TILE_SIZE / 2, lowerLeftY + (upperRightY - lowerLeftY) / 2);
-			navigation.turnTo(270);
 			break;
 
 		// Entrance is in the West
@@ -1313,9 +1623,6 @@ public class GamePlan {
 				}
 				break;
 			}
-			// finally rush to West entrance of the tunnel
-			navigation.travelTo(lowerLeftX - Navigation.TILE_SIZE / 2, lowerLeftY + (upperRightY - lowerLeftY) / 2);
-			navigation.turnTo(90);
 			break;
 
 		// Entrance is in the south
@@ -1421,12 +1728,10 @@ public class GamePlan {
 				}
 				break;
 			}
-			// finally rush to South entrance of the tunnel
-			navigation.travelTo(lowerLeftX + (upperRightX - lowerLeftX) / 2, lowerLeftY - Navigation.TILE_SIZE / 2);
-			navigation.turnTo(0);
 			break;
 		}
-
+		//finally localize and go to the tunnel
+		localizeBeforeTunnel(direction);
 	}
 
 	/**

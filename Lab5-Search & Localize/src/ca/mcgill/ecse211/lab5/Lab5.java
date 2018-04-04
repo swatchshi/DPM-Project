@@ -48,6 +48,7 @@ public class Lab5 {
 
 			GamePlan game = new GamePlan();
 			Sound.beep();
+		
 			game.play();
 			/*
 			int buttonChoice;
@@ -71,7 +72,7 @@ public class Lab5 {
 				}
 			} while (buttonChoice != Button.ID_RIGHT);
 
-		*/
+			*/
 		} catch (OdometerExceptions exc) {
 			// instance error, do nothing
 		}

@@ -1,5 +1,6 @@
 package ca.mcgill.ecse211.lab5;
 
+import ca.mcgill.ecse211.lab5.EV3WifiClient.CoordParameter;
 import ca.mcgill.ecse211.localizer.ColorSensor;
 import ca.mcgill.ecse211.localizer.UltrasonicSensor;
 import ca.mcgill.ecse211.odometer.Odometer;
@@ -24,7 +25,7 @@ public class FlagFinding {
 	private static final int NOT_IT_BEEPING = 2;
 	private static final int FAILURE_BEEPING = 6;
 	private static final int BLOCK_WIDTH = 10;
-	private static final long MAX_SEARCH_TIME = 270000; // 4.5 min is 270 000 ms
+	
 	private double LLx, LLy, URx, URy;
 	private double xRange, yRange;
 	private boolean headTurned = false;
@@ -33,9 +34,9 @@ public class FlagFinding {
 	private UltrasonicSensor usSensor;
 	private Navigation navigation;
 	private Odometer odo;
+	private InternalClock internalClock;
 	private ColorSensor.BlockColor blockWanted;
 	private boolean flagFound;
-	private long searchStart; // start time
 
 	
 	/**
@@ -45,35 +46,19 @@ public class FlagFinding {
 	 *            ColorSensor used
 	 * @param usSensor
 	 *            UltrasonicSensor used
-	 * @param blockWanted
-	 *            ColorSensor.BlockColor of the block wanted
-	 * @param LLx
-	 *            (int) X of the lower left corner of the search zone
-	 * @param LLy
-	 *            (int) Y of the lower left corner of the search zone
-	 * @param URx
-	 *            (int) X of the lower left corner of the search zone
-	 * @param URy
-	 *            (int) Y of the lower left corner of the search zone
+	 *
 	 * @throws OdometerExceptions
 	 *             Throws an OdometerExceptions error back to the main if error in
 	 *             instances
 	 */
 	public FlagFinding(TrackExpansion dynamicTrack, ColorSensor colorSensor, UltrasonicSensor usSensor,
-			ColorSensor.BlockColor blockWanted, int LLx, int LLy, int URx, int URy) throws OdometerExceptions {
+			InternalClock internalClock) throws OdometerExceptions {
 		this.dynamicTrack = dynamicTrack;
 		this.colorSensor = colorSensor;
 		this.usSensor = usSensor;
 		this.navigation = Navigation.getNavigation();
 		this.odo = Odometer.getOdometer();
-		this.blockWanted = blockWanted;
-		this.LLx = LLx * Navigation.TILE_SIZE;
-		this.LLy = LLy * Navigation.TILE_SIZE;
-		this.URx = URx * Navigation.TILE_SIZE;
-		this.URy = URy * Navigation.TILE_SIZE;
-		this.xRange = Math.abs(URx - LLx) * Navigation.TILE_SIZE;
-		this.yRange = Math.abs(URy - LLy) * Navigation.TILE_SIZE;
-		this.searchStart = System.currentTimeMillis();
+		this.internalClock=internalClock;
 	}
 
 	/**
@@ -81,6 +66,7 @@ public class FlagFinding {
 	 * 
 	 * @param usSensorTurned
 	 *            true if the ultrasonic sensor should turn to face left
+	 *         
 	 * @return true if the ultrasonic sensor faces left
 	 */
 	public boolean rotateUltrasonicSensor(boolean usSensorTurn) {
@@ -94,34 +80,111 @@ public class FlagFinding {
 		}
 		return headTurned;
 	}
+	
+	
 
 	/**
 	 * Looks for the wanted block by sweeping the search area using the
 	 * ultrasonicsensor and performing color detection using the light sensor Makes
 	 * the robot circle the search area in a counter clockwise motion Delays are
-	 * included to prevent motor interruption
+	 * included to prevent motor interruption.
 	 * 
+	 * Search algorithm:
+	 * 1-Goes to the nearest side of the search zone
+	 * 2-Begins searching by going counter-clockwise around
+	 * the sides of the search zone.
+	 * 3-When a block is detected by the ultrasonic sensor,
+	 * the robot moves a bit forward to look if it is in
+	 * danger of hitting a block ahead.
+	 * a-If so, it skips the
+	 * block with the obstructed path (will eventually detect it later).
+	 * and checks if another block obstructs the path of the second
+	 * 4-If not, the robot goes straight to the block and keeps going until it detects 
+	 * its color (or goes beyond the search zone if there is a false positive)
+	 * 5-After detecting the color, the robot backs up to the side it just came from.
+	 * 6-If the block detected was not the desired one, the search algorithm continues (step 2).
+	 * 7-After detecting the right block of if there is no time left to search,
+	 * the search algorithm will end, thus returning to the procedures in GamePlan.
+	 * 
+	 * @param side
+	 * 				on what side of the search zone the robot will start looking
+	 * @param Lx
+	 *            (int) X line of the lower left corner of the search zone
+	 * @param Ly
+	 *            (int) Y line of the lower left corner of the search zone
+	 * @param Ux
+	 *            (int) X line of the lower left corner of the search zone
+	 * @param Uy
+	 *            (int) Y line of the lower left corner of the search zone
+	 *   
+	 * @param blockWanted
+	 *            ColorSensor.BlockColor of the block wanted
+	 *
 	 * @return true if the block was found
 	 */
-	public boolean findBlock() {
+	public boolean findBlock(GamePlan.Direction side, int Lx, int Ly, int Ux, int Uy, 
+			ColorSensor.BlockColor blockWanted) {
+		//variables for the search
+		internalClock.startSearchClock();
+		this.LLx = Lx * Navigation.TILE_SIZE;
+		this.LLy = Ly * Navigation.TILE_SIZE;
+		this.URx = Ux * Navigation.TILE_SIZE;
+		this.URy = Uy * Navigation.TILE_SIZE;
+		this.xRange = Math.abs(this.URx - this.LLx) * Navigation.TILE_SIZE;
+		this.yRange = Math.abs(this.URy - this.LLy) * Navigation.TILE_SIZE;
+		this.blockWanted = blockWanted;
+		
+		
+		//Go to closest corner of the search zone
 		Sound.beep();
-		travelToLowerLeft();
-		Sound.beep();
-		int i = 0;
-		while (i < GamePlan.Direction.values().length && timeElapsed() < MAX_SEARCH_TIME) { // if the robot has not detected 4 blocks
-																				// on one side and still some time left
-
-			GamePlan.Direction sideTest = GamePlan.Direction.values()[i];
-
-			switch (sideTest) {
+		switch(side) {
+		case NORTH:
+			goToUpperRight();
+			break;
+		case WEST:
+			goToUpperLeft();
+			break;
+		case SOUTH:
+			goToLowerLeft();
+			break;
+		case EAST:
+			goToLowerRight();
+			break;
+		case CENTER:
+			goToUpperRight(); //could have been any corner
+			break;
+		}
+		
+		Sound.beepSequenceUp();
+		/* Search algorithm:
+		 * 1-Goes to the nearest side of the search zone
+		 * 2-Begins searching by going counter-clockwise around
+		 * the sides of the search zone.
+		 * 3-When a block is detected by the ultrasonic sensor,
+		 * the robot moves a bit forward to look if it is in
+		 * danger of hitting a block ahead.
+		 * a-If so, it skips the
+		 * block with the obstructed path (will eventually detect it later).
+		 * and checks if another block obstructs the path of the second
+		 * 4-If not, the robot goes straight to the block and keeps going until it detects 
+		 * its color (or goes beyond the search zone if there is a false positive)
+		 * 5-After detecting the color, the robot backs up to the side it just came from.
+		 * 6-If the block detected was not the desired one, the search algorithm continues (step 2).
+		 * 7-After detecting the right block of if there is no time left to search,
+		 * the search algorithm will end, thus returning to the procedures in GamePlan.
+		 */
+		while (!internalClock.isSearchTimeUp() ) { // if the robot has not detected the target block
+													//yet and there is some time left
+			switch (side) {
 
 			case SOUTH: // x-axis
 				Delay.msDelay(500);
 				navigation.turnTo(90);
+				Sound.beepSequenceUp();
 				rotateUltrasonicSensor(true);
 				navigation.travelForward();
 				while (usSensor.readDistance() > yRange + dynamicTrack.getTrack()
-						&& odo.getX() < URx + dynamicTrack.getTrack()) {
+						&& odo.getX() < this.URx + dynamicTrack.getTrack()) {
 					// continue going forward until end of search zone
 				}
 				navigation.stopMotors(); // stop robot
@@ -131,7 +194,7 @@ public class FlagFinding {
 					// rotate sensor 90 degrees facing front
 					Delay.msDelay(500);
 					navigation.turnTo(0);
-					navigation.stopMotors();
+					rotateUltrasonicSensor(false);
 					Delay.msDelay(500);
 					navigation.travelForward(); // travel indefinitely
 
@@ -143,28 +206,23 @@ public class FlagFinding {
 					if (isDesiredBlock()) { // checks if it is of the right color
 						beepSequence(SUCCESSFUL_BEEPING); // plays the success sequence
 
-						// go to UR corner of search zone
+						// get out of search zone
 						Delay.msDelay(500);
 						navigation.backUpTo(odo.getX(), LLy - dynamicTrack.getTrack());
-						navigation.stopMotors();
 						rotateUltrasonicSensor(false);
-						travelToUpperRight();
 						return true; // return that you found the block
 					} else {
 						// continue searching
 						beepSequence(NOT_IT_BEEPING);
 						Delay.msDelay(500);
 						navigation.backUpTo(odo.getX(), LLy - dynamicTrack.getTrack());
-						navigation.stopMotors();
-						Delay.msDelay(500);
 						navigation.turnTo(90);
-						navigation.stopMotors();
-						Delay.msDelay(500);
-						navigation.travel(BLOCK_WIDTH);
+						rotateUltrasonicSensor(true);
+						navigation.travel(BLOCK_WIDTH); //to unsee the previous block
 					}
 				}
-				if (odo.getX() >= URx + dynamicTrack.getTrack()) { // end of BOTTOM side
-					i++; // next side
+				if (odo.getX() >= URx + dynamicTrack.getTrack()) { // end of SOUTH side
+					side=GamePlan.Direction.EAST; // next side
 				}
 				break;
 			case EAST: // y-axis
@@ -183,7 +241,7 @@ public class FlagFinding {
 					// rotate sensor 90 degrees facing front
 					Delay.msDelay(500);
 					navigation.turnTo(270);
-					navigation.stopMotors();
+					rotateUltrasonicSensor(false);
 					Delay.msDelay(500);
 					navigation.travelForward(); // travel indefinitely to go see block
 
@@ -195,12 +253,10 @@ public class FlagFinding {
 					if (isDesiredBlock()) { // checks if it is of the right color
 						beepSequence(SUCCESSFUL_BEEPING); // plays the success sequence
 
-						// go to UR corner of search zone
+						// get out of search zone
 						Delay.msDelay(500);
 						navigation.backUpTo(URx + dynamicTrack.getTrack(), odo.getY());
-						navigation.stopMotors();
 						rotateUltrasonicSensor(false);
-						travelToUpperRight();
 						return true; // return that you found the block
 
 					} else {
@@ -208,16 +264,13 @@ public class FlagFinding {
 						beepSequence(NOT_IT_BEEPING);
 						Delay.msDelay(500);
 						navigation.backUpTo(URx + dynamicTrack.getTrack(), odo.getY());
-						navigation.stopMotors();
-						Delay.msDelay(500);
 						navigation.turnTo(0);
-						navigation.stopMotors();
-						Delay.msDelay(500);
-						navigation.travel(BLOCK_WIDTH);
+						rotateUltrasonicSensor(true);
+						navigation.travel(BLOCK_WIDTH); //to unsee the previous block
 					}
 				}
-				if (odo.getY() >= URy + dynamicTrack.getTrack()) { // end of RIGHT side
-					i++; // next side
+				if (odo.getY() >= URy + dynamicTrack.getTrack()) { // end of EAST side
+					side=GamePlan.Direction.NORTH; // next side
 				}
 				break;
 			case NORTH: // x-axis on the top
@@ -236,7 +289,7 @@ public class FlagFinding {
 					// rotate sensor 90 degrees facing front
 					Delay.msDelay(500);
 					navigation.turnTo(180);
-					navigation.stopMotors();
+					rotateUltrasonicSensor(false);
 					Delay.msDelay(500);
 					navigation.travelForward(); // travel indefinitely
 
@@ -248,12 +301,10 @@ public class FlagFinding {
 					if (isDesiredBlock()) { // checks if it is of the right color
 						beepSequence(SUCCESSFUL_BEEPING); // plays the success sequence
 
-						// go to UR corner of search zone
+						// get out of search zone
 						Delay.msDelay(500);
 						navigation.backUpTo(odo.getX(), URy + dynamicTrack.getTrack());
-						navigation.stopMotors();
 						rotateUltrasonicSensor(false);
-						travelToUpperRight();
 						return true; // return that you found the block
 
 					} else {
@@ -261,16 +312,13 @@ public class FlagFinding {
 						beepSequence(NOT_IT_BEEPING);
 						Delay.msDelay(500);
 						navigation.backUpTo(odo.getX(), URy + dynamicTrack.getTrack());
-						navigation.stopMotors();
-						Delay.msDelay(500);
 						navigation.turnTo(270);
-						navigation.stopMotors();
-						Delay.msDelay(500);
-						navigation.travel(BLOCK_WIDTH);
+						rotateUltrasonicSensor(true);
+						navigation.travel(BLOCK_WIDTH); //to unsee the previous block
 					}
 				}
-				if (odo.getX() <= LLx - dynamicTrack.getTrack()) { // end of TOP side
-					i++; // next side
+				if (odo.getX() <= LLx - dynamicTrack.getTrack()) { // end of NORTH side
+					side=GamePlan.Direction.WEST; // next side
 				}
 				break;
 			case WEST: // y-axis back to starting point
@@ -289,7 +337,7 @@ public class FlagFinding {
 					// rotate sensor 90 degrees facing front
 					Delay.msDelay(500);
 					navigation.turnTo(90);
-					navigation.stopMotors();
+					rotateUltrasonicSensor(false);
 					Delay.msDelay(500);
 					navigation.travelForward(); // travel indefinitely
 
@@ -301,12 +349,10 @@ public class FlagFinding {
 					if (isDesiredBlock()) { // checks if it is of the right color
 						beepSequence(SUCCESSFUL_BEEPING); // plays the success sequence
 
-						// go to UR corner of search zone
+						// get out of search zone
 						Delay.msDelay(500);
 						navigation.backUpTo(LLx - dynamicTrack.getTrack(), odo.getY());
-						navigation.stopMotors();
 						rotateUltrasonicSensor(false);
-						travelToUpperRight();
 						return true; // return that you found the block
 
 					} else {
@@ -314,23 +360,18 @@ public class FlagFinding {
 						beepSequence(NOT_IT_BEEPING);
 						Delay.msDelay(500);
 						navigation.backUpTo(LLx - dynamicTrack.getTrack(), odo.getY());
-						navigation.stopMotors();
-						Delay.msDelay(500);
 						navigation.turnTo(180);
-						navigation.stopMotors();
-						Delay.msDelay(500);
-						navigation.travel(BLOCK_WIDTH);
+						rotateUltrasonicSensor(true);
+						navigation.travel(BLOCK_WIDTH); //to unsee the previous block
 					}
 				}
-				if (odo.getY() <= LLy - dynamicTrack.getTrack()) { // end of LEFT side
-					i++; // next side
+				if (odo.getY() <= LLy - dynamicTrack.getTrack()) { // end of WEST side
+					side=GamePlan.Direction.SOUTH; // next side
 				}
 				break;
 			}
 		}
-
 		beepSequence(FAILURE_BEEPING);
-		travelToUpperRight();
 		return false;
 	}
 
@@ -360,13 +401,13 @@ public class FlagFinding {
 
 		double distanceFirstBlock = usSensor.readDistance();
 
-		if (distanceFirstBlock <= range) {
+		if (distanceFirstBlock +UltrasonicSensor.US_ERROR <= range) {
 			// the block was seen
 			navigation.stopMotors();
 			Sound.beepSequence();
 
-			// move 1.5 block ahead forward
-			navigation.travel(1.0 * BLOCK_WIDTH);
+			// move .5 block ahead forward
+			navigation.travel(0.5 * BLOCK_WIDTH);
 			navigation.stopMotors();
 			// checks if there is a block ahead which would be hit
 			if (usSensor.readDistance() <= distanceFirstBlock - UltrasonicSensor.US_ERROR) {
@@ -392,102 +433,54 @@ public class FlagFinding {
 	}
 
 	/**
-	 * Makes the robot travel to the lower left corner of the search zone by going
-	 * around Depending on where it is currently
+	 * Makes the robot navigate to the lower left corner of the search zone in the
+	 * zone The robot will be outside of the zone
 	 * 
-	 * @return true if it has reached the lower left corner
+	 * @return True when reached
 	 */
-	public boolean travelToLowerLeft() {
-		GamePlan.Direction side;
-		// determine the side of the of the search zone
-		if (odo.getX() <= LLx) {
-			side = GamePlan.Direction.WEST;
-		} else if (odo.getX() <= URx) {
-			if (odo.getY() <= LLy) {
-				side = GamePlan.Direction.SOUTH;
-			} else if (odo.getY() >= URy) {
-				side = GamePlan.Direction.NORTH;
-			} else {
-				// center of search zone
-				navigation.travelTo(LLx - dynamicTrack.getTrack(), LLy - dynamicTrack.getTrack());
-				return true;
-			}
-		} else {
-			side = GamePlan.Direction.EAST;
-		}
-		// goes around the search zone
-		switch (side) {
-		case WEST:
-			navigation.travelTo(LLx - dynamicTrack.getTrack(), LLy - dynamicTrack.getTrack());
-			break;
-		case SOUTH:
-			navigation.travelTo(LLx - dynamicTrack.getTrack(), LLy - dynamicTrack.getTrack());
-			break;
-		case EAST:
-			navigation.travelTo(URx + dynamicTrack.getTrack(), LLy - dynamicTrack.getTrack());
-			navigation.travelTo(LLx - dynamicTrack.getTrack(), LLy - dynamicTrack.getTrack());
-			break;
-		case NORTH:
-			navigation.travelTo(LLx - dynamicTrack.getTrack(), URy + dynamicTrack.getTrack());
-			navigation.travelTo(LLx - dynamicTrack.getTrack(), LLy - dynamicTrack.getTrack());
-			break;
-		}
+	private boolean goToLowerLeft() {
+		navigation.travelTo(
+				LLx - dynamicTrack.getTrack(),
+				LLy - dynamicTrack.getTrack());
 		return true;
 	}
 
 	/**
-	 * Makes the robot travel to the upper right corner of the search zone by going
-	 * around Depending on where it is currently
+	 * Makes the robot navigate to the lower right corner of the search zone in the
+	 * zone The robot will be outside of the zone
 	 * 
-	 * @return true if it has reached the upper right corner
+	 * @return True when reached
 	 */
-	public boolean travelToUpperRight() {
-		GamePlan.Direction side;
-		// determine the side of where the robot is
-		if (odo.getX() <= LLx) {
-			side = GamePlan.Direction.WEST;
-		} else if (odo.getX() <= URx) {
-			if (odo.getY() <= LLy) {
-				side = GamePlan.Direction.SOUTH;
-			} else if (odo.getY() >= URy) {
-				side = GamePlan.Direction.NORTH;
-			} else {
-				// center of search zone
-				navigation.travelTo(URx, URy);
-				return true;
-			}
-		} else {
-			side = GamePlan.Direction.EAST;
-		}
-
-		// go around search zone
-		switch (side) {
-		case WEST:
-			navigation.travelTo(LLx - dynamicTrack.getTrack(), URy + dynamicTrack.getTrack());
-			navigation.travelTo(URx, URy);
-
-			break;
-		case SOUTH:
-			navigation.travelTo(URx + dynamicTrack.getTrack(), LLy - dynamicTrack.getTrack());
-			navigation.travelTo(URx, URy);
-			break;
-		case EAST:
-			navigation.travelTo(URx, URy);
-			break;
-		case NORTH:
-			navigation.travelTo(URx, URy);
-			break;
-		}
+	private boolean goToLowerRight() {
+		navigation.travelTo(
+				URx + dynamicTrack.getTrack(),
+				LLy - dynamicTrack.getTrack());
 		return true;
 	}
 
 	/**
-	 * Gets the time elapsed in milliseconds
+	 * Makes the robot navigate to the upper left corner of the search zone in the
+	 * zone The robot will be outside of the zone
 	 * 
-	 * @return the number of milliseconds elapse since the start of the creation of
-	 *         this FLagFinding instance
+	 * @return True when reached
 	 */
-	public long timeElapsed() {
-		return (System.currentTimeMillis() - searchStart);
+	private boolean goToUpperLeft() {
+		navigation.travelTo(
+				LLx - dynamicTrack.getTrack(),
+				URy + dynamicTrack.getTrack());
+		return true;
+	}
+
+	/**
+	 * Makes the robot navigate to the upper right corner of the search zone in the
+	 * zone The robot will be outside of the zone
+	 * 
+	 * @return True when reached
+	 */
+	private boolean goToUpperRight() {
+		navigation.travelTo(
+				URx + dynamicTrack.getTrack(),
+				URy + dynamicTrack.getTrack());
+		return true;
 	}
 }

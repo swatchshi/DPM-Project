@@ -70,6 +70,7 @@ public class ColorSensor {
 
 	/**
 	 * Checks if a line is crossed, doesn't return until found
+	 * Uses the Red mode of the EV3ColorSensor
 	 * @return if a line is crossed
 	 */
 	public boolean lineCrossed() {
@@ -111,6 +112,44 @@ public class ColorSensor {
 			}
 	    }
 	    
+	    return lineSeen;   
+	}
+	
+	/**
+	 * Checks if a line is detected, doesn't return until found
+	 * Uses the colorID mode of the EV3ColorSensor
+	 * 
+	 * @return if a line is detected
+	 */
+	public boolean lineDetected() {
+		boolean lineSeen=false;
+		long correctionStart, correctionEnd=0; //time elapsed
+	    
+	   
+	  
+	    lightSensor.setCurrentMode("ColorID"); //set Sensor to use red light alone
+	   
+	    
+	    while(true) {
+	    	correctionStart = System.currentTimeMillis();
+		      
+		    //tries to detect the line with its ID
+		    if(lightSensor.getColorID()==13){
+		       lineSeen=true;
+		       Sound.beep();
+		       break;
+		    }
+		
+		    // this ensure the odometry correction occurs only once every period
+		    correctionEnd = System.currentTimeMillis();
+			if (correctionEnd - correctionStart < PING_PERIOD) {
+			    try {
+			      Thread.sleep(PING_PERIOD - (correctionEnd - correctionStart));
+			    } catch (InterruptedException e) {
+			       // there is nothing to be done here
+			    }
+			}
+	    }
 	    return lineSeen;   
 	}
 	

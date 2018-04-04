@@ -53,6 +53,7 @@ public class Navigation {
 		this.config=config;
 		nav=this;
 		setAcceleration(1000);
+		setForwardSpeed(FORWARD_SPEED);
 	}
 	
 	/**
