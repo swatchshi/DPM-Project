@@ -286,6 +286,129 @@ public class LightLocalizer {
 	}
 	
 	
+	/**
+	 * Method to initialize odometer coordinates while traveling to the first water feature.
+	 * The robot will take the corner it is in and the direction of its entry point.
+	 * It will follow the wall after crashing to the one behind it.
+	 * To decide which wall to follow, it will see what path will lead it
+	 * the closest to the entry point specified.
+	 * After going along the wall and stopping at the height on the entry point,
+	 * it will crash into the wall it followed to update the next coordinate parameter.
+	 * After that, it will travel to the entry point specified.
+	 * 
+	 * This method does not care about the search zones, so it will not
+	 * try to avoid them.
+	 * 
+	 * @param corner Starting corner of the robot
+	 * @param entryPoint Direction of the entry side of the first water feature to cross
+	 * @param xEntry X coordinate of the entry point (in cm)
+	 * @param yEntry Y coordinate of the entry point (in cm)
+	 * @throws Exception if the entry point specified doesn't match the possibilities
+	 * 			for the specified corner.
+	 */
+	public void initialCrashLoc(int corner, GamePlan.Direction entryPoint, double xEntry, double yEntry) throws Exception {
+		switch(corner) {
+		case 0:
+			switch(entryPoint) {
+			//Entry side of the first water feature to cross.
+			case CENTER:
+			case NORTH:
+			case EAST:
+				throw new Exception("Erroneous entry point found when localizing.");
+			case SOUTH:
+				//Robot will follow the SOUTH wall
+				odo.setXYT(Navigation.TILE_SIZE/2, Navigation.TILE_SIZE/2, 0);
+				crashIntoWall(GamePlan.Direction.WEST);
+				navigation.travelTo(xEntry, odo.getY());
+				crashIntoWall(GamePlan.Direction.SOUTH);
+				navigation.travelTo(xEntry, yEntry);
+				break;
+			case WEST:
+				//Robot will follow the WEST wall
+				odo.setXYT(Navigation.TILE_SIZE/2, Navigation.TILE_SIZE/2, 0);
+				crashIntoWall(GamePlan.Direction.SOUTH);
+				navigation.travelTo(odo.getX(), yEntry);
+				crashIntoWall(GamePlan.Direction.WEST);
+				navigation.travelTo(xEntry, yEntry);
+				break;
+			}
+			break;
+		case 1:
+			switch(entryPoint) {
+			case CENTER:
+			case NORTH:
+			case WEST:
+				throw new Exception("Erroneous entry point found when localizing.");
+			case SOUTH:
+				//Robot will follow the SOUTH wall
+				odo.setXYT(Navigation.TILE_SIZE*(EV3WifiClient.X_GRID_LINES-0.5), Navigation.TILE_SIZE/2, 270);
+				crashIntoWall(GamePlan.Direction.EAST);
+				navigation.travelTo(xEntry, odo.getY());
+				crashIntoWall(GamePlan.Direction.SOUTH);
+				navigation.travelTo(xEntry, yEntry);
+				break;
+			case EAST:
+				//Robot will follow the EAST wall
+				odo.setXYT(Navigation.TILE_SIZE*(EV3WifiClient.X_GRID_LINES-0.5), Navigation.TILE_SIZE/2, 270);
+				crashIntoWall(GamePlan.Direction.SOUTH);
+				navigation.travelTo(odo.getX(), yEntry);
+				crashIntoWall(GamePlan.Direction.EAST);
+				navigation.travelTo(xEntry, yEntry);
+				break;
+			}
+			break;
+		case 2:
+			switch(entryPoint) {
+			case CENTER:
+			case SOUTH:
+			case WEST:
+				throw new Exception("Erroneous entry point found when localizing.");
+			case NORTH:
+				//Robot will follow the NORTH wall
+				odo.setXYT(Navigation.TILE_SIZE*(EV3WifiClient.X_GRID_LINES-0.5), Navigation.TILE_SIZE*(EV3WifiClient.X_GRID_LINES-0.5), 180);
+				crashIntoWall(GamePlan.Direction.EAST);
+				navigation.travelTo(xEntry, odo.getY());
+				crashIntoWall(GamePlan.Direction.NORTH);
+				navigation.travelTo(xEntry, yEntry);
+				break;
+			case EAST:
+				//Robot will follow the EAST wall
+				odo.setXYT(Navigation.TILE_SIZE*(EV3WifiClient.X_GRID_LINES-0.5), Navigation.TILE_SIZE*(EV3WifiClient.X_GRID_LINES-0.5), 180);
+				crashIntoWall(GamePlan.Direction.NORTH);
+				navigation.travelTo(odo.getX(), yEntry);
+				crashIntoWall(GamePlan.Direction.EAST);
+				navigation.travelTo(xEntry, yEntry);
+				break;
+			}
+			break;
+		case 3:
+			switch(entryPoint) {
+			case CENTER:
+			case SOUTH:
+			case EAST:
+				throw new Exception("Erroneous entry point found when localizing.");
+			case NORTH:
+				//Robot will follow the NORTH wall
+				odo.setXYT(Navigation.TILE_SIZE/2, Navigation.TILE_SIZE*(EV3WifiClient.X_GRID_LINES-0.5), 90);
+				crashIntoWall(GamePlan.Direction.WEST);
+				navigation.travelTo(xEntry, odo.getY());
+				crashIntoWall(GamePlan.Direction.NORTH);
+				navigation.travelTo(xEntry, yEntry);
+				break;
+			case WEST:
+				//Robot will follow the WEST wall
+				odo.setXYT(Navigation.TILE_SIZE/2, Navigation.TILE_SIZE*(EV3WifiClient.X_GRID_LINES-0.5), 90);
+				crashIntoWall(GamePlan.Direction.NORTH);
+				navigation.travelTo(odo.getX(), yEntry);
+				crashIntoWall(GamePlan.Direction.WEST);
+				navigation.travelTo(xEntry, yEntry);
+				break;
+			}
+			break;
+		}
+	}
+	
+	
 
 	
 	/**

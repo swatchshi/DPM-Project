@@ -70,7 +70,18 @@ public class EV3WifiClient {
 	 * the 0,0
 	 */
 	public enum CoordParameter {
-		Red_LL_x, Red_LL_y, Red_UR_x, Red_UR_y, Green_LL_x, Green_LL_y, Green_UR_x, Green_UR_y, SR_LL_x, SR_LL_y, SR_UR_x, SR_UR_y, SG_LL_x, SG_LL_y, SG_UR_x, SG_UR_y, BR_LL_x, BR_LL_y, BR_UR_x, BR_UR_y, TN_LL_x, TN_LL_y, TN_UR_x, TN_UR_y,
+		Red_LL_x, Red_LL_y, 
+		Red_UR_x, Red_UR_y, 
+		Green_LL_x, Green_LL_y, 
+		Green_UR_x, Green_UR_y, 
+		SR_LL_x, SR_LL_y, 
+		SR_UR_x, SR_UR_y, 
+		SG_LL_x, SG_LL_y, 
+		SG_UR_x, SG_UR_y, 
+		BR_LL_x, BR_LL_y, 
+		BR_UR_x, BR_UR_y, 
+		TN_LL_x, TN_LL_y, 
+		TN_UR_x, TN_UR_y,
 	}
 
 	/**

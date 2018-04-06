@@ -2,6 +2,7 @@ package ca.mcgill.ecse211.lab5;
 
 import ca.mcgill.ecse211.lab5.EV3WifiClient.CoordParameter;
 import ca.mcgill.ecse211.lab5.EV3WifiClient.Zone;
+import ca.mcgill.ecse211.lab5.Navigation.Turn;
 import ca.mcgill.ecse211.localizer.*;
 import ca.mcgill.ecse211.localizer.ColorSensor.BlockColor;
 import ca.mcgill.ecse211.odometer.*;
@@ -204,6 +205,44 @@ public class GamePlan {
 		dynamicTrack.adjustToMax();
 		dynamicTrack.adjustToMin();
 	}
+	
+	/**
+	 * Calculates the track experimentally by detecting 5 lines of a crossing
+	 * and calculating the track needed to do a 360 turn (going back to the same line)
+	 * Robot has to be centered on top of a crossing.
+	 * The calculated track will be displayed on the screen.
+	 * The method will then wait for user input to finish its procedure.
+	 */
+	public void calculateTrack() {
+		int lineCount=5, i=0;
+		int leftMotorLastTachoCount=0, rightMotorLastTachoCount=0,leftMotorTachoCount, rightMotorTachoCount;
+	    double distL, distR, theta, track;
+	    navigation.rotate(Turn.CLOCK_WISE);
+	    while(i<lineCount) {
+	    	if(cSensor.lineDetected()) {
+	    		i++;
+	    	}
+	    	if(i==1) {
+	    		leftMotorLastTachoCount = leftMotor.getTachoCount();
+	    		rightMotorLastTachoCount = rightMotor.getTachoCount();
+	    	}
+	    }
+	    navigation.stopMotors();
+	    leftMotorTachoCount = leftMotor.getTachoCount();
+	    rightMotorTachoCount = rightMotor.getTachoCount();
+		      
+		distL=Math.PI*dynamicTrack.getWheelRad()*(leftMotorTachoCount-leftMotorLastTachoCount)/180; 	//convert left rotation to wheel displacement
+		distR=Math.PI*dynamicTrack.getWheelRad()*(rightMotorTachoCount-rightMotorLastTachoCount)/180;	//convert right rotation to wheel displacement
+		      
+		track=(distL-distR)/360; //Calculating the instantaneous rotation magnitude
+		odometryDisplay.setEnablePrint(false);
+		lcd.drawString("Track: "+ track, 0, 6);
+		Button.waitForAnyPress();
+		lcd.clear();
+		odometryDisplay.setEnablePrint(true);
+	}
+	
+	
 	/**
 	 * Display the colors seen by the color sensor
 	 * until the escape button is pressed.
@@ -220,6 +259,38 @@ public class GamePlan {
 		lcd.clear();
 		odometryDisplay.setEnablePrint(true);
 	}
+	
+	/**
+	 * Drives the robot in squares 
+	 * Waits for user input after
+	 * Continues of user presses any button but the enter button
+	 * 
+	 * @param tiles Number of tiles per side
+	 * @return True when the user ends the procedure
+	 */
+	public boolean squareDrive(int tiles) {
+		int buttonID=0;
+		do {
+			navigation.travel(tiles*Navigation.TILE_SIZE);
+			navigation.turn(90);
+			navigation.travel(tiles*Navigation.TILE_SIZE);
+			navigation.turn(90);
+			navigation.travel(tiles*Navigation.TILE_SIZE);
+			navigation.turn(90);
+			navigation.travel(tiles*Navigation.TILE_SIZE);
+			navigation.turn(90);
+			buttonID=Button.waitForAnyPress();
+			if(buttonID==Button.ID_UP) {
+				dynamicTrack.setTrack(dynamicTrack.getTrack()+0.05);
+			}else if(buttonID==Button.ID_DOWN) {
+				dynamicTrack.setTrack(dynamicTrack.getTrack()-0.05);
+			}
+		}while(buttonID!=Button.ID_ENTER);
+		System.exit(0);
+		return true;
+	}
+	
+	
 
 	/**
 	 * Procedure to determine what Team color plan should be followed
@@ -267,38 +338,6 @@ public class GamePlan {
 			return Direction.CENTER;
 		}
 	}
-	
-	
-	/**
-	 * Drives the robot in squares 
-	 * Waits for user input after
-	 * Continues of user presses any button but the enter button
-	 * 
-	 * @param tiles Number of tiles per side
-	 * @return True when the user ends the procedure
-	 */
-	public boolean squareDrive(int tiles) {
-		int buttonID=0;
-		do {
-			navigation.travel(tiles*Navigation.TILE_SIZE);
-			navigation.turn(90);
-			navigation.travel(tiles*Navigation.TILE_SIZE);
-			navigation.turn(90);
-			navigation.travel(tiles*Navigation.TILE_SIZE);
-			navigation.turn(90);
-			navigation.travel(tiles*Navigation.TILE_SIZE);
-			navigation.turn(90);
-			buttonID=Button.waitForAnyPress();
-			if(buttonID==Button.ID_UP) {
-				dynamicTrack.setTrack(dynamicTrack.getTrack()+0.05);
-			}else if(buttonID==Button.ID_DOWN) {
-				dynamicTrack.setTrack(dynamicTrack.getTrack()-0.05);
-			}
-		}while(buttonID!=Button.ID_ENTER);
-		System.exit(0);
-		return true;
-	}
-	
 	
 	
 	/**
