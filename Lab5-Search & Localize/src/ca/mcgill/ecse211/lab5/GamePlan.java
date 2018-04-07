@@ -303,6 +303,11 @@ public class GamePlan {
 				
 				
 		internalClock.startClock();
+		
+//		navigation.travel(30.48);
+//		navigation.turn(90);
+		
+		
 		greenPlan();
 		/*switch (serverData.getTeamColor()) {
 		case RED:
@@ -434,6 +439,10 @@ public class GamePlan {
 		goToStartingCorner();
 		Sound.beepSequence();
 		*/
+		gyroscope.resetToZero();
+		odometer.setTheta(0);
+		Button.waitForAnyPress();
+		
 		do {
 			odometer.setXYT(Navigation.TILE_SIZE, Navigation.TILE_SIZE*2, 0);
 			odoCorrect.setDoCorrection(true);

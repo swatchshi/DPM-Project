@@ -278,6 +278,7 @@ public class FlagFinding {
 				navigation.turnTo(270);
 				rotateUltrasonicSensor(true);
 				navigation.travelForward();
+				
 				while (usSensor.readDistance() > yRange + dynamicTrack.getTrack()
 						&& odo.getX() > LLx - dynamicTrack.getTrack()) {
 					// continue going forward until end of search zone

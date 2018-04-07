@@ -26,7 +26,7 @@ import lejos.utility.Delay;
  * 
  * @author Xavier Pellemans 260775554
  * 		   Thomas Bahen 260675971
- * 		   Guangyi Zhang
+ * 		   Guangyi Zhang 260708622
  * 		   Cara Zhang
  * 		   WenQi Shi
  *
