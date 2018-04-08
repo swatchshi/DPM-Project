@@ -137,6 +137,9 @@ public class LightLocalizer {
 	 * Method useful for localizing before/after crossing the river
 	 */
 	public void angleLocalizer() {
+		Sound.beepSequence();
+		Sound.beepSequence();
+		Sound.beepSequence();
 		double[] lineAngles = new double[4];
 		double baseTheta;
 		//determine what line will be seen first

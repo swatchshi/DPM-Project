@@ -305,13 +305,18 @@ public class GamePlan {
 				
 				
 		internalClock.startClock();
+	
+	
+	
+		odometer.setXYT(Navigation.TILE_SIZE, Navigation.TILE_SIZE,0);
+		odoCorrect.setDoCorrection(false);
+		navigation.travel(5*Navigation.TILE_SIZE);
+		Button.waitForAnyPress();
+		System.exit(0);
+		//navigation.turn(90);
 		
-//		navigation.travel(30.48);
-//		navigation.turn(90);
-		
-		
-		greenPlan();
-		/*switch (serverData.getTeamColor()) {
+		/*
+		switch (serverData.getTeamColor()) {
 		case RED:
 			redPlan();
 			break;
@@ -357,6 +362,10 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void redPlan() throws Exception {
+		
+		Sound.beepSequence();
+		Sound.beepSequence();
+		Sound.beepSequence();
 		int corner=serverData.getStartingCorner();
 
 		
@@ -372,13 +381,19 @@ public class GamePlan {
 		odoCorrect.setDoCorrection(true);
 		//goToBridge(getBridgeEntry());
 		odoCorrect.setDoCorrection(false);
-		localizeBeforeBridge(getBridgeEntry());
+		//localizeBeforeBridge(getBridgeEntry());
+		Sound.beepSequence();
+		Sound.beepSequence();
+		Sound.beepSequence();
 		crossBridge();
 		Sound.beepSequenceUp();
 		odoCorrect.setDoCorrection(true);
 		
 		//goToTunnel(getTunnelEntry());
-		localizeBeforeTunnel(getTunnelEntry());
+		//localizeBeforeTunnel(getTunnelEntry());
+		Sound.beepSequence();
+		Sound.beepSequence();
+		Sound.beepSequence();
 		odoCorrect.setDoCorrection(false);
 		crossTunnel();
 		odoCorrect.setDoCorrection(true);
@@ -400,9 +415,9 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void greenPlan() throws Exception {
-		/*
+		
 		int corner=serverData.getStartingCorner();
-		odometer.setXYT(7*Navigation.TILE_SIZE, 30.48, 270);
+		
 		
 		//Localizing at the corner
 		navigation.setForwardSpeed(Navigation.LOCALIZATION_SPEED);
@@ -412,17 +427,20 @@ public class GamePlan {
 		Sound.beepSequenceUp();
 		
 		//Light localizing at the closest crossing
-		
+		navigation.setEnableGyroscopeCorrection(false);
 		lightLoc.crashLocalizer(corner);
-		
+		Button.waitForAnyPress();
 		//Going to the tunnel
 		Sound.beepSequenceUp();
 		navigation.setForwardSpeed(Navigation.FORWARD_SPEED);
 		//goToTunnel(getTunnelEntry());
-		localizeBeforeTunnel(getTunnelEntry());
+		odoCorrect.setDoCorrection(false);
+		navigation.setEnableGyroscopeCorrection(true);
+		
+		goToTunnel(getTunnelEntry());
 		crossTunnel();
 		Sound.beepSequenceUp();
-		
+		/*
 		//find the flag in the red search zone
 		
 		
@@ -440,20 +458,26 @@ public class GamePlan {
 		odometer.correctAngle();
 		goToStartingCorner();
 		Sound.beepSequence();
-		*/
-		int xStartingLine=1;
-		int yStartingLine=2;
-		int theta=0;
-		Direction wall= Direction.NORTH; //wall to crash into
-		gyroscope.resetToZero();
-		odometer.setTheta(0);
-		Button.waitForAnyPress();
 		
+		int xStartingLine=3;
+		int yStartingLine=5;
+		int SLLx=serverData.getCoordParam(CoordParameter.SG_LL_x);
+		int SLLy=serverData.getCoordParam(CoordParameter.SG_LL_y);
+		int SURx=serverData.getCoordParam(CoordParameter.SG_UR_x);
+		int SURy=serverData.getCoordParam(CoordParameter.SG_UR_y);
+		Direction exit=Direction.SOUTH; //side of the tunnel where the robot would have suposably exited
+		ColorSensor.BlockColor color=ColorSensor.BlockColor.BLUE;
+		navigation.setEnableGyroscopeCorrection(true);
 		do {
-			odometer.setXYT(Navigation.TILE_SIZE*xStartingLine, Navigation.TILE_SIZE*yStartingLine, theta);
-			lightLoc.crashIntoWall(wall);
+		odometer.setXYT(Navigation.TILE_SIZE*xStartingLine, Navigation.TILE_SIZE*yStartingLine, 0);
+			odoCorrect.setDoCorrection(true);
+			flagFinder.findBlock(getSearchStartSide(Zone.SG, exit),
+				SLLx, SLLy,
+				SURx, SURy, 
+				color);
 			Button.waitForAnyPress();
 		}while(true);
+*/
 	}
 
 	
@@ -789,6 +813,7 @@ public class GamePlan {
 		
 		switch(direction) {
 		case NORTH:
+			/*
 			//Entry of tunnel is in the North part of the bridge
 			//look in what half of the field the tunnel is
 			if(upperRightXLine<=EV3WifiClient.X_GRID_LINES/2) {
@@ -803,7 +828,7 @@ public class GamePlan {
 				navigation.goToPoint(lowerLeftXLine, upperRightYLine+1);
 				odoCorrect.setDoCorrection(false);
 				lightLoc.angleLocalizer();
-			}
+			}*/
 			odoCorrect.setDoCorrection(true);
 			navigation.travelTo((lowerLeftXLine+(upperRightXLine-lowerLeftXLine)/2)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
 			navigation.turnTo(180);
@@ -811,6 +836,7 @@ public class GamePlan {
 		case SOUTH:
 			//Entry of tunnel is in the South part of the tunnel
 			//look in what half of the field the tunnel is
+			/*
 			if(upperRightXLine<=EV3WifiClient.X_GRID_LINES/2) {
 				//tunnel in west part of the field
 				//localize one crossing south of the upper right tunnel corner
@@ -823,7 +849,7 @@ public class GamePlan {
 				navigation.goToPoint(lowerLeftXLine, lowerLeftYLine-1);
 				odoCorrect.setDoCorrection(false);
 				lightLoc.angleLocalizer();
-			}
+			}*/
 			odoCorrect.setDoCorrection(true);
 			navigation.travelTo((lowerLeftXLine+(upperRightXLine-lowerLeftXLine)/2)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
 			navigation.turnTo(0);
@@ -831,6 +857,7 @@ public class GamePlan {
 		case EAST:
 			//Entry of tunnel is in the East part of the tunnel
 			//look in what half of the field the tunnel is
+			/*
 			if(upperRightYLine<=EV3WifiClient.Y_GRID_LINES/2) {
 				//tunnel in south part of the field
 				//localize one crossing east of the upper right tunnel corner
@@ -843,7 +870,7 @@ public class GamePlan {
 				navigation.goToPoint(upperRightXLine+1, lowerLeftYLine);
 				odoCorrect.setDoCorrection(false);
 				lightLoc.angleLocalizer();
-			}
+			}*/
 			odoCorrect.setDoCorrection(true);
 			navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE,(lowerLeftYLine+(upperRightYLine-lowerLeftYLine)/2)*Navigation.TILE_SIZE);
 			navigation.turnTo(270);
@@ -851,6 +878,7 @@ public class GamePlan {
 		case WEST:
 			//Entry of tunnel is in the West part of the tunnel
 			//look in what half of the field the tunnel is
+			/*
 			if(upperRightYLine<=EV3WifiClient.Y_GRID_LINES/2) {
 				//tunnel in South part of the field
 				//localize one crossing west of the upper left tunnel corner
@@ -863,7 +891,7 @@ public class GamePlan {
 				navigation.goToPoint(lowerLeftXLine-1, lowerLeftYLine);
 				odoCorrect.setDoCorrection(false);
 				lightLoc.angleLocalizer();
-			}
+			}*/
 			odoCorrect.setDoCorrection(true);
 			navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE,(lowerLeftYLine+(upperRightYLine-lowerLeftYLine)/2)*Navigation.TILE_SIZE);
 			navigation.turnTo(90);

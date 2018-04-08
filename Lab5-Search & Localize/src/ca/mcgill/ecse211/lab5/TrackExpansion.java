@@ -19,7 +19,7 @@ public class TrackExpansion {
 	// wheel width 2.2 (EACH)
 	// wheel diameter: 4.4
 	public static final double SCREW_WHEEL_RAD = 2.4;
-	public static final double TANK_WHEEL_RAD = 1.68;
+	public static final double TANK_WHEEL_RAD = 1.69;
 	public static final double TANK_TRACK = 18.92; // tested value or 19.21
 	public static final double MIN_SCREW_TRACK = 16.3; // adjust from 13.7 to 18.1
 	public static final double MAX_SCREW_TRACK = 16.3; // 21.3 to 29.5

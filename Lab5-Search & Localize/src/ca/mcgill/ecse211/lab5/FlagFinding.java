@@ -24,7 +24,7 @@ public class FlagFinding {
 	private static final int SUCCESSFUL_BEEPING = 3;
 	private static final int NOT_IT_BEEPING = 2;
 	private static final int FAILURE_BEEPING = 6;
-	private static final int BLOCK_WIDTH = 10;
+	private static final int BLOCK_WIDTH = 13;
 	
 	private double LLx, LLy, URx, URy;
 	private double xRange, yRange;
@@ -212,7 +212,7 @@ public class FlagFinding {
 						rotateUltrasonicSensor(false);
 						return true; // return that you found the block
 					} else {
-						// continue searching
+						// continue searching after seeing block which is not the one looked for
 						beepSequence(NOT_IT_BEEPING);
 						Delay.msDelay(500);
 						navigation.backUpTo(odo.getX(), LLy - dynamicTrack.getTrack());
@@ -260,7 +260,7 @@ public class FlagFinding {
 						return true; // return that you found the block
 
 					} else {
-						// continue searching
+						// continue searching  after seeing block which is not the one looked for
 						beepSequence(NOT_IT_BEEPING);
 						Delay.msDelay(500);
 						navigation.backUpTo(URx + dynamicTrack.getTrack(), odo.getY());
@@ -309,7 +309,7 @@ public class FlagFinding {
 						return true; // return that you found the block
 
 					} else {
-						// continue searching
+						// continue searching after seeing block which is not the one looked for
 						beepSequence(NOT_IT_BEEPING);
 						Delay.msDelay(500);
 						navigation.backUpTo(odo.getX(), URy + dynamicTrack.getTrack());
@@ -357,7 +357,7 @@ public class FlagFinding {
 						return true; // return that you found the block
 
 					} else {
-						// continue searching
+						// continue searching after seeing block which is not the one looked for
 						beepSequence(NOT_IT_BEEPING);
 						Delay.msDelay(500);
 						navigation.backUpTo(LLx - dynamicTrack.getTrack(), odo.getY());

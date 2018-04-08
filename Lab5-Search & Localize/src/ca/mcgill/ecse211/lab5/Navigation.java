@@ -1,4 +1,5 @@
 package ca.mcgill.ecse211.lab5;
+
 import ca.mcgill.ecse211.lab5.*;
 import ca.mcgill.ecse211.localizer.*;
 import ca.mcgill.ecse211.odometer.*;
@@ -7,8 +8,9 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 import lejos.robotics.SampleProvider;
 
 /**
- * Class to navigate with the robot on the map
- * Holds every method for wheel control
+ * Class to navigate with the robot on the map Holds every method for wheel
+ * control
+ * 
  * @author Xavier Pellemans
  * @author Thomas Bahen
  *
@@ -30,295 +32,307 @@ public class Navigation {
 	private int forwardSpeed;
 	private int rotateSpeed;
 	private TrackExpansion dynamicTrack;
-	private static boolean navigating=false;
-	private static boolean interrupt=false;
-	
-	private static Navigation nav; //Holds the used instance of this class
+	private static boolean navigating = false;
+	private static boolean interrupt = false;
+	private boolean enableGyroscopeCorrection = false;
+
+	private static Navigation nav; // Holds the used instance of this class
 	private GamePlan.RobotConfig config;
-	
-	public static enum Turn{
-		CLOCK_WISE, 
-		COUNTER_CLOCK_WISE
+
+	public static enum Turn {
+		CLOCK_WISE, COUNTER_CLOCK_WISE
 	}
-	
+
 	/**
 	 * Constructs a navigation object
-	 * @param map : map used
-	 * @param odo : Odometer used
-	 * @param us : UltrasonicPoller used
-	 * @param config The Lab5.RobotConfig, i.e. the wheel positioning
+	 * 
+	 * @param map
+	 *            : map used
+	 * @param odo
+	 *            : Odometer used
+	 * @param us
+	 *            : UltrasonicPoller used
+	 * @param config
+	 *            The Lab5.RobotConfig, i.e. the wheel positioning
 	 */
 	public Navigation(Odometer odo, TrackExpansion dynamicTrack, GamePlan.RobotConfig config) {
-		this.odo=odo;
-		this.dynamicTrack=dynamicTrack;
-		this.config=config;
-		nav=this;
+		this.odo = odo;
+		this.dynamicTrack = dynamicTrack;
+		this.config = config;
+		nav = this;
 		setAcceleration(1000);
 		setForwardSpeed(FORWARD_SPEED);
 		setRotateSpeed(ROTATE_SPEED);
 	}
-	
+
 	/**
-	 * This method is meant to ensure only one instance of the Navigator is used throughout the code.
+	 * This method is meant to ensure only one instance of the Navigator is used
+	 * throughout the code.
 	 * 
 	 * @return new or existing Navigation Object
-	 * @throws OdometerExceptions when no Navigation instance is found
+	 * @throws OdometerExceptions
+	 *             when no Navigation instance is found
 	 */
-	public synchronized static Navigation getNavigation() throws OdometerExceptions {	
+	public synchronized static Navigation getNavigation() throws OdometerExceptions {
 
-	    if (nav == null) {
-	      throw new OdometerExceptions("No previous Odometer exits.");
-	    }
-	   // Return existing object
-	    return nav;
+		if (nav == null) {
+			throw new OdometerExceptions("No previous Odometer exits.");
+		}
+		// Return existing object
+		return nav;
 	}
-	
+
 	/**
 	 * Sets the acceleration of both traction/propulsion motors
-	 * @param acceleration The desired acceleration
+	 * 
+	 * @param acceleration
+	 *            The desired acceleration
 	 */
 	private void setAcceleration(int acceleration) {
-		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] {GamePlan.leftMotor, GamePlan.rightMotor}) {
+		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] { GamePlan.leftMotor, GamePlan.rightMotor }) {
 			motor.stop();
 			motor.setAcceleration(3000);
 		}
 	}
-	
+
 	/**
-	 * Travels a certain amount of cm (with coordinates) 
-	 * Does not turn when given negative coordinates
+	 * Travels a certain amount of cm (with coordinates) Does not turn when given
+	 * negative coordinates
 	 * 
-	 * @param dX absolute displacement in cm
-	 * @param dY absolute displacement in cm
+	 * @param dX
+	 *            absolute displacement in cm
+	 * @param dY
+	 *            absolute displacement in cm
 	 */
 	public void travel(double totalX, double totalY) {
-		travel(Math.sqrt(totalX*totalX+totalY*totalY));
-	
+		travel(Math.sqrt(totalX * totalX + totalY * totalY));
+
 	}
-	
+
 	/**
-	 * Travels a certain amount of cm (with distance) 
+	 * Travels a certain amount of cm (with distance)
 	 * 
-	 * @param travelDistance absolute displacement in cm
+	 * @param travelDistance
+	 *            absolute displacement in cm
 	 */
 	public void travel(double travelDistance) {
-		double dX,dY;
-		lastX=odo.getX();
-		lastY=odo.getY();
+		double dX, dY;
+		lastX = odo.getX();
+		lastY = odo.getY();
 		travelForward();
-		
-		while(!interrupt)  {
-			dX=Math.abs(odo.getX()-lastX);
-			dY=Math.abs(odo.getY()-lastY);
-			if(dX*dX+dY*dY >= travelDistance*travelDistance) { //reached goal coordinates
+
+		while (!interrupt) {
+			dX = Math.abs(odo.getX() - lastX);
+			dY = Math.abs(odo.getY() - lastY);
+			if (dX * dX + dY * dY >= travelDistance * travelDistance) { // reached goal coordinates
 				break;
 			}
 		}
-		
-		stopMotors(); 
+
+		stopMotors();
 	}
-	
-	
 
 	/**
 	 * Goes to specified coordinate (in grid coordinates)
 	 * 
-	 * @param x the x line coordinate
-	 * @param y the y line coordinate
+	 * @param x
+	 *            the x line coordinate
+	 * @param y
+	 *            the y line coordinate
 	 */
 	public void goToPoint(double x, double y) {
-		travelTo(x*TILE_SIZE, y*TILE_SIZE);
+		travelTo(x * TILE_SIZE, y * TILE_SIZE);
 	}
-	
-	
+
 	/**
 	 * Travel to a specific coordinate specified in cm
 	 * 
-	 * @param x coordinates in x (positive right)
-	 * @param y coordinates in y (positive up)
+	 * @param x
+	 *            coordinates in x (positive right)
+	 * @param y
+	 *            coordinates in y (positive up)
 	 */
 	public void travelTo(double x, double y) {
-		
-		lastX=odo.getX();
-		lastY=odo.getY();
-		double dX= x-lastX;
-		double dY= y-lastY;
-	     
-		turnTo(Math.toDegrees(Math.atan2(dX, dY))); //turn to right direction
-		
+
+		lastX = odo.getX();
+		lastY = odo.getY();
+		double dX = x - lastX;
+		double dY = y - lastY;
+
+		turnTo(Math.toDegrees(Math.atan2(dX, dY))); // turn to right direction
+
 		travel(dX, dY);
-	} 
-	
+	}
+
 	/**
 	 * Travels non stop forward
 	 */
 	public void travelForward() {
-		navigating=true;
+		navigating = true;
 		setMotorSpeed(forwardSpeed);
-		switch(config) {
-			case PROPULSION:
-				GamePlan.rightMotor.backward();
-				GamePlan.leftMotor.backward();
-				break;
-			case TRACTION:
-				GamePlan.rightMotor.forward();
-				GamePlan.leftMotor.forward();
-				break;
-		} 
+		switch (config) {
+		case PROPULSION:
+			GamePlan.rightMotor.backward();
+			GamePlan.leftMotor.backward();
+			break;
+		case TRACTION:
+			GamePlan.rightMotor.forward();
+			GamePlan.leftMotor.forward();
+			break;
+		}
 	}
-	
+
 	/**
 	 * Backs up to a specific coordinate specified in cm
 	 * 
-	 * @param x coordinates in x (positive right)
-	 * @param y coordinates in y (positive up)
+	 * @param x
+	 *            coordinates in x (positive right)
+	 * @param y
+	 *            coordinates in y (positive up)
 	 */
 	public void backUpTo(double x, double y) {
-		double travelDistance=0;
-		
-		lastX=odo.getX();
-		lastY=odo.getY();
-		
-		double dX= x-lastX;
-		double dY= y-lastY;
-	     
-		turnTo(Math.toDegrees(Math.atan2(dX, dY))+180); //turn to opposite direction
-		travelDistance=Math.sqrt(dX*dX+dY*dY);
-	     
-		
+		double travelDistance = 0;
+
+		lastX = odo.getX();
+		lastY = odo.getY();
+
+		double dX = x - lastX;
+		double dY = y - lastY;
+
+		turnTo(Math.toDegrees(Math.atan2(dX, dY)) + 180); // turn to opposite direction
+		travelDistance = Math.sqrt(dX * dX + dY * dY);
+
 		travelBackward();
-				 
-		while(!interrupt)  {
-			dX= odo.getX()-lastX;
-			dY= odo.getY()-lastY;
-			if(dX*dX+dY*dY >= travelDistance*travelDistance) { //reached goal coordinates
+
+		while (!interrupt) {
+			dX = odo.getX() - lastX;
+			dY = odo.getY() - lastY;
+			if (dX * dX + dY * dY >= travelDistance * travelDistance) { // reached goal coordinates
 				break;
 			}
 		}
-		
+
 		stopMotors();
-	} 
-	
+	}
+
 	/**
-	 * Backs up a certain amount of cm (with distance) 
+	 * Backs up a certain amount of cm (with distance)
 	 * 
-	 * @param travelDistance absolute displacement in cm
+	 * @param travelDistance
+	 *            absolute displacement in cm
 	 */
 	public void backUp(double travelDistance) {
-		double dX,dY;
-		lastX=odo.getX();
-		lastY=odo.getY();
+		double dX, dY;
+		lastX = odo.getX();
+		lastY = odo.getY();
 		travelBackward();
-		
-		while(!interrupt)  {
-			dX=Math.abs(odo.getX()-lastX);
-			dY=Math.abs(odo.getY()-lastY);
-			if(dX*dX+dY*dY >= travelDistance*travelDistance) { //reached goal coordinates
+
+		while (!interrupt) {
+			dX = Math.abs(odo.getX() - lastX);
+			dY = Math.abs(odo.getY() - lastY);
+			if (dX * dX + dY * dY >= travelDistance * travelDistance) { // reached goal coordinates
 				break;
 			}
 		}
-		stopMotors(); 
+		stopMotors();
 	}
-	
-	
+
 	/**
 	 * Travels non stop backward
 	 */
 	public void travelBackward() {
-		navigating=true;
+		navigating = true;
 		setMotorSpeed(forwardSpeed);
-		switch(config) {
-			case TRACTION:
-				GamePlan.rightMotor.backward();
-				GamePlan.leftMotor.backward();
-				break;
-			case PROPULSION:
-				GamePlan.rightMotor.forward();
-				GamePlan.leftMotor.forward();
-				break;
+		switch (config) {
+		case TRACTION:
+			GamePlan.rightMotor.backward();
+			GamePlan.leftMotor.backward();
+			break;
+		case PROPULSION:
+			GamePlan.rightMotor.forward();
+			GamePlan.leftMotor.forward();
+			break;
 		}
 	}
-	
-	
-	
+
 	/**
 	 * Procedure to stop the motors at once
 	 */
 	public void stopMotors() {
 		GamePlan.rightMotor.stop(true);
 		GamePlan.leftMotor.stop(false);
-		navigating=false;
+		navigating = false;
 	}
-	
-		
-	
+
 	/**
 	 * Turns to specified angle (in degrees)
 	 * 
-	 * @param theta angles in degrees
+	 * @param theta
+	 *            angles in degrees
 	 */
 	public void turnTo(double theta) {
-	    
-		double actualTheta=odo.getTheta();
-		double rotation=(theta-actualTheta);
-		if( rotation > 180) {
-			rotation=rotation-360;
-		}
-		else if(rotation < -180) {
-			rotation=rotation+360;
-		}	
-		else if(Math.abs(rotation)==180){
-		   rotation= Math.abs(rotation);
+
+		double actualTheta = odo.getTheta();
+		double rotation = (theta - actualTheta);
+		if (rotation > 180) {
+			rotation = rotation - 360;
+		} else if (rotation < -180) {
+			rotation = rotation + 360;
+		} else if (Math.abs(rotation) == 180) {
+			rotation = Math.abs(rotation);
 		}
 		turn(rotation);
-		double angleDifference;
-		do {
-			double referenceAngle=odo.getGyroTheta();
-			actualTheta=odo.getTheta();
-			angleDifference=Math.abs(referenceAngle-actualTheta)%360;
-			if(angleDifference>Odometer.MIN_ANGLE_ERROR) {
-				turn(actualTheta-referenceAngle);
+		if (enableGyroscopeCorrection) {
+			double angleDifference;
+			
+			double referenceAngle = odo.getGyroTheta();
+			actualTheta = odo.getTheta();
+			angleDifference = getDiffAngle(referenceAngle, actualTheta);
+			if (angleDifference > Odometer.MIN_ANGLE_ERROR) {
+				odo.correctAngle();
+				turnTo(theta);
 			}
-		}while(angleDifference>Odometer.MIN_ANGLE_ERROR);
+		}
 	}
-	
+
 	/**
 	 * Turn by a certain amount of degrees (defined clockwise)
 	 * 
-	 * @param rotation clockwise in degrees
+	 * @param rotation
+	 *            clockwise in degrees
 	 */
 	public void turn(double rotation) {
-		navigating=true;
+		navigating = true;
 		setMotorSpeed(ROTATE_SPEED);
-	    GamePlan.leftMotor.rotate(-convertAngle(dynamicTrack.getWheelRad(), dynamicTrack.getTrack(), rotation), true);
-	    GamePlan.rightMotor.rotate(convertAngle(dynamicTrack.getWheelRad(), dynamicTrack.getTrack(), rotation), false);
-	    navigating=false;
+		GamePlan.leftMotor.rotate(-convertAngle(dynamicTrack.getWheelRad(), dynamicTrack.getTrack(), rotation), true);
+		GamePlan.rightMotor.rotate(convertAngle(dynamicTrack.getWheelRad(), dynamicTrack.getTrack(), rotation), false);
+		navigating = false;
 	}
-	
+
 	/**
 	 * Rotate continuously in one direction
 	 * 
-	 * @param direction Direction which the robot needs to turn 
-	 * (CLOCK_WISE, COUNTER_CLOCK_WISE)
+	 * @param direction
+	 *            Direction which the robot needs to turn (CLOCK_WISE,
+	 *            COUNTER_CLOCK_WISE)
 	 * 
 	 */
 	public void rotate(Turn direction) {
-		navigating=true;
+		navigating = true;
 		setMotorSpeed(rotateSpeed);
-	    switch(direction) {
-			case CLOCK_WISE:
-				GamePlan.rightMotor.forward();
-				GamePlan.leftMotor.backward();
-				break;
-			case COUNTER_CLOCK_WISE:
-				GamePlan.rightMotor.backward();
-				GamePlan.leftMotor.forward();
-				break;
-	    }
-		navigating=false;
+		switch (direction) {
+		case CLOCK_WISE:
+			GamePlan.rightMotor.forward();
+			GamePlan.leftMotor.backward();
+			break;
+		case COUNTER_CLOCK_WISE:
+			GamePlan.rightMotor.backward();
+			GamePlan.leftMotor.forward();
+			break;
+		}
+		navigating = false;
 	}
-	
-	
+
 	/**
 	 * Gets if the robot is moving towards a way point
 	 * 
@@ -327,9 +341,7 @@ public class Navigation {
 	public boolean isNavigating() {
 		return navigating;
 	}
-	
-	
-	
+
 	/**
 	 * Gets if interrupted navigation
 	 * 
@@ -338,7 +350,7 @@ public class Navigation {
 	public boolean getInterrupt() {
 		return interrupt;
 	}
-	
+
 	/**
 	 * Gets the last x coordinate (where the robot came from)
 	 * 
@@ -347,7 +359,7 @@ public class Navigation {
 	public double getLastX() {
 		return lastX;
 	}
-	
+
 	/**
 	 * Gets the last y coordinate (where the robot came from)
 	 * 
@@ -356,83 +368,111 @@ public class Navigation {
 	public double getLastY() {
 		return lastY;
 	}
-	
-	
-	 /**
-	   * This method allows the conversion of a distance to the total rotation of each wheel need to
-	   * cover that distance.
-	   * 
-	   * @param radius
-	   * @param distance
-	   * @return rotation in degrees
-	   */
-	 public static int convertDistance(double radius, double distance) {
-	    return (int) ((180.0 * distance) / (Math.PI * radius));
-	 }
 
-	 /**
-	  * Converts robot angle rotation into wheel rotations
-	  * 
-	  * @param radius of the wheels
-	  * @param width of the wheel base
-	  * @param angle rotation of the robot
-	  * @return the wheel rotation needed to make the robot turn
-	  */
-	 public static int convertAngle(double radius, double width, double angle) {
-	    return convertDistance(radius, Math.PI * width * angle / 360.0);
-	 }
-	
-	 /**
-	  * Gets the instance of the odometer
-	  * 
-	  * @return the used odometer
-	  */
-	 private Odometer getUsedOdometer() {
-		 return odo;
-	 }
+	/**
+	 * This method allows the conversion of a distance to the total rotation of each
+	 * wheel need to cover that distance.
+	 * 
+	 * @param radius
+	 * @param distance
+	 * @return rotation in degrees
+	 */
+	public static int convertDistance(double radius, double distance) {
+		return (int) ((180.0 * distance) / (Math.PI * radius));
+	}
+
+	/**
+	 * Converts robot angle rotation into wheel rotations
+	 * 
+	 * @param radius
+	 *            of the wheels
+	 * @param width
+	 *            of the wheel base
+	 * @param angle
+	 *            rotation of the robot
+	 * @return the wheel rotation needed to make the robot turn
+	 */
+	public static int convertAngle(double radius, double width, double angle) {
+		return convertDistance(radius, Math.PI * width * angle / 360.0);
+	}
+
+	/**
+	 * Gets the instance of the odometer
+	 * 
+	 * @return the used odometer
+	 */
+	private Odometer getUsedOdometer() {
+		return odo;
+	}
+
+	/**
+	 * Set the correction with the gyroscope when turning to an angle
+	 * @param enableGyroscopeCorrection
+	 * 			True if the gyroscope correction is enabled
+	 */
+	public void setEnableGyroscopeCorrection(boolean enableGyroscopeCorrection) {
+		this.enableGyroscopeCorrection = enableGyroscopeCorrection;
+	}
 
 	/**
 	 * Sets the navigating state
 	 * 
-	 * @param navigate : boolean if the robot is navigating
+	 * @param navigate
+	 *            : boolean if the robot is navigating
 	 */
 	public static void setNavigating(boolean navigate) {
-		navigating=navigate;
+		navigating = navigate;
 	}
 
 	/**
 	 * Sets the interrupt variable
 	 * 
-	 * @param interrupt boolean of if interrupted
+	 * @param interrupt
+	 *            boolean of if interrupted
 	 */
 	public static void setInterrupt(boolean interrupt) {
-	   Navigation.interrupt=interrupt;
+		Navigation.interrupt = interrupt;
 	}
-	
+
 	/**
 	 * Sets the speed of the motors
 	 * 
-	 * @param speed The desired speed
+	 * @param speed
+	 *            The desired speed
 	 */
 	public void setMotorSpeed(int speed) {
 		GamePlan.leftMotor.setSpeed(speed);
-	    GamePlan.rightMotor.setSpeed(speed);
+		GamePlan.rightMotor.setSpeed(speed);
 	}
-	
+
 	/**
 	 * Sets the forward speed value
+	 * 
 	 * @param forwardSpeed
 	 */
 	public void setForwardSpeed(int forwardSpeed) {
 		this.forwardSpeed = forwardSpeed;
 	}
-	
+
 	/**
 	 * Sets the rotate speed value
+	 * 
 	 * @param rotateSpeed
 	 */
 	public void setRotateSpeed(int rotateSpeed) {
 		this.rotateSpeed = rotateSpeed;
 	}
 	
+	/**
+	 * Computes the absolute difference in angle between two angles in radians
+	 * 
+	 * @param angle1 first angle in rad
+	 * @param angle2 second angle in rad
+	 * @return
+	 */
+	public static double getDiffAngle(double angle1, double angle2) {
+		//acos(cos(a1-a2))=acos(cos(a1)*cos(a2)+sin(a1)*sin(a2))--trig identity
+		return Math.abs(Math.acos(Math.cos(angle1) * Math.cos(angle2) + Math.sin(angle1) * Math.sin(angle2)));
+	}
+
 }

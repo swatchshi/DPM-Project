@@ -112,7 +112,7 @@ public class EV3WifiClient {
 	}
 
 	// ** Set these as appropriate for your team and current situation **
-	private static final String SERVER_IP = "192.168.2.6"; // put your ipv4 here (go to cmd and write ipconfig)
+	private static final String SERVER_IP = "192.168.2.28"; // put your ipv4 here (go to cmd and write ipconfig)
 	// "192.168.2.3"
 	private static final int TEAM_NUMBER = 1; // Best team ever, will definitely win the competition
 	public static final int X_GRID_LINES = 8; // according to predefined convention for x
@@ -474,40 +474,40 @@ public class EV3WifiClient {
 		double lowerLeftX = 0, lowerLeftY = 0, upperRightX = 0, upperRightY = 0;
 		switch (zone) {
 		case BRIDGE:
-			lowerLeftX = getCoordParam(CoordParameter.BR_LL_x);
-			lowerLeftY = getCoordParam(CoordParameter.BR_LL_y);
-			upperRightX = getCoordParam(CoordParameter.BR_UR_x);
-			upperRightY = getCoordParam(CoordParameter.BR_UR_y);
+			lowerLeftX = getCoordParam(CoordParameter.BR_LL_x)*Navigation.TILE_SIZE;
+			lowerLeftY = getCoordParam(CoordParameter.BR_LL_y)*Navigation.TILE_SIZE;
+			upperRightX = getCoordParam(CoordParameter.BR_UR_x)*Navigation.TILE_SIZE;
+			upperRightY = getCoordParam(CoordParameter.BR_UR_y)*Navigation.TILE_SIZE;
 			break;
 		case TUNNEL:
-			lowerLeftX = getCoordParam(CoordParameter.TN_LL_x);
-			lowerLeftY = getCoordParam(CoordParameter.TN_LL_y);
-			upperRightX = getCoordParam(CoordParameter.TN_UR_x);
-			upperRightY = getCoordParam(CoordParameter.TN_UR_y);
+			lowerLeftX = getCoordParam(CoordParameter.TN_LL_x)*Navigation.TILE_SIZE;
+			lowerLeftY = getCoordParam(CoordParameter.TN_LL_y)*Navigation.TILE_SIZE;
+			upperRightX = getCoordParam(CoordParameter.TN_UR_x)*Navigation.TILE_SIZE;
+			upperRightY = getCoordParam(CoordParameter.TN_UR_y)*Navigation.TILE_SIZE;
 			break;
 		case GREEN:
-			lowerLeftX = getCoordParam(CoordParameter.Green_LL_x);
-			lowerLeftY = getCoordParam(CoordParameter.Green_LL_y);
-			upperRightX = getCoordParam(CoordParameter.Green_UR_x);
-			upperRightY = getCoordParam(CoordParameter.Green_UR_y);
+			lowerLeftX = getCoordParam(CoordParameter.Green_LL_x)*Navigation.TILE_SIZE;
+			lowerLeftY = getCoordParam(CoordParameter.Green_LL_y)*Navigation.TILE_SIZE;
+			upperRightX = getCoordParam(CoordParameter.Green_UR_x)*Navigation.TILE_SIZE;
+			upperRightY = getCoordParam(CoordParameter.Green_UR_y)*Navigation.TILE_SIZE;
 			break;
 		case RED:
-			lowerLeftX = getCoordParam(CoordParameter.Red_LL_x);
-			lowerLeftY = getCoordParam(CoordParameter.Red_LL_y);
-			upperRightX = getCoordParam(CoordParameter.Red_UR_x);
-			upperRightY = getCoordParam(CoordParameter.Red_UR_y);
+			lowerLeftX = getCoordParam(CoordParameter.Red_LL_x)*Navigation.TILE_SIZE;
+			lowerLeftY = getCoordParam(CoordParameter.Red_LL_y)*Navigation.TILE_SIZE;
+			upperRightX = getCoordParam(CoordParameter.Red_UR_x)*Navigation.TILE_SIZE;
+			upperRightY = getCoordParam(CoordParameter.Red_UR_y)*Navigation.TILE_SIZE;
 			break;
 		case SG:
-			lowerLeftX = getCoordParam(CoordParameter.SG_LL_x);
-			lowerLeftY = getCoordParam(CoordParameter.SG_LL_y);
-			upperRightX = getCoordParam(CoordParameter.SG_UR_x);
-			upperRightY = getCoordParam(CoordParameter.SG_UR_y);
+			lowerLeftX = getCoordParam(CoordParameter.SG_LL_x)*Navigation.TILE_SIZE;
+			lowerLeftY = getCoordParam(CoordParameter.SG_LL_y)*Navigation.TILE_SIZE;
+			upperRightX = getCoordParam(CoordParameter.SG_UR_x)*Navigation.TILE_SIZE;
+			upperRightY = getCoordParam(CoordParameter.SG_UR_y)*Navigation.TILE_SIZE;
 			break;
 		case SR:
-			lowerLeftX = getCoordParam(CoordParameter.SR_LL_x);
-			lowerLeftY = getCoordParam(CoordParameter.SR_LL_y);
-			upperRightX = getCoordParam(CoordParameter.SR_UR_x);
-			upperRightY = getCoordParam(CoordParameter.SR_UR_y);
+			lowerLeftX = getCoordParam(CoordParameter.SR_LL_x)*Navigation.TILE_SIZE;
+			lowerLeftY = getCoordParam(CoordParameter.SR_LL_y)*Navigation.TILE_SIZE;
+			upperRightX = getCoordParam(CoordParameter.SR_UR_x)*Navigation.TILE_SIZE;
+			upperRightY = getCoordParam(CoordParameter.SR_UR_y)*Navigation.TILE_SIZE;
 			break;
 		}
 		if (x <= lowerLeftX) {
