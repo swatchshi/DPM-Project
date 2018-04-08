@@ -305,6 +305,11 @@ public class GamePlan {
 				
 				
 		internalClock.startClock();
+		
+//		navigation.travel(30.48);
+//		navigation.turn(90);
+		
+		
 		greenPlan();
 		/*switch (serverData.getTeamColor()) {
 		case RED:
@@ -440,6 +445,9 @@ public class GamePlan {
 		int yStartingLine=2;
 		int theta=0;
 		Direction wall= Direction.NORTH; //wall to crash into
+		gyroscope.resetToZero();
+		odometer.setTheta(0);
+		Button.waitForAnyPress();
 		
 		do {
 			odometer.setXYT(Navigation.TILE_SIZE*xStartingLine, Navigation.TILE_SIZE*yStartingLine, theta);
