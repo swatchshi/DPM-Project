@@ -40,8 +40,8 @@ public class OdometerData {
 															// know that a reset
 															// operation is
 															// over.
-	protected static final int MAX_ANGLE_ERROR = 20;
-	protected static final int MIN_ANGLE_ERROR = 2;
+	public static final int MAX_ANGLE_ERROR = 20;
+	public static final int MIN_ANGLE_ERROR = 2;
 	protected boolean doThetaCorrection = false;
 
 	private static OdometerData odoData = null;
@@ -145,6 +145,16 @@ public class OdometerData {
 	public double getY() {
 		return y;
 	}
+	
+	/**
+	 * Gets the gyroscope theta angle used (with offset and defined clockwise)
+	 * 
+	 * @return the gyroscope angle
+	 */
+	public double getGyroTheta() {
+		return gyroscope.getAngle();
+	}
+	
 
 	/**
 	 * Adds dx, dy and dtheta to the current values of x, y and theta, respectively.

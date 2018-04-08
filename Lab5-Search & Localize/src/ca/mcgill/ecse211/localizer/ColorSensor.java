@@ -132,7 +132,6 @@ public class ColorSensor {
 	    
 	    while(true) {
 	    	correctionStart = System.currentTimeMillis();
-		      
 		    //tries to detect the line with its ID
 		    if(lightSensor.getColorID()==13){
 		       lineSeen=true;

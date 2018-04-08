@@ -50,10 +50,8 @@ public class Lab5 {
 
 
 			GamePlan game = new GamePlan();
-			Sound.beep();
-		
 			game.play();
-			
+;			
 		} catch (OdometerExceptions exc) {
 			// instance error, do nothing
 		}

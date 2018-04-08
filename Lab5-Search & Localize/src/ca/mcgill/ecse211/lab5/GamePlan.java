@@ -217,9 +217,10 @@ public class GamePlan {
 		int lineCount=5, i=0;
 		int leftMotorLastTachoCount=0, rightMotorLastTachoCount=0,leftMotorTachoCount, rightMotorTachoCount;
 	    double distL, distR, theta, track;
+	    navigation.setRotateSpeed(Navigation.SLOW_ROTATE_SPEED);
 	    navigation.rotate(Turn.CLOCK_WISE);
 	    while(i<lineCount) {
-	    	if(cSensor.lineDetected()) {
+	    	if(lSensor.lineDetected()) {
 	    		i++;
 	    	}
 	    	if(i==1) {
@@ -234,12 +235,13 @@ public class GamePlan {
 		distL=Math.PI*dynamicTrack.getWheelRad()*(leftMotorTachoCount-leftMotorLastTachoCount)/180; 	//convert left rotation to wheel displacement
 		distR=Math.PI*dynamicTrack.getWheelRad()*(rightMotorTachoCount-rightMotorLastTachoCount)/180;	//convert right rotation to wheel displacement
 		      
-		track=(distL-distR)/360; //Calculating the instantaneous rotation magnitude
+		track=(distR-distL)/(2*Math.PI); //Calculating the instantaneous rotation magnitude
 		odometryDisplay.setEnablePrint(false);
 		lcd.drawString("Track: "+ track, 0, 6);
 		Button.waitForAnyPress();
 		lcd.clear();
 		odometryDisplay.setEnablePrint(true);
+		navigation.setRotateSpeed(Navigation.ROTATE_SPEED);
 	}
 	
 	
@@ -434,13 +436,14 @@ public class GamePlan {
 		goToStartingCorner();
 		Sound.beepSequence();
 		*/
+		int xStartingLine=1;
+		int yStartingLine=2;
+		int theta=0;
+		Direction wall= Direction.NORTH; //wall to crash into
+		
 		do {
-			odometer.setXYT(Navigation.TILE_SIZE, Navigation.TILE_SIZE*2, 0);
-			odoCorrect.setDoCorrection(true);
-			flagFinder.findBlock(Direction.SOUTH,
-					2, 2,
-					4, 4, 
-					BlockColor.BLUE);
+			odometer.setXYT(Navigation.TILE_SIZE*xStartingLine, Navigation.TILE_SIZE*yStartingLine, theta);
+			lightLoc.crashIntoWall(wall);
 			Button.waitForAnyPress();
 		}while(true);
 	}

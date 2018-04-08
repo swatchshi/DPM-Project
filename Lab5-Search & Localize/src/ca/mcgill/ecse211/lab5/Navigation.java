@@ -20,7 +20,7 @@ public class Navigation {
 	public static final int FORWARD_SPEED = 550;
 	public static final int LOCALIZATION_SPEED = 400;
 	public static final int ROTATE_SPEED = 300;
-	public static final int SLOW_ROTATE_SPEED = 100;
+	public static final int SLOW_ROTATE_SPEED = 175;
 	private static final int ACCELERATION = 1000;
 	private static final int DECELERATION = 2000;
 	public static final double TILE_SIZE = 30.48;
@@ -28,6 +28,7 @@ public class Navigation {
 	private double lastX;
 	private double lastY;
 	private int forwardSpeed;
+	private int rotateSpeed;
 	private TrackExpansion dynamicTrack;
 	private static boolean navigating=false;
 	private static boolean interrupt=false;
@@ -54,6 +55,7 @@ public class Navigation {
 		nav=this;
 		setAcceleration(1000);
 		setForwardSpeed(FORWARD_SPEED);
+		setRotateSpeed(ROTATE_SPEED);
 	}
 	
 	/**
@@ -269,6 +271,15 @@ public class Navigation {
 		   rotation= Math.abs(rotation);
 		}
 		turn(rotation);
+		double angleDifference;
+		do {
+			double referenceAngle=odo.getGyroTheta();
+			actualTheta=odo.getTheta();
+			angleDifference=Math.abs(referenceAngle-actualTheta)%360;
+			if(angleDifference>Odometer.MIN_ANGLE_ERROR) {
+				turn(actualTheta-referenceAngle);
+			}
+		}while(angleDifference>Odometer.MIN_ANGLE_ERROR);
 	}
 	
 	/**
@@ -293,7 +304,7 @@ public class Navigation {
 	 */
 	public void rotate(Turn direction) {
 		navigating=true;
-		setMotorSpeed(ROTATE_SPEED);
+		setMotorSpeed(rotateSpeed);
 	    switch(direction) {
 			case CLOCK_WISE:
 				GamePlan.rightMotor.forward();
@@ -414,6 +425,14 @@ public class Navigation {
 	 */
 	public void setForwardSpeed(int forwardSpeed) {
 		this.forwardSpeed = forwardSpeed;
+	}
+	
+	/**
+	 * Sets the rotate speed value
+	 * @param rotateSpeed
+	 */
+	public void setRotateSpeed(int rotateSpeed) {
+		this.rotateSpeed = rotateSpeed;
 	}
 	
 }
