@@ -435,7 +435,7 @@ public class GamePlan {
 		crossTunnel();
 		Sound.beepSequenceUp();
 		
-		goToBridge(Direction.SOUTH);
+		goToBridge(getBridgeEntry());
 		crossBridge();
 		Sound.beepSequenceUp();
 		goToStartingCorner();
@@ -747,7 +747,7 @@ public class GamePlan {
 			//Entry of tunnel is in the East part of the tunnel
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.5)*Navigation.TILE_SIZE);
 			navigation.turnTo(0); //look north
 			navigation.travelForward();
 			
@@ -767,7 +767,7 @@ public class GamePlan {
 			//Entry of tunnel is in the West part of the tunnel
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.5)*Navigation.TILE_SIZE);
 			navigation.turnTo(0); //look north
 			navigation.travelForward();
 			
@@ -851,7 +851,7 @@ public class GamePlan {
 			//Entry of tunnel is in the East part of the tunnel
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.5)*Navigation.TILE_SIZE);
 			navigation.turnTo(0); //look north
 			navigation.travelForward();
 			
@@ -871,7 +871,7 @@ public class GamePlan {
 			//Entry of tunnel is in the West part of the tunnel
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.5)*Navigation.TILE_SIZE);
 			navigation.turnTo(0); //look north
 			navigation.travelForward();
 			
