@@ -190,7 +190,7 @@ public class GamePlan {
 		odoCorrect.setDoCorrection(false);
 		odometer.setDoThetaCorrection(false);
 		
-		//serverData = new EV3WifiClient(); //////////////////////////////////////////// uncomment to enable data
+		serverData = new EV3WifiClient(); //////////////////////////////////////////// uncomment to enable data
 											//////////////////////////////////////////// retrieval
 		odoThread.start();
 		odoDisplayThread.start();
@@ -307,15 +307,7 @@ public class GamePlan {
 		internalClock.startClock();
 	
 	
-	
-		odometer.setXYT(Navigation.TILE_SIZE, Navigation.TILE_SIZE,0);
-		odoCorrect.setDoCorrection(false);
-		navigation.travel(5*Navigation.TILE_SIZE);
-		Button.waitForAnyPress();
-		System.exit(0);
-		//navigation.turn(90);
 		
-		/*
 		switch (serverData.getTeamColor()) {
 		case RED:
 			redPlan();
@@ -323,7 +315,7 @@ public class GamePlan {
 		case GREEN:
 			greenPlan();
 			break;
-		}*/
+		}
 	}
 
 	
@@ -429,12 +421,11 @@ public class GamePlan {
 		//Light localizing at the closest crossing
 		navigation.setEnableGyroscopeCorrection(false);
 		lightLoc.crashLocalizer(corner);
-		Button.waitForAnyPress();
+		
 		//Going to the tunnel
 		Sound.beepSequenceUp();
 		navigation.setForwardSpeed(Navigation.FORWARD_SPEED);
-		//goToTunnel(getTunnelEntry());
-		odoCorrect.setDoCorrection(false);
+		odoCorrect.setDoCorrection(true);
 		navigation.setEnableGyroscopeCorrection(true);
 		
 		goToTunnel(getTunnelEntry());
@@ -830,7 +821,7 @@ public class GamePlan {
 				lightLoc.angleLocalizer();
 			}*/
 			odoCorrect.setDoCorrection(true);
-			navigation.travelTo((lowerLeftXLine+(upperRightXLine-lowerLeftXLine)/2)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((lowerLeftXLine+(upperRightXLine - lowerLeftXLine)/2)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
 			navigation.turnTo(180);
 			break;
 		case SOUTH:
@@ -1399,6 +1390,7 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is north of the north tunnel entry
 					// goes south around by the west bound
+					
 					goToSGUpperLeft();
 					goToSGLowerLeft();
 					break;
@@ -1409,6 +1401,8 @@ public class GamePlan {
 				case EAST:
 					// robot is east of the search zone, which is north of the north tunnel entry
 					// go south by the east bound
+					Sound.beepSequenceUp();
+					Sound.beepSequence();
 					goToSGLowerRight();
 					break;
 				case WEST:
@@ -2181,7 +2175,7 @@ public class GamePlan {
 	 */
 	private boolean goToSGLowerLeft() {
 		navigation.travelTo(
-				serverData.getCoordParam(CoordParameter.SG_LL_x) * Navigation.TILE_SIZE - dynamicTrack.getTrack(),
+				serverData.getCoordParam(CoordParameter.SG_LL_x) * Navigation.TILE_SIZE - dynamicTrack.getTrack() ,
 				serverData.getCoordParam(CoordParameter.SG_LL_y) * Navigation.TILE_SIZE - dynamicTrack.getTrack());
 		return true;
 	}
@@ -2194,7 +2188,7 @@ public class GamePlan {
 	 */
 	private boolean goToSGLowerRight() {
 		navigation.travelTo(
-				serverData.getCoordParam(CoordParameter.SG_UR_x) * Navigation.TILE_SIZE + dynamicTrack.getTrack(),
+				serverData.getCoordParam(CoordParameter.SG_UR_x) * Navigation.TILE_SIZE + dynamicTrack.getTrack() ,
 				serverData.getCoordParam(CoordParameter.SG_LL_y) * Navigation.TILE_SIZE - dynamicTrack.getTrack());
 		return true;
 	}
