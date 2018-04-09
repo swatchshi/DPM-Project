@@ -435,6 +435,10 @@ public class GamePlan {
 		crossTunnel();
 		Sound.beepSequenceUp();
 		
+		goToBridge(Direction.SOUTH);
+		crossBridge();
+		Sound.beepSequenceUp();
+		goToStartingCorner();
 		//find the flag in the red search zone
 		/*
 		
@@ -442,15 +446,15 @@ public class GamePlan {
 				serverData.getCoordParam(CoordParameter.SR_LL_x), serverData.getCoordParam(CoordParameter.SR_LL_y),
 				serverData.getCoordParam(CoordParameter.SR_UR_x), serverData.getCoordParam(CoordParameter.SR_UR_y), 
 				serverData.getFlagColor());
-		*/
+		
 		//Going to the bridge
-		goToBridge(getBridgeEntry());
+		goToBridge(directionSwitch(getBridgeEntry()));
 		
 		crossBridge();
 		Sound.beepSequenceUp();
 		goToStartingCorner();
 		Sound.beepSequence();
-		
+		*/
 		
 	}
 
@@ -723,7 +727,7 @@ public class GamePlan {
 			//Entry of tunnel is in the South part of the tunnel
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
 			navigation.turnTo(270); //look west
 			navigation.travelForward();
 			
@@ -763,7 +767,7 @@ public class GamePlan {
 			//Entry of tunnel is in the West part of the tunnel
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
 			navigation.turnTo(0); //look north
 			navigation.travelForward();
 			
@@ -827,7 +831,7 @@ public class GamePlan {
 			//Entry of tunnel is in the South part of the tunnel
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
 			navigation.turnTo(270); //look west
 			navigation.travelForward();
 			
@@ -867,7 +871,7 @@ public class GamePlan {
 			//Entry of tunnel is in the West part of the tunnel
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
 			navigation.turnTo(0); //look north
 			navigation.travelForward();
 			

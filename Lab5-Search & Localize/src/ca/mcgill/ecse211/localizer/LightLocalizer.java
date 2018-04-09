@@ -200,7 +200,7 @@ public class LightLocalizer {
 		
 		//makes it think its in the middle of the tile in corner 0
 		odo.setXYT(navigation.TILE_SIZE/2, navigation.TILE_SIZE/2, 0);
-		
+		Delay.msDelay(500);
 		//back up into the back wall
 		crashIntoWall(GamePlan.Direction.SOUTH);
 		
