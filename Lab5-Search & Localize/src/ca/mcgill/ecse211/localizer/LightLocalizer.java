@@ -219,6 +219,7 @@ public class LightLocalizer {
 		navigation.stopMotors();
 		
 		// go the the first crossing 
+		navigation.setForwardSpeed(Navigation.LOCALIZATION_SPEED);
 		navigation.goToPoint(1, 1);
 		navigation.turnTo(0);
 		odo.correctAngle();

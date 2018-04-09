@@ -305,8 +305,7 @@ public class GamePlan {
 				
 				
 		internalClock.startClock();
-	
-	
+		
 		
 		switch (serverData.getTeamColor()) {
 		case RED:
@@ -316,6 +315,7 @@ public class GamePlan {
 			greenPlan();
 			break;
 		}
+		
 	}
 
 	
@@ -415,11 +415,12 @@ public class GamePlan {
 		navigation.setForwardSpeed(Navigation.LOCALIZATION_SPEED);
 		
 		usLoc.doLocalization(0); 
+		usLoc=null;
 		navigation.turnTo(0);
 		Sound.beepSequenceUp();
 		
 		//Light localizing at the closest crossing
-		navigation.setEnableGyroscopeCorrection(false);
+		navigation.setEnableGyroscopeCorrection(true);
 		lightLoc.crashLocalizer(corner);
 		
 		//Going to the tunnel
@@ -429,46 +430,28 @@ public class GamePlan {
 		navigation.setEnableGyroscopeCorrection(true);
 		
 		goToTunnel(getTunnelEntry());
+		Sound.beepSequenceUp();
+		
 		crossTunnel();
 		Sound.beepSequenceUp();
-		/*
-		//find the flag in the red search zone
 		
+		//find the flag in the red search zone
+		/*
 		
 		flagFinder.findBlock(getSearchStartSide(Zone.SR, directionSwitch(getTunnelEntry())),
 				serverData.getCoordParam(CoordParameter.SR_LL_x), serverData.getCoordParam(CoordParameter.SR_LL_y),
 				serverData.getCoordParam(CoordParameter.SR_UR_x), serverData.getCoordParam(CoordParameter.SR_UR_y), 
 				serverData.getFlagColor());
-		
+		*/
 		//Going to the bridge
-		//goToBridge(getBridgeEntry());
+		goToBridge(getBridgeEntry());
 		
-		localizeBeforeBridge(getBridgeEntry());
 		crossBridge();
 		Sound.beepSequenceUp();
-		odometer.correctAngle();
 		goToStartingCorner();
 		Sound.beepSequence();
 		
-		int xStartingLine=3;
-		int yStartingLine=5;
-		int SLLx=serverData.getCoordParam(CoordParameter.SG_LL_x);
-		int SLLy=serverData.getCoordParam(CoordParameter.SG_LL_y);
-		int SURx=serverData.getCoordParam(CoordParameter.SG_UR_x);
-		int SURy=serverData.getCoordParam(CoordParameter.SG_UR_y);
-		Direction exit=Direction.SOUTH; //side of the tunnel where the robot would have suposably exited
-		ColorSensor.BlockColor color=ColorSensor.BlockColor.BLUE;
-		navigation.setEnableGyroscopeCorrection(true);
-		do {
-		odometer.setXYT(Navigation.TILE_SIZE*xStartingLine, Navigation.TILE_SIZE*yStartingLine, 0);
-			odoCorrect.setDoCorrection(true);
-			flagFinder.findBlock(getSearchStartSide(Zone.SG, exit),
-				SLLx, SLLy,
-				SURx, SURy, 
-				color);
-			Button.waitForAnyPress();
-		}while(true);
-*/
+		
 	}
 
 	
@@ -711,75 +694,89 @@ public class GamePlan {
 		int lowerLeftYLine = serverData.getCoordParam(CoordParameter.BR_LL_y);
 		int upperRightXLine = serverData.getCoordParam(CoordParameter.BR_UR_x);
 		int upperRightYLine = serverData.getCoordParam(CoordParameter.BR_UR_y);
-		
+		double first, second;
 		switch(direction) {
 		case NORTH:
-			//Entry of bridge is in the North part of the bridge
-			//look in what half of the field the bridge is
-			if(upperRightXLine<=EV3WifiClient.X_GRID_LINES/2) {
-				//bridge in west part of the field
-				//localize one crossing north of the upper right bridge corner
-				navigation.goToPoint(upperRightXLine, upperRightYLine+1);
-				lightLoc.angleLocalizer();
-			}else {
-				//bridge in east part of the field
-				//localize one crossing north of the upper left bridge corner
-				navigation.goToPoint(lowerLeftXLine, upperRightYLine+1);
-				lightLoc.angleLocalizer();
-			}
 			
-			navigation.travelTo((lowerLeftXLine+(upperRightXLine-lowerLeftXLine)/2)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			odoCorrect.setDoCorrection(true);
+			
+			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.turnTo(270); //look west
+			navigation.travelForward();
+			
+			navigation.setEnableGyroscopeCorrection(true);
+			while(!lSensor.lineDetected());
+			first=odometer.getX();
+			navigation.stopMotors();
+			
+			navigation.backUp(Navigation.TILE_SIZE/2);
+			navigation.travelBackward();
+			while(!lSensor.lineDetected());
+			second=odometer.getX();
+			navigation.stopMotors();
+			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(180);
+			
+			
 			break;
 		case SOUTH:
-			//Entry of bridge is in the South part of the bridge
-			//look in what half of the field the bridge is
-			if(upperRightXLine<=EV3WifiClient.X_GRID_LINES/2) {
-				//bridge in west part of the field
-				//localize one crossing south of the upper right bridge corner
-				navigation.goToPoint(upperRightXLine,lowerLeftYLine-1);
-				lightLoc.angleLocalizer();
-			}else {
-				//bridge in east part of the field
-				//localize one crossing north of the upper left bridge corner
-				navigation.goToPoint(lowerLeftXLine, lowerLeftYLine-1);
-				lightLoc.angleLocalizer();
-			}
-			navigation.travelTo((lowerLeftXLine+(upperRightXLine-lowerLeftXLine)/2)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
+			//Entry of tunnel is in the South part of the tunnel
+			odoCorrect.setDoCorrection(true);
+			
+			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.turnTo(270); //look west
+			navigation.travelForward();
+			
+			navigation.setEnableGyroscopeCorrection(true);
+			while(!lSensor.lineDetected());
+			navigation.stopMotors();
+			first=odometer.getX();
+			navigation.backUp(Navigation.TILE_SIZE/2);
+			navigation.travelBackward();
+			while(!lSensor.lineDetected());
+			navigation.stopMotors();
+			second=odometer.getX();
+			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(0);
 			break;
 		case EAST:
-			//Entry of bridge is in the East part of the bridge
-			//look in what half of the field the bridge is
-			if(upperRightYLine<=EV3WifiClient.Y_GRID_LINES/2) {
-				//bridge in south part of the field
-				//localize one crossing east of the upper right bridge corner
-				navigation.goToPoint(upperRightXLine+1,upperRightYLine);
-				lightLoc.angleLocalizer();
-			}else {
-				//bridge in north part of the field
-				//localize one crossing east of the lower right bridge corner
-				navigation.goToPoint(upperRightXLine+1, lowerLeftYLine);
-				lightLoc.angleLocalizer();
-			}
-			navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE,(lowerLeftYLine+(upperRightYLine-lowerLeftYLine)/2)*Navigation.TILE_SIZE);
+			//Entry of tunnel is in the East part of the tunnel
+			odoCorrect.setDoCorrection(true);
+			
+			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.turnTo(0); //look north
+			navigation.travelForward();
+			
+			navigation.setEnableGyroscopeCorrection(true);
+			while(!lSensor.lineDetected());
+			navigation.stopMotors();
+			first=odometer.getY();
+			navigation.backUp(Navigation.TILE_SIZE/2);
+			navigation.travelBackward();
+			while(!lSensor.lineDetected());
+			navigation.stopMotors();
+			second=odometer.getY();
+			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(270);
 			break;
 		case WEST:
-			//Entry of bridge is in the West part of the bridge
-			//look in what half of the field the bridge is
-			if(upperRightYLine<=EV3WifiClient.Y_GRID_LINES/2) {
-				//bridge in South part of the field
-				//localize one crossing west of the upper left bridge corner
-				navigation.goToPoint(lowerLeftXLine-1,upperRightYLine);
-				lightLoc.angleLocalizer();
-			}else {
-				//bridge in North part of the field
-				//localize one crossing west of the lower left bridge corner
-				navigation.goToPoint(lowerLeftXLine-1, lowerLeftYLine);
-				lightLoc.angleLocalizer();
-			}
-			navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE,(lowerLeftYLine+(upperRightYLine-lowerLeftYLine)/2)*Navigation.TILE_SIZE);
+			//Entry of tunnel is in the West part of the tunnel
+			odoCorrect.setDoCorrection(true);
+			
+			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.turnTo(0); //look north
+			navigation.travelForward();
+			
+			navigation.setEnableGyroscopeCorrection(true);
+			while(!lSensor.lineDetected());
+			navigation.stopMotors();
+			first=odometer.getY();
+			navigation.backUp(Navigation.TILE_SIZE/2);
+			navigation.travelBackward();
+			while(!lSensor.lineDetected());
+			navigation.stopMotors();
+			second=odometer.getY();
+			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(90);
 			break;
 		case CENTER:
@@ -801,90 +798,89 @@ public class GamePlan {
 		int lowerLeftYLine = serverData.getCoordParam(CoordParameter.TN_LL_y);
 		int upperRightXLine = serverData.getCoordParam(CoordParameter.TN_UR_x);
 		int upperRightYLine = serverData.getCoordParam(CoordParameter.TN_UR_y);
-		
+		double first, second;
 		switch(direction) {
 		case NORTH:
-			/*
-			//Entry of tunnel is in the North part of the bridge
-			//look in what half of the field the tunnel is
-			if(upperRightXLine<=EV3WifiClient.X_GRID_LINES/2) {
-				//tunnel in west part of the field
-				//localize one crossing north of the upper right tunnel corner
-				navigation.goToPoint(upperRightXLine, upperRightYLine+1);
-				odoCorrect.setDoCorrection(false);
-				lightLoc.angleLocalizer();
-			}else {
-				//tunnel in east part of the field
-				//localize one crossing north of the upper left tunnel corner
-				navigation.goToPoint(lowerLeftXLine, upperRightYLine+1);
-				odoCorrect.setDoCorrection(false);
-				lightLoc.angleLocalizer();
-			}*/
+			
 			odoCorrect.setDoCorrection(true);
-			navigation.travelTo((lowerLeftXLine+(upperRightXLine - lowerLeftXLine)/2)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			
+			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.turnTo(270); //look west
+			navigation.travelForward();
+			
+			navigation.setEnableGyroscopeCorrection(true);
+			while(!lSensor.lineDetected());
+			first=odometer.getX();
+			navigation.stopMotors();
+			
+			navigation.backUp(Navigation.TILE_SIZE/2);
+			navigation.travelBackward();
+			while(!lSensor.lineDetected());
+			second=odometer.getX();
+			navigation.stopMotors();
+			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(180);
+			
+			
 			break;
 		case SOUTH:
 			//Entry of tunnel is in the South part of the tunnel
-			//look in what half of the field the tunnel is
-			/*
-			if(upperRightXLine<=EV3WifiClient.X_GRID_LINES/2) {
-				//tunnel in west part of the field
-				//localize one crossing south of the upper right tunnel corner
-				navigation.goToPoint(upperRightXLine,lowerLeftYLine-1);
-				odoCorrect.setDoCorrection(false);
-				lightLoc.angleLocalizer();
-			}else {
-				//tunnel in east part of the field
-				//localize one crossing north of the upper left tunnel corner
-				navigation.goToPoint(lowerLeftXLine, lowerLeftYLine-1);
-				odoCorrect.setDoCorrection(false);
-				lightLoc.angleLocalizer();
-			}*/
 			odoCorrect.setDoCorrection(true);
-			navigation.travelTo((lowerLeftXLine+(upperRightXLine-lowerLeftXLine)/2)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
+			
+			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.turnTo(270); //look west
+			navigation.travelForward();
+			
+			navigation.setEnableGyroscopeCorrection(true);
+			while(!lSensor.lineDetected());
+			navigation.stopMotors();
+			first=odometer.getX();
+			navigation.backUp(Navigation.TILE_SIZE/2);
+			navigation.travelBackward();
+			while(!lSensor.lineDetected());
+			navigation.stopMotors();
+			second=odometer.getX();
+			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(0);
 			break;
 		case EAST:
 			//Entry of tunnel is in the East part of the tunnel
-			//look in what half of the field the tunnel is
-			/*
-			if(upperRightYLine<=EV3WifiClient.Y_GRID_LINES/2) {
-				//tunnel in south part of the field
-				//localize one crossing east of the upper right tunnel corner
-				navigation.goToPoint(upperRightXLine+1,upperRightYLine);
-				odoCorrect.setDoCorrection(false);
-				lightLoc.angleLocalizer();
-			}else {
-				//tunnel in north part of the field
-				//localize one crossing east of the lower right tunnel corner
-				navigation.goToPoint(upperRightXLine+1, lowerLeftYLine);
-				odoCorrect.setDoCorrection(false);
-				lightLoc.angleLocalizer();
-			}*/
 			odoCorrect.setDoCorrection(true);
-			navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE,(lowerLeftYLine+(upperRightYLine-lowerLeftYLine)/2)*Navigation.TILE_SIZE);
+			
+			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.turnTo(0); //look north
+			navigation.travelForward();
+			
+			navigation.setEnableGyroscopeCorrection(true);
+			while(!lSensor.lineDetected());
+			navigation.stopMotors();
+			first=odometer.getY();
+			navigation.backUp(Navigation.TILE_SIZE/2);
+			navigation.travelBackward();
+			while(!lSensor.lineDetected());
+			navigation.stopMotors();
+			second=odometer.getY();
+			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(270);
 			break;
 		case WEST:
 			//Entry of tunnel is in the West part of the tunnel
-			//look in what half of the field the tunnel is
-			/*
-			if(upperRightYLine<=EV3WifiClient.Y_GRID_LINES/2) {
-				//tunnel in South part of the field
-				//localize one crossing west of the upper left tunnel corner
-				navigation.goToPoint(lowerLeftXLine-1,upperRightYLine);
-				odoCorrect.setDoCorrection(false);
-				lightLoc.angleLocalizer();
-			}else {
-				//tunnel in North part of the field
-				//localize one crossing west of the lower left tunnel corner
-				navigation.goToPoint(lowerLeftXLine-1, lowerLeftYLine);
-				odoCorrect.setDoCorrection(false);
-				lightLoc.angleLocalizer();
-			}*/
 			odoCorrect.setDoCorrection(true);
-			navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE,(lowerLeftYLine+(upperRightYLine-lowerLeftYLine)/2)*Navigation.TILE_SIZE);
+			
+			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.turnTo(0); //look north
+			navigation.travelForward();
+			
+			navigation.setEnableGyroscopeCorrection(true);
+			while(!lSensor.lineDetected());
+			navigation.stopMotors();
+			first=odometer.getY();
+			navigation.backUp(Navigation.TILE_SIZE/2);
+			navigation.travelBackward();
+			while(!lSensor.lineDetected());
+			navigation.stopMotors();
+			second=odometer.getY();
+			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(90);
 			break;
 		case CENTER:
@@ -2123,8 +2119,8 @@ public class GamePlan {
 	 */
 	private boolean goToSRLowerLeft() {
 		navigation.travelTo(
-				serverData.getCoordParam(CoordParameter.SR_LL_x) * Navigation.TILE_SIZE - dynamicTrack.getTrack(),
-				serverData.getCoordParam(CoordParameter.SR_LL_y) * Navigation.TILE_SIZE - dynamicTrack.getTrack());
+				(serverData.getCoordParam(CoordParameter.SR_LL_x) -0.5)* Navigation.TILE_SIZE ,
+				(serverData.getCoordParam(CoordParameter.SR_LL_y) -0.5)* Navigation.TILE_SIZE );
 		return true;
 	}
 
@@ -2136,8 +2132,8 @@ public class GamePlan {
 	 */
 	private boolean goToSRLowerRight() {
 		navigation.travelTo(
-				serverData.getCoordParam(CoordParameter.SR_UR_x) * Navigation.TILE_SIZE + dynamicTrack.getTrack(),
-				serverData.getCoordParam(CoordParameter.SR_LL_y) * Navigation.TILE_SIZE - dynamicTrack.getTrack());
+				(serverData.getCoordParam(CoordParameter.SR_UR_x) +0.5) * Navigation.TILE_SIZE ,
+				(serverData.getCoordParam(CoordParameter.SR_LL_y) -0.5)* Navigation.TILE_SIZE );
 		return true;
 	}
 
@@ -2149,8 +2145,8 @@ public class GamePlan {
 	 */
 	private boolean goToSRUpperLeft() {
 		navigation.travelTo(
-				serverData.getCoordParam(CoordParameter.SR_LL_x) * Navigation.TILE_SIZE - dynamicTrack.getTrack(),
-				serverData.getCoordParam(CoordParameter.SR_UR_y) * Navigation.TILE_SIZE + dynamicTrack.getTrack());
+				(serverData.getCoordParam(CoordParameter.SR_LL_x)-0.5) * Navigation.TILE_SIZE ,
+				(serverData.getCoordParam(CoordParameter.SR_UR_y)+0.5) * Navigation.TILE_SIZE );
 		return true;
 	}
 
@@ -2162,8 +2158,8 @@ public class GamePlan {
 	 */
 	private boolean goToSRUpperRight() {
 		navigation.travelTo(
-				serverData.getCoordParam(CoordParameter.SR_UR_x) * Navigation.TILE_SIZE + dynamicTrack.getTrack(),
-				serverData.getCoordParam(CoordParameter.SR_UR_y) * Navigation.TILE_SIZE + dynamicTrack.getTrack());
+				(serverData.getCoordParam(CoordParameter.SR_UR_x) +0.5)* Navigation.TILE_SIZE,
+				(serverData.getCoordParam(CoordParameter.SR_UR_y) +0.5)* Navigation.TILE_SIZE );
 		return true;
 	}
 
@@ -2175,8 +2171,8 @@ public class GamePlan {
 	 */
 	private boolean goToSGLowerLeft() {
 		navigation.travelTo(
-				serverData.getCoordParam(CoordParameter.SG_LL_x) * Navigation.TILE_SIZE - dynamicTrack.getTrack() ,
-				serverData.getCoordParam(CoordParameter.SG_LL_y) * Navigation.TILE_SIZE - dynamicTrack.getTrack());
+				(serverData.getCoordParam(CoordParameter.SG_LL_x) -0.5) * Navigation.TILE_SIZE ,
+				(serverData.getCoordParam(CoordParameter.SG_LL_y) -0.5)* Navigation.TILE_SIZE);
 		return true;
 	}
 
@@ -2188,8 +2184,8 @@ public class GamePlan {
 	 */
 	private boolean goToSGLowerRight() {
 		navigation.travelTo(
-				serverData.getCoordParam(CoordParameter.SG_UR_x) * Navigation.TILE_SIZE + dynamicTrack.getTrack() ,
-				serverData.getCoordParam(CoordParameter.SG_LL_y) * Navigation.TILE_SIZE - dynamicTrack.getTrack());
+				(serverData.getCoordParam(CoordParameter.SG_UR_x) +0.5)* Navigation.TILE_SIZE  ,
+				(serverData.getCoordParam(CoordParameter.SG_LL_y) -0.5) * Navigation.TILE_SIZE );
 		return true;
 	}
 
@@ -2201,8 +2197,8 @@ public class GamePlan {
 	 */
 	private boolean goToSGUpperLeft() {
 		navigation.travelTo(
-				serverData.getCoordParam(CoordParameter.SG_LL_x) * Navigation.TILE_SIZE - dynamicTrack.getTrack(),
-				serverData.getCoordParam(CoordParameter.SG_UR_y) * Navigation.TILE_SIZE + dynamicTrack.getTrack());
+				(serverData.getCoordParam(CoordParameter.SG_LL_x) -0.5)* Navigation.TILE_SIZE ,
+				(serverData.getCoordParam(CoordParameter.SG_UR_y) +0.5)* Navigation.TILE_SIZE );
 		return true;
 	}
 
@@ -2214,9 +2210,9 @@ public class GamePlan {
 	 */
 	private boolean goToSGUpperRight() {
 		navigation.travelTo(
-				serverData.getCoordParam(CoordParameter.SG_UR_x) * Navigation.TILE_SIZE + dynamicTrack.getTrack(),
-				serverData.getCoordParam(CoordParameter.SG_UR_y) * Navigation.TILE_SIZE + dynamicTrack.getTrack());
+				(serverData.getCoordParam(CoordParameter.SG_UR_x) +0.5) * Navigation.TILE_SIZE ,
+				(serverData.getCoordParam(CoordParameter.SG_UR_y) +0.5)* Navigation.TILE_SIZE );
 		return true;
 	}
-
+	
 }

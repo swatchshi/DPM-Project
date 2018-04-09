@@ -112,7 +112,7 @@ public class EV3WifiClient {
 	}
 
 	// ** Set these as appropriate for your team and current situation **
-	private static final String SERVER_IP = "192.168.2.13"; // put your ipv4 here (go to cmd and write ipconfig)
+	private static final String SERVER_IP = "192.168.2.28"; // put your ipv4 here (go to cmd and write ipconfig)
 	// "192.168.2.3"
 	private static final int TEAM_NUMBER = 1; // Best team ever, will definitely win the competition
 	public static final int X_GRID_LINES = 8; // according to predefined convention for x
