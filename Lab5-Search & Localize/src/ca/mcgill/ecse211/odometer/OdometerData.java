@@ -46,6 +46,7 @@ public class OdometerData {
 	public static final int MAX_ANGLE_ERROR = 20;
 	public static final int MIN_ANGLE_ERROR = 2;
 	protected boolean doThetaCorrection = false;
+	protected boolean enablePrint = true;
 	protected Display display;
 	
 	protected Gyroscope gyroscope;
@@ -63,7 +64,6 @@ public class OdometerData {
 		this.y = 0;
 		this.theta = 0;
 		this.gyroscope = gyroscope;
-		//this.display=Display.getDisplay(GamePlan.lcd, gyroscope);
 	}
 
 	
@@ -270,5 +270,15 @@ public class OdometerData {
 	 */
 	public void setDoThetaCorrection(boolean doThetaCorrection) {
 		this.doThetaCorrection = doThetaCorrection;
+	}
+	
+	/**
+	 * Sets the print function of the display
+	 * 
+	 * @param enablePrint
+	 *            True if the Display is allowed to print
+	 */
+	public void setEnablePrint(boolean enablePrint) {
+		this.enablePrint = enablePrint;
 	}
 }

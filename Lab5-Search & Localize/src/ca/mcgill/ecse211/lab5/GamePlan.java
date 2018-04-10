@@ -174,11 +174,9 @@ public class GamePlan {
 		
 		Thread odoThread = new Thread(odometer);
 		
-	//	Thread odoDisplayThread = new Thread(odometryDisplay);
-	//	odoDisplayThread.start();
 		odoCorrect.setDoCorrection(false);
 		odometer.setDoThetaCorrection(false);
-		
+		odometer.setEnablePrint(true);
 		serverData = new EV3WifiClient(); //////////////////////////////////////////// uncomment to enable data
 											//////////////////////////////////////////// retrieval
 		odoThread.start();
@@ -338,46 +336,51 @@ public class GamePlan {
 	 */
 	private void redPlan() throws Exception {
 		
-		Sound.beepSequence();
-		Sound.beepSequence();
-		Sound.beepSequence();
-		int corner=serverData.getStartingCorner();
-
-		
-		usLoc.doLocalization(0); 
-		navigation.turnTo(0);
-		
-		
-		Sound.beepSequenceUp();
-		
-		lightLoc.crashLocalizer(corner);
-
-		Sound.beepSequenceUp();
-		odoCorrect.setDoCorrection(true);
-		//goToBridge(getBridgeEntry());
-		odoCorrect.setDoCorrection(false);
-		//localizeBeforeBridge(getBridgeEntry());
-		Sound.beepSequence();
-		Sound.beepSequence();
-		Sound.beepSequence();
-		crossBridge();
-		Sound.beepSequenceUp();
-		odoCorrect.setDoCorrection(true);
-		
-		//goToTunnel(getTunnelEntry());
-		//localizeBeforeTunnel(getTunnelEntry());
-		Sound.beepSequence();
-		Sound.beepSequence();
-		Sound.beepSequence();
-		odoCorrect.setDoCorrection(false);
-		crossTunnel();
-		odoCorrect.setDoCorrection(true);
-		Sound.beepSequenceUp();
-		
-		
-		goToStartingCorner();
-		Button.waitForAnyPress();
-		System.exit(0);
+		//Localizing at the corner
+				navigation.setForwardSpeed(Navigation.LOCALIZATION_SPEED);
+				
+				usLoc.doLocalization(); 
+				usLoc=null;
+				
+				Sound.beepSequenceUp();
+				
+				//Light localizing at the closest crossing
+				navigation.setEnableGyroscopeCorrection(true);
+				lightLoc.crashLocalizer(serverData.getStartingCorner());
+				
+				//set parameters
+				Sound.beepSequenceUp();
+				Thread odoCorrectionThread = new Thread(odoCorrect);
+				odoCorrectionThread.start();
+				navigation.setForwardSpeed(Navigation.FORWARD_SPEED);
+				odoCorrect.setDoCorrection(true);
+				navigation.setEnableGyroscopeCorrection(true);
+				
+				//Going to the bridge
+				goToBridge(getBridgeEntry());
+				crossBridge();
+				Sound.beepSequenceUp();
+				
+				
+				//find the flag in the red search zone
+				/*
+				(new FlagFinding(dynamicTrack, new ColorSensor(armSensor), ultraSensor, internalClock)).findBlock(getSearchStartSide(Zone.SR, directionSwitch(getTunnelEntry())),
+						serverData.getCoordParam(CoordParameter.SR_LL_x), serverData.getCoordParam(CoordParameter.SR_LL_y),
+						serverData.getCoordParam(CoordParameter.SR_UR_x), serverData.getCoordParam(CoordParameter.SR_UR_y), 
+						serverData.getFlagColor());
+				*/
+				
+				
+				
+				//Going to the tunnel
+				goToTunnel(getTunnelEntry());
+				Sound.beepSequenceUp();
+				crossTunnel();
+				Sound.beepSequenceUp();
+				
+				//finish
+				goToStartingCorner();
+				Sound.beepSequenceUp();
 	}
 
 	/**
@@ -391,22 +394,22 @@ public class GamePlan {
 	 */
 	private void greenPlan() throws Exception {
 		
-		int corner=serverData.getStartingCorner();
+		
 		
 		
 		//Localizing at the corner
 		navigation.setForwardSpeed(Navigation.LOCALIZATION_SPEED);
 		
-		usLoc.doLocalization(0); 
+		usLoc.doLocalization(); 
 		usLoc=null;
-		navigation.turnTo(0);
+		
 		Sound.beepSequenceUp();
 		
 		//Light localizing at the closest crossing
 		navigation.setEnableGyroscopeCorrection(true);
-		lightLoc.crashLocalizer(corner);
+		lightLoc.crashLocalizer(serverData.getStartingCorner());
 		
-		//Going to the tunnel
+		//set parameters
 		Sound.beepSequenceUp();
 		Thread odoCorrectionThread = new Thread(odoCorrect);
 		odoCorrectionThread.start();
@@ -414,33 +417,31 @@ public class GamePlan {
 		odoCorrect.setDoCorrection(true);
 		navigation.setEnableGyroscopeCorrection(true);
 		
+		//Going to the tunnel
 		goToTunnel(getTunnelEntry());
 		Sound.beepSequenceUp();
-		Button.waitForAnyPress();
 		crossTunnel();
 		Sound.beepSequenceUp();
 		
-		//Going to the bridge
-		goToBridge(getBridgeEntry());
-		crossBridge();
-		Sound.beepSequenceUp();
-		goToStartingCorner();
-		Sound.beepSequenceUp();
+		
 		//find the flag in the red search zone
 		/*
 		(new FlagFinding(dynamicTrack, new ColorSensor(armSensor), ultraSensor, internalClock)).findBlock(getSearchStartSide(Zone.SR, directionSwitch(getTunnelEntry())),
 				serverData.getCoordParam(CoordParameter.SR_LL_x), serverData.getCoordParam(CoordParameter.SR_LL_y),
 				serverData.getCoordParam(CoordParameter.SR_UR_x), serverData.getCoordParam(CoordParameter.SR_UR_y), 
 				serverData.getFlagColor());
+		*/
 		
-		
-		goToBridge(directionSwitch(getBridgeEntry()));
-		
+		//Going to the bridge
+		goToBridge(getBridgeEntry());
+		Sound.beepSequenceUp();
 		crossBridge();
 		Sound.beepSequenceUp();
+		
+		//finish 
 		goToStartingCorner();
-		Sound.beepSequence();
-		*/
+		Sound.beepSequenceUp();
+		
 		
 	}
 

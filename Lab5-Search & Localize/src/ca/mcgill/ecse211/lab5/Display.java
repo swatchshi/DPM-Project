@@ -19,7 +19,6 @@ public class Display {
 	private Gyroscope gyroscope;
 	private TextLCD lcd;
 	private double[] position;
-	private boolean enablePrint;
 	private static Display display;
 
 	/**
@@ -36,41 +35,28 @@ public class Display {
 		odo = Odometer.getOdometer();
 		this.lcd = lcd;
 		this.gyroscope = gyroscope;
-		this.enablePrint = true;
-		this.display=this;
+		display = this;
 	}
-
 
 	/**
 	 * Gets the instance of the display used (only one at a time)
-	 * @param lcd
-	 *  		the lcd used
-	 * @param gyroscope
-	 *  		the gyroscope used
-	 * @return
-	 * 			the display instance
-	 * @throws OdometerExceptions
-	 * 				if error when creating instances of Odometer
-	 */
-	public synchronized static Display getDisplay(TextLCD lcd, Gyroscope gyroscope) 
-		      throws OdometerExceptions {
-			  
-		if (display != null) { // Return existing object
-		    return display;
-		} else { // create object and return it
-		    display = new Display(lcd, gyroscope);
-		    return display;
-		}
-	}
-
-	/**
-	 * Sets the print function of the display
 	 * 
-	 * @param enablePrint
-	 *            True if the Display is allowed to print
+	 * @param lcd
+	 *            the lcd used
+	 * @param gyroscope
+	 *            the gyroscope used
+	 * @return the display instance
+	 * @throws OdometerExceptions
+	 *             if error when creating instances of Odometer
 	 */
-	public void setEnablePrint(boolean enablePrint) {
-		this.enablePrint = enablePrint;
+	public synchronized static Display getDisplay(TextLCD lcd, Gyroscope gyroscope) throws OdometerExceptions {
+
+		if (display != null) { // Return existing object
+			return display;
+		} else { // create object and return it
+			display = new Display(lcd, gyroscope);
+			return display;
+		}
 	}
 
 	/**
@@ -80,21 +66,21 @@ public class Display {
 
 		lcd.clear();
 
-			// Retrieve x, y and Theta information
-			position = odo.getXYT();
-			try {
+		// Retrieve x, y and Theta information
+		position = odo.getXYT();
+		try {
 
-				// Print x,y, and theta information
-				if (enablePrint) {
-					DecimalFormat numberFormat = new DecimalFormat("######0.00");
-					lcd.drawString("X: " + numberFormat.format(position[0]), 0, 0);
-					lcd.drawString("Y: " + numberFormat.format(position[1]), 0, 1);
-					lcd.drawString("T: " + numberFormat.format(position[2]), 0, 2);
-					lcd.drawString("G: " + gyroscope.getAngle(), 0, 3);
-					lcd.drawString("O: " + gyroscope.getOffset(), 0, 4);
-				}
-			} catch (Exception e) {
-			}
+			// Print x,y, and theta information
+
+			DecimalFormat numberFormat = new DecimalFormat("######0.00");
+			lcd.drawString("X: " + numberFormat.format(position[0]), 0, 0);
+			lcd.drawString("Y: " + numberFormat.format(position[1]), 0, 1);
+			lcd.drawString("T: " + numberFormat.format(position[2]), 0, 2);
+			lcd.drawString("G: " + gyroscope.getAngle(), 0, 3);
+			lcd.drawString("O: " + gyroscope.getOffset(), 0, 4);
+
+		} catch (Exception e) {
+		}
 
 	}
 

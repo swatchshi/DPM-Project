@@ -68,14 +68,12 @@ public class USLocalizer{
 	/**
 	 * Localization method for both falling edge and falling edge
 	 * Considers it is in the corner 0
+	 * Finally turns to theta 0
 	 */
 	public void doLocalization() {
-		try {
-			doLocalization(0);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} //do localization like it's in the corner 0
+		doLocalization(0);
+		//do localization like it's in the corner 0
+		navigation.turnTo(0);
 	}
 	
 	/**
@@ -83,7 +81,7 @@ public class USLocalizer{
 	 * Considers it is in the corner specified
 	 * @param corner (int) the corner where the localization takes place
 	 */
-	public void doLocalization(int corner) throws Exception{
+	public void doLocalization(int corner){
 		
 		usLocalizerDone=false;
 		determineLocType();
