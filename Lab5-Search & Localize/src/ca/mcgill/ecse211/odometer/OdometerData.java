@@ -4,6 +4,9 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import ca.mcgill.ecse211.lab5.Display;
+import ca.mcgill.ecse211.lab5.GamePlan;
+
 /**
  * This class stores and provides thread safe access to the odometer data.
  * 
@@ -43,8 +46,8 @@ public class OdometerData {
 	public static final int MAX_ANGLE_ERROR = 20;
 	public static final int MIN_ANGLE_ERROR = 2;
 	protected boolean doThetaCorrection = false;
-
-	private static OdometerData odoData = null;
+	protected Display display;
+	
 	protected Gyroscope gyroscope;
 
 	/**
@@ -53,37 +56,17 @@ public class OdometerData {
 	 * 
 	 * @param gyroscope
 	 *            used by the Odometer
+	 * @throws OdometerExceptions  if display creation error
 	 */
-	protected OdometerData(Gyroscope gyroscope) {
+	protected OdometerData(Gyroscope gyroscope) throws OdometerExceptions {
 		this.x = 0;
 		this.y = 0;
 		this.theta = 0;
 		this.gyroscope = gyroscope;
+		//this.display=Display.getDisplay(GamePlan.lcd, gyroscope);
 	}
 
-	/**
-	 * OdometerData factory. Returns an OdometerData instance and makes sure that
-	 * only one instance is ever created. If the user tries to instantiate multiple
-	 * objects, the method throws a MultipleOdometerDataException.
-	 * 
-	 * @param gyroscope
-	 *            used
-	 * @return An OdometerData object
-	 * @throws OdometerExceptions
-	 */
-	public synchronized static OdometerData getOdometerData(Gyroscope gyroscope) throws OdometerExceptions {
-		if (odoData != null) { // Return existing object
-			return odoData;
-		} else if (numberOfIntances < MAX_INSTANCES) { // create object and
-														// return it
-			odoData = new OdometerData(gyroscope);
-			numberOfIntances += 1;
-			return odoData;
-		} else {
-			throw new OdometerExceptions("Only one intance of the Odometer can be created.");
-		}
-
-	}
+	
 
 	/**
 	 * Return the Odomometer data.

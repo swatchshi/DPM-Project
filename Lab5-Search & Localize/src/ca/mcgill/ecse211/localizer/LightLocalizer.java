@@ -209,7 +209,7 @@ public class LightLocalizer {
 		while (!lightSensor.lineDetected());
 		odo.setY(Navigation.TILE_SIZE+Math.abs(dynamicTrack.getLightSensorDistance())+CRASH_LOC_ERROR);
 		navigation.stopMotors();
-		
+		navigation.backUp(Navigation.TILE_SIZE/2);
 		
 		//turn right and go see the first x line
 		navigation.turn(90);
@@ -217,8 +217,10 @@ public class LightLocalizer {
 		while (!lightSensor.lineDetected());
 		odo.setX(Navigation.TILE_SIZE+Math.abs(dynamicTrack.getLightSensorDistance())+CRASH_LOC_ERROR);
 		navigation.stopMotors();
+		navigation.backUp(Navigation.TILE_SIZE/2);
 		
 		// go the the first crossing 
+		
 		navigation.setForwardSpeed(Navigation.LOCALIZATION_SPEED);
 		navigation.goToPoint(1, 1);
 		navigation.turnTo(0);

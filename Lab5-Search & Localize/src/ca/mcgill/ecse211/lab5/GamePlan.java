@@ -110,11 +110,6 @@ public class GamePlan {
 	 */
 	private TrackExpansion dynamicTrack;
 	/**
-	 * Object to help with how the Light sensor at the head of the robot detects
-	 * colors
-	 */
-	private ColorSensor cSensor;
-	/**
 	 * Object to help with how the Light sensor under the robot detects lines
 	 */
 	private ColorSensor lSensor;
@@ -132,10 +127,7 @@ public class GamePlan {
 	 * Object in charge of all variables from the game
 	 */
 	private EV3WifiClient serverData;
-	/**
-	 * Object in charge of displaying values periodically
-	 */
-	private Display odometryDisplay;
+	
 	/**
 	 * Object in charge of correcting the trajectory
 	 */
@@ -148,10 +140,6 @@ public class GamePlan {
 	 * Object in charge of localizing at crossings and crash localizations
 	 */
 	private LightLocalizer lightLoc;
-	/**
-	 * Object in charge of the search algorithm for the flag
-	 */
-	private FlagFinding flagFinder;
 	/**
 	 * Object in charge of keeping track of the time passed
 	 */
@@ -166,7 +154,6 @@ public class GamePlan {
 	 */
 	public GamePlan() throws Exception {
 
-		cSensor = new ColorSensor(armSensor);
 		lSensor = new ColorSensor(lightSensor);
 		ultraSensor = new UltrasonicSensor(ultraSSensor);
 		gyroscope = new Gyroscope(gyroSensor);
@@ -176,25 +163,25 @@ public class GamePlan {
 
 		// Odometer related objects
 		odometer = Odometer.getOdometer(leftMotor, rightMotor, dynamicTrack, gyroscope, CONFIG);
-		odometryDisplay = new Display(lcd, ultraSensor, gyroscope);
+		//odometryDisplay = new Display(lcd, ultraSensor, gyroscope);
 		odoCorrect = new OdometerCorrection(lSensor, odometer, dynamicTrack);
 		navigation = new Navigation(odometer, dynamicTrack, CONFIG);
 		//procedure objects
 		usLoc = new USLocalizer(odometer, navigation, ultraSensor);
 		lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, gyroscope);
 		internalClock=new InternalClock();
-		flagFinder=new FlagFinding(dynamicTrack, cSensor, ultraSensor, internalClock);
-		Thread odoDisplayThread = new Thread(odometryDisplay);
+		
+		
 		Thread odoThread = new Thread(odometer);
-		Thread odoCorrectionThread = new Thread(odoCorrect);
+		
+	//	Thread odoDisplayThread = new Thread(odometryDisplay);
+	//	odoDisplayThread.start();
 		odoCorrect.setDoCorrection(false);
 		odometer.setDoThetaCorrection(false);
 		
 		serverData = new EV3WifiClient(); //////////////////////////////////////////// uncomment to enable data
 											//////////////////////////////////////////// retrieval
 		odoThread.start();
-		odoDisplayThread.start();
-		odoCorrectionThread.start();
 	}
 
 	/**
@@ -236,11 +223,9 @@ public class GamePlan {
 		distR=Math.PI*dynamicTrack.getWheelRad()*(rightMotorTachoCount-rightMotorLastTachoCount)/180;	//convert right rotation to wheel displacement
 		      
 		track=(distR-distL)/(2*Math.PI); //Calculating the instantaneous rotation magnitude
-		odometryDisplay.setEnablePrint(false);
 		lcd.drawString("Track: "+ track, 0, 6);
 		Button.waitForAnyPress();
 		lcd.clear();
-		odometryDisplay.setEnablePrint(true);
 		navigation.setRotateSpeed(Navigation.ROTATE_SPEED);
 	}
 	
@@ -251,15 +236,14 @@ public class GamePlan {
 	 * Press any other button to display the next color
 	 */
 	public void colorTest() {
-		odometryDisplay.setEnablePrint(false);
 		lcd.clear();
-		int buttonID;
+		/*int buttonID;
 		do {
 			lcd.drawString(cSensor.getColorSeen().toString(), 0, 0);
 			buttonID=Button.waitForAnyPress();
 		}while(buttonID!=Button.ID_ESCAPE);
 		lcd.clear();
-		odometryDisplay.setEnablePrint(true);
+		odometryDisplay.setEnablePrint(true);*/
 	}
 	
 	/**
@@ -301,8 +285,7 @@ public class GamePlan {
 	 *             Exception thrown if the robot is not playing
 	 */
 	public void play() throws Exception {
-		//threads
-				
+		
 				
 		internalClock.startClock();
 		
@@ -425,29 +408,32 @@ public class GamePlan {
 		
 		//Going to the tunnel
 		Sound.beepSequenceUp();
+		Thread odoCorrectionThread = new Thread(odoCorrect);
+		odoCorrectionThread.start();
 		navigation.setForwardSpeed(Navigation.FORWARD_SPEED);
 		odoCorrect.setDoCorrection(true);
 		navigation.setEnableGyroscopeCorrection(true);
 		
 		goToTunnel(getTunnelEntry());
 		Sound.beepSequenceUp();
-		
+		Button.waitForAnyPress();
 		crossTunnel();
 		Sound.beepSequenceUp();
 		
+		//Going to the bridge
 		goToBridge(getBridgeEntry());
 		crossBridge();
 		Sound.beepSequenceUp();
 		goToStartingCorner();
+		Sound.beepSequenceUp();
 		//find the flag in the red search zone
 		/*
-		
-		flagFinder.findBlock(getSearchStartSide(Zone.SR, directionSwitch(getTunnelEntry())),
+		(new FlagFinding(dynamicTrack, new ColorSensor(armSensor), ultraSensor, internalClock)).findBlock(getSearchStartSide(Zone.SR, directionSwitch(getTunnelEntry())),
 				serverData.getCoordParam(CoordParameter.SR_LL_x), serverData.getCoordParam(CoordParameter.SR_LL_y),
 				serverData.getCoordParam(CoordParameter.SR_UR_x), serverData.getCoordParam(CoordParameter.SR_UR_y), 
 				serverData.getFlagColor());
 		
-		//Going to the bridge
+		
 		goToBridge(directionSwitch(getBridgeEntry()));
 		
 		crossBridge();
@@ -704,7 +690,7 @@ public class GamePlan {
 			
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((lowerLeftXLine+0.45)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
 			navigation.turnTo(270); //look west
 			navigation.travelForward();
 			
@@ -718,7 +704,7 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			second=odometer.getX();
 			navigation.stopMotors();
-			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
+			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(180);
 			
 			
@@ -727,7 +713,7 @@ public class GamePlan {
 			//Entry of tunnel is in the South part of the tunnel
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((lowerLeftXLine+0.45)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
 			navigation.turnTo(270); //look west
 			navigation.travelForward();
 			
@@ -740,14 +726,14 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			navigation.stopMotors();
 			second=odometer.getX();
-			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
+			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(0);
 			break;
 		case EAST:
 			//Entry of tunnel is in the East part of the tunnel
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.45)*Navigation.TILE_SIZE);
 			navigation.turnTo(0); //look north
 			navigation.travelForward();
 			
@@ -760,14 +746,14 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			navigation.stopMotors();
 			second=odometer.getY();
-			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
+			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(270);
 			break;
 		case WEST:
 			//Entry of tunnel is in the West part of the tunnel
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.55)*Navigation.TILE_SIZE);
 			navigation.turnTo(0); //look north
 			navigation.travelForward();
 			
@@ -780,7 +766,7 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			navigation.stopMotors();
 			second=odometer.getY();
-			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
+			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(90);
 			break;
 		case CENTER:
@@ -808,7 +794,7 @@ public class GamePlan {
 			
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((lowerLeftXLine+0.45)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
 			navigation.turnTo(270); //look west
 			navigation.travelForward();
 			
@@ -822,7 +808,7 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			second=odometer.getX();
 			navigation.stopMotors();
-			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
+			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(180);
 			
 			
@@ -831,7 +817,7 @@ public class GamePlan {
 			//Entry of tunnel is in the South part of the tunnel
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.5)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((lowerLeftXLine+0.45)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
 			navigation.turnTo(270); //look west
 			navigation.travelForward();
 			
@@ -844,14 +830,14 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			navigation.stopMotors();
 			second=odometer.getX();
-			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
+			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(0);
 			break;
 		case EAST:
 			//Entry of tunnel is in the East part of the tunnel
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.45)*Navigation.TILE_SIZE);
 			navigation.turnTo(0); //look north
 			navigation.travelForward();
 			
@@ -864,14 +850,14 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			navigation.stopMotors();
 			second=odometer.getY();
-			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
+			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(270);
 			break;
 		case WEST:
 			//Entry of tunnel is in the West part of the tunnel
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.5)*Navigation.TILE_SIZE);
+			navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.55)*Navigation.TILE_SIZE);
 			navigation.turnTo(0); //look north
 			navigation.travelForward();
 			
@@ -884,7 +870,7 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			navigation.stopMotors();
 			second=odometer.getY();
-			navigation.travel((first-second)/2-dynamicTrack.getLightSensorDistance());
+			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(90);
 			break;
 		case CENTER:

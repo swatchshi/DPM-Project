@@ -46,15 +46,15 @@ public class Lab5 {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		try {
+		//try {
 
 
 			GamePlan game = new GamePlan();
 			game.play();
-;			
-		} catch (OdometerExceptions exc) {
+			
+		//} catch (OdometerExceptions exc) {
 			// instance error, do nothing
-		}
+	//	}
 
 	}
 

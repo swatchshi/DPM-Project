@@ -25,6 +25,7 @@ public class Navigation {
 	public static final int SLOW_ROTATE_SPEED = 175;
 	private static final int ACCELERATION = 1000;
 	private static final int DECELERATION = 2000;
+	private static final int CORRECTION_MAX = 1;
 	public static final double TILE_SIZE = 30.48;
 	private Odometer odo;
 	private double lastX;
@@ -271,7 +272,9 @@ public class Navigation {
 	 *            angles in degrees
 	 */
 	public void turnTo(double theta) {
-
+		
+		
+		
 		double actualTheta = odo.getTheta();
 		double rotation = (theta - actualTheta);
 		if (rotation > 180) {
@@ -284,16 +287,24 @@ public class Navigation {
 		turn(rotation);
 		if (enableGyroscopeCorrection) {
 			double angleDifference;
-			
 			double referenceAngle = odo.getGyroTheta();
 			actualTheta = odo.getTheta();
 			angleDifference = getDiffAngle(referenceAngle, actualTheta);
 			if (angleDifference > Odometer.MIN_ANGLE_ERROR) {
 				odo.correctAngle();
-				turnTo(theta);
+				actualTheta = odo.getTheta();
+				rotation = (theta - actualTheta);
+				if (rotation > 180) {
+					rotation = rotation - 360;
+				} else if (rotation < -180) {
+					rotation = rotation + 360;
+				} else if (Math.abs(rotation) == 180) {
+					rotation = Math.abs(rotation);
+				}
+				turn(rotation);
 			}
 		}
-	}
+	}				
 
 	/**
 	 * Turn by a certain amount of degrees (defined clockwise)
