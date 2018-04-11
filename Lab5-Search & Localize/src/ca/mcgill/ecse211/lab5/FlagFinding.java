@@ -24,7 +24,7 @@ public class FlagFinding {
 	private static final int SUCCESSFUL_BEEPING = 3;
 	private static final int NOT_IT_BEEPING = 2;
 	private static final int FAILURE_BEEPING = 6;
-	private static final int BLOCK_WIDTH = 13;
+	private static final int BLOCK_WIDTH = 10;
 	
 	private double LLx, LLy, URx, URy;
 	private double xRange, yRange;

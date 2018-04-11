@@ -233,15 +233,15 @@ public class LightLocalizer {
 			odo.setXYT(navigation.TILE_SIZE, navigation.TILE_SIZE, 0);
 			break;
 		case 1:
-			odo.setXYT(7*navigation.TILE_SIZE, navigation.TILE_SIZE, 270); //(7,1)
+			odo.setXYT(EV3WifiClient.X_GRID_LINES*navigation.TILE_SIZE, navigation.TILE_SIZE, 270); //(7,1)
 			gyroscope.setAngle(270);
 			break;
 		case 2:
-			odo.setXYT(7*navigation.TILE_SIZE, 7*navigation.TILE_SIZE, 180);//(7,7)
+			odo.setXYT(EV3WifiClient.X_GRID_LINES*navigation.TILE_SIZE, EV3WifiClient.Y_GRID_LINES*navigation.TILE_SIZE, 180);//(7,7)
 			gyroscope.setAngle(180);
 			break;
 		case 3:
-			odo.setXYT(navigation.TILE_SIZE, 7*navigation.TILE_SIZE, 90);//(1,7)
+			odo.setXYT(navigation.TILE_SIZE, EV3WifiClient.Y_GRID_LINES*navigation.TILE_SIZE, 90);//(1,7)
 			gyroscope.setAngle(90);
 			break;
 		}

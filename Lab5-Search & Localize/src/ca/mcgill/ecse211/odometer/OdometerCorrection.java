@@ -4,6 +4,7 @@ import ca.mcgill.ecse211.lab5.Navigation;
 import ca.mcgill.ecse211.lab5.TrackExpansion;
 import ca.mcgill.ecse211.localizer.ColorSensor;
 import ca.mcgill.ecse211.localizer.LightLocalizer;
+import lejos.hardware.Sound;
 
 /**
  * Class for correcting the odometer values using a light sensor from the
@@ -32,7 +33,7 @@ public class OdometerCorrection extends Thread {
 		this.lightSensor = sensor;
 		this.odo = odo;
 		this.dynamicTrack = dynamicTrack;
-		this.ERROR_THRESHOLD = dynamicTrack.getLightSensorDistance() * 1.2; // to make sure no error occurs at crossings
+		this.ERROR_THRESHOLD = Math.abs(dynamicTrack.getLightSensorDistance()) * 0.5; // to make sure no error occurs at crossings
 																			// normally is times 1
 	}
 
@@ -69,14 +70,17 @@ public class OdometerCorrection extends Thread {
 					if (Math.abs(x - lineX * Navigation.TILE_SIZE) < ERROR_THRESHOLD
 							&& Math.abs(y - lineY * Navigation.TILE_SIZE) < ERROR_THRESHOLD) {
 						// do nothing because close to crossing
-					} else if (Math.abs(x - lineX * Navigation.TILE_SIZE) < ERROR_THRESHOLD) {
+					} else if (Math.abs(x - lineX * Navigation.TILE_SIZE) > ERROR_THRESHOLD) {
 						// close enough to x grid line
+						 
 						odo.setX(lineX * Navigation.TILE_SIZE
 								- dynamicTrack.getLightSensorDistance() * Math.sin(Math.toRadians(theta))); // correct X
-					} else if (Math.abs(y - lineY * Navigation.TILE_SIZE) < ERROR_THRESHOLD) {
+						 Sound.beep();
+					} else if (Math.abs(y - lineY * Navigation.TILE_SIZE) > ERROR_THRESHOLD) {
 						// close enough to y grid line
 						odo.setY(lineY * Navigation.TILE_SIZE
 								- dynamicTrack.getLightSensorDistance() * Math.cos(Math.toRadians(theta))); // correct Y
+						 Sound.beep();
 					}
 				}
 			}

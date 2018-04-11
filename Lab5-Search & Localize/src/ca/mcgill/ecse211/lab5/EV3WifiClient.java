@@ -112,11 +112,11 @@ public class EV3WifiClient {
 	}
 
 	// ** Set these as appropriate for your team and current situation **
-	private static final String SERVER_IP = "192.168.2.11"; // put your ipv4 here (go to cmd and write ipconfig)
+	private static final String SERVER_IP = "192.168.2.41"; // put your ipv4 here (go to cmd and write ipconfig)
 	// "192.168.2.3"
 	private static final int TEAM_NUMBER = 1; // Best team ever, will definitely win the competition
-	public static final int X_GRID_LINES = 8; // according to predefined convention for x
-	public static final int Y_GRID_LINES = 8; // according to predefined convention for y
+	public static final int X_GRID_LINES = 12; // according to predefined convention for x
+	public static final int Y_GRID_LINES = 12; // according to predefined convention for y
 
 	// Enable/disable printing of debug info from the WiFi class
 	private static final boolean ENABLE_DEBUG_WIFI_PRINT = false;
@@ -512,7 +512,7 @@ public class EV3WifiClient {
 		}
 		if (x <= lowerLeftX) {
 			return GamePlan.Direction.WEST;
-		} else if (x <= upperRightX) {
+		} else if (x < upperRightX) {
 			if (y <= lowerLeftY) {
 				return GamePlan.Direction.SOUTH;
 			} else if (y >= upperRightY) {

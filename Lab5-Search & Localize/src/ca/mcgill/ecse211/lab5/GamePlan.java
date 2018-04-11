@@ -176,7 +176,7 @@ public class GamePlan {
 		
 		odoCorrect.setDoCorrection(false);
 		odometer.setDoThetaCorrection(false);
-		odometer.setEnablePrint(true);
+		odometer.setEnablePrint(false);
 		serverData = new EV3WifiClient(); //////////////////////////////////////////// uncomment to enable data
 											//////////////////////////////////////////// retrieval
 		odoThread.start();
@@ -235,13 +235,14 @@ public class GamePlan {
 	 */
 	public void colorTest() {
 		lcd.clear();
-		/*int buttonID;
+		int buttonID;
+		/*
 		do {
 			lcd.drawString(cSensor.getColorSeen().toString(), 0, 0);
 			buttonID=Button.waitForAnyPress();
 		}while(buttonID!=Button.ID_ESCAPE);
 		lcd.clear();
-		odometryDisplay.setEnablePrint(true);*/
+		odometer.setEnablePrint(true); */
 	}
 	
 	/**
@@ -337,50 +338,50 @@ public class GamePlan {
 	private void redPlan() throws Exception {
 		
 		//Localizing at the corner
-				navigation.setForwardSpeed(Navigation.LOCALIZATION_SPEED);
+		navigation.setForwardSpeed(Navigation.LOCALIZATION_SPEED);
 				
-				usLoc.doLocalization(); 
-				usLoc=null;
+		usLoc.doLocalization(); 
+		usLoc=null;
+		
+		Sound.beepSequenceUp();
 				
-				Sound.beepSequenceUp();
+		//Light localizing at the closest crossing
+		navigation.setEnableGyroscopeCorrection(true);
+		lightLoc.crashLocalizer(serverData.getStartingCorner());
 				
-				//Light localizing at the closest crossing
-				navigation.setEnableGyroscopeCorrection(true);
-				lightLoc.crashLocalizer(serverData.getStartingCorner());
+		//set parameters
+		Sound.beepSequenceUp();
+		Thread odoCorrectionThread = new Thread(odoCorrect);
+		odoCorrectionThread.start();
+		navigation.setForwardSpeed(Navigation.FORWARD_SPEED);
+		odoCorrect.setDoCorrection(false);
+		navigation.setEnableGyroscopeCorrection(true);
 				
-				//set parameters
-				Sound.beepSequenceUp();
-				Thread odoCorrectionThread = new Thread(odoCorrect);
-				odoCorrectionThread.start();
-				navigation.setForwardSpeed(Navigation.FORWARD_SPEED);
-				odoCorrect.setDoCorrection(true);
-				navigation.setEnableGyroscopeCorrection(true);
-				
-				//Going to the bridge
-				goToBridge(getBridgeEntry());
-				crossBridge();
-				Sound.beepSequenceUp();
-				
-				
-				//find the flag in the red search zone
-				/*
-				(new FlagFinding(dynamicTrack, new ColorSensor(armSensor), ultraSensor, internalClock)).findBlock(getSearchStartSide(Zone.SR, directionSwitch(getTunnelEntry())),
-						serverData.getCoordParam(CoordParameter.SR_LL_x), serverData.getCoordParam(CoordParameter.SR_LL_y),
-						serverData.getCoordParam(CoordParameter.SR_UR_x), serverData.getCoordParam(CoordParameter.SR_UR_y), 
-						serverData.getFlagColor());
-				*/
+		//Going to the bridge
+		goToBridge(getBridgeEntry());
+		crossBridge();
+		Sound.beepSequenceUp();
 				
 				
+		//find the flag in the green search zone
+		
+		(new FlagFinding(dynamicTrack, new ColorSensor(armSensor), ultraSensor, internalClock)).findBlock(getSearchStartSide(Zone.SG, directionSwitch(getTunnelEntry())),
+				serverData.getCoordParam(CoordParameter.SG_LL_x), serverData.getCoordParam(CoordParameter.SG_LL_y),
+				serverData.getCoordParam(CoordParameter.SG_UR_x), serverData.getCoordParam(CoordParameter.SG_UR_y), 
+				serverData.getFlagColor());
+		
 				
-				//Going to the tunnel
-				goToTunnel(getTunnelEntry());
-				Sound.beepSequenceUp();
-				crossTunnel();
-				Sound.beepSequenceUp();
 				
-				//finish
-				goToStartingCorner();
-				Sound.beepSequenceUp();
+				
+		//Going to the tunnel
+		goToTunnel(getTunnelEntry());
+		Sound.beepSequenceUp();
+		crossTunnel();
+		Sound.beepSequenceUp();
+				
+		//finish
+		goToStartingCorner();
+		Sound.beepSequenceUp();
 	}
 
 	/**
@@ -393,8 +394,6 @@ public class GamePlan {
 	 *             When there is a problem with the data from the EV3WifiClass
 	 */
 	private void greenPlan() throws Exception {
-		
-		
 		
 		
 		//Localizing at the corner
@@ -414,7 +413,7 @@ public class GamePlan {
 		Thread odoCorrectionThread = new Thread(odoCorrect);
 		odoCorrectionThread.start();
 		navigation.setForwardSpeed(Navigation.FORWARD_SPEED);
-		odoCorrect.setDoCorrection(true);
+		odoCorrect.setDoCorrection(false);
 		navigation.setEnableGyroscopeCorrection(true);
 		
 		//Going to the tunnel
@@ -441,8 +440,6 @@ public class GamePlan {
 		//finish 
 		goToStartingCorner();
 		Sound.beepSequenceUp();
-		
-		
 	}
 
 	
@@ -681,6 +678,7 @@ public class GamePlan {
 	 */
 	private void localizeBeforeBridge(Direction direction) throws Exception {
 		//Saving coordinates of the bridge to local variables to make the code more readable
+		
 		int lowerLeftXLine = serverData.getCoordParam(CoordParameter.BR_LL_x);
 		int lowerLeftYLine = serverData.getCoordParam(CoordParameter.BR_LL_y);
 		int upperRightXLine = serverData.getCoordParam(CoordParameter.BR_UR_x);
@@ -688,11 +686,18 @@ public class GamePlan {
 		double first, second;
 		switch(direction) {
 		case NORTH:
-			
+			GamePlan.lcd.drawString("North loc", 0, 7);
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.45)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
-			navigation.turnTo(270); //look west
+			
+			if(serverData.getZone((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
+				navigation.travelTo((lowerLeftXLine+0.55)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+				navigation.turnTo(90); //look east
+			}else {
+				navigation.travelTo((lowerLeftXLine+0.45)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+				navigation.turnTo(270); //look west
+			}
+			
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
@@ -705,17 +710,24 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			second=odometer.getX();
 			navigation.stopMotors();
-			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
+			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(180);
 			
 			
 			break;
 		case SOUTH:
 			//Entry of tunnel is in the South part of the tunnel
+			GamePlan.lcd.drawString("South loc", 0, 7);
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.45)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
-			navigation.turnTo(270); //look west
+			
+			if(serverData.getZone((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
+				navigation.travelTo((lowerLeftXLine+0.55)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
+				navigation.turnTo(90); //look east
+			}else {
+				navigation.travelTo((lowerLeftXLine+0.45)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
+				navigation.turnTo(270); //look west
+			}
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
@@ -727,15 +739,22 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			navigation.stopMotors();
 			second=odometer.getX();
-			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
+			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(0);
 			break;
 		case EAST:
 			//Entry of tunnel is in the East part of the tunnel
+			GamePlan.lcd.drawString("EAST loc", 0, 7);
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.45)*Navigation.TILE_SIZE);
-			navigation.turnTo(0); //look north
+			
+			if(serverData.getZone((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
+				navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.55)*Navigation.TILE_SIZE);
+				navigation.turnTo(180); //look south
+			}else {
+				navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.45)*Navigation.TILE_SIZE);
+				navigation.turnTo(0); //look north
+			}
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
@@ -747,15 +766,22 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			navigation.stopMotors();
 			second=odometer.getY();
-			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
+			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(270);
 			break;
 		case WEST:
 			//Entry of tunnel is in the West part of the tunnel
+			GamePlan.lcd.drawString("West loc", 0, 7);
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.55)*Navigation.TILE_SIZE);
-			navigation.turnTo(0); //look north
+			
+			if(serverData.getZone((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
+				navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.45)*Navigation.TILE_SIZE);
+				navigation.turnTo(180); //look south
+			}else {
+				navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.55)*Navigation.TILE_SIZE);
+				navigation.turnTo(0); //look north
+			}
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
@@ -767,7 +793,7 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			navigation.stopMotors();
 			second=odometer.getY();
-			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
+			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(90);
 			break;
 		case CENTER:
@@ -792,11 +818,16 @@ public class GamePlan {
 		double first, second;
 		switch(direction) {
 		case NORTH:
-			
+			GamePlan.lcd.drawString("North loc", 0, 5);
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.45)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
-			navigation.turnTo(270); //look west
+			if(serverData.getZone((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
+				navigation.travelTo((lowerLeftXLine+0.55)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+				navigation.turnTo(90); //look east
+			}else {
+				navigation.travelTo((lowerLeftXLine+0.45)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
+				navigation.turnTo(270); //look west
+			}
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
@@ -809,17 +840,23 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			second=odometer.getX();
 			navigation.stopMotors();
-			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
+			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(180);
-			
 			
 			break;
 		case SOUTH:
 			//Entry of tunnel is in the South part of the tunnel
+			GamePlan.lcd.drawString("South loc", 0, 5);
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine+0.45)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
-			navigation.turnTo(270); //look west
+			
+			if(serverData.getZone((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
+				navigation.travelTo((lowerLeftXLine+0.55)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
+				navigation.turnTo(90); //look east
+			}else {
+				navigation.travelTo((lowerLeftXLine+0.45)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
+				navigation.turnTo(270); //look west
+			}
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
@@ -831,15 +868,22 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			navigation.stopMotors();
 			second=odometer.getX();
-			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
+			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(0);
 			break;
 		case EAST:
 			//Entry of tunnel is in the East part of the tunnel
+			GamePlan.lcd.drawString("East loc", 0, 5);
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.45)*Navigation.TILE_SIZE);
-			navigation.turnTo(0); //look north
+			
+			if(serverData.getZone((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
+				navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.55)*Navigation.TILE_SIZE);
+				navigation.turnTo(180); //look south
+			}else {
+				navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.45)*Navigation.TILE_SIZE);
+				navigation.turnTo(0); //look north
+			}
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
@@ -851,15 +895,21 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			navigation.stopMotors();
 			second=odometer.getY();
-			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
+			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(270);
 			break;
 		case WEST:
 			//Entry of tunnel is in the West part of the tunnel
+			GamePlan.lcd.drawString("West loc", 0, 5);
 			odoCorrect.setDoCorrection(true);
 			
-			navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.55)*Navigation.TILE_SIZE);
-			navigation.turnTo(0); //look north
+			if(serverData.getZone((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
+				navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.45)*Navigation.TILE_SIZE);
+				navigation.turnTo(180); //look south
+			}else {
+				navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.55)*Navigation.TILE_SIZE);
+				navigation.turnTo(0); //look north
+			}
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
@@ -871,7 +921,7 @@ public class GamePlan {
 			while(!lSensor.lineDetected());
 			navigation.stopMotors();
 			second=odometer.getY();
-			navigation.travel((first-second)/2+dynamicTrack.getLightSensorDistance());
+			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(90);
 			break;
 		case CENTER:
@@ -924,21 +974,25 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is north of the north bridge entry
 					// goes south around by the west bound
+					GamePlan.lcd.drawString("North SOUTH NORTH", 0, 6);
 					goToSRUpperLeft();
 					goToSRLowerLeft();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is north of the north bridge entry
 					// rush for it
+					GamePlan.lcd.drawString("North SOUTH SOUTH", 0, 6);
 					break;
 				case EAST:
 					// robot is east of the search zone, which is north of the north bridge entry
 					// go south by the east bound
+					GamePlan.lcd.drawString("North SOUTH EAST", 0, 6);
 					goToSRLowerRight();
 					break;
 				case WEST:
 					// robot is west of the search zone, which is north of the north bridge entry
 					// go south by the west bound
+					GamePlan.lcd.drawString("North SOUTH WEST", 0, 6);
 					goToSRLowerLeft();
 					break;
 				}
@@ -953,21 +1007,25 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is west of the north bridge entry
 					// goes south around by the east bound
+					GamePlan.lcd.drawString("North EAST NORTH", 0, 6);
 					goToSRUpperRight();
 					goToSRLowerRight();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is west of the north bridge entry
 					// go west
+					GamePlan.lcd.drawString("North EAST SOUTH", 0, 6);
 					goToSRLowerRight();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is west of the north bridge entry
 					// rush for it
+					GamePlan.lcd.drawString("North EAST EAST", 0, 6);
 					break;
 				case WEST:
 					// robot is west of the search zone, which is west of the north bridge entry
 					// go south by the west bound and then east
+					GamePlan.lcd.drawString("North EAST WEST", 0, 6);
 					goToSRLowerLeft();
 					goToSRLowerRight();
 					break;
@@ -983,23 +1041,27 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is east of the north bridge entry
 					// goes south around by the west bound
+					GamePlan.lcd.drawString("North WEST NORTH", 0, 6);
 					goToSRUpperLeft();
 					goToSRLowerLeft();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is east of the north bridge entry
 					// go west
+					GamePlan.lcd.drawString("North WEST SOUTH", 0, 6);
 					goToSRLowerLeft();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is east of the north bridge entry
 					// go south by the east bound and then west
+					GamePlan.lcd.drawString("North WEST EAST", 0, 6);
 					goToSRLowerRight();
 					goToSRLowerLeft();
 					break;
 				case WEST:
 					// robot is west of the search zone, which is east of the north bridge entry
 					// rush for it
+					GamePlan.lcd.drawString("North WEST WEST", 0, 6);
 					break;
 				}
 				break;
@@ -1028,22 +1090,26 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is north of the east bridge entry
 					// goes south around by the east bound
+					GamePlan.lcd.drawString("East SOUTH NORTH", 0, 6);
 					goToSRUpperRight();
 					goToSRLowerRight();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is north of the east bridge entry
 					// go east a bit
+					GamePlan.lcd.drawString("East SOUTH SOUTH", 0, 6);
 					goToSRLowerRight();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is north of the east bridge entry
 					// go south by the east bound
+					GamePlan.lcd.drawString("East SOUTH EAST", 0, 6);
 					goToSRLowerRight();
 					break;
 				case WEST:
 					// robot is west of the search zone, which is north of the east bridge entry
 					// go south by the west bound and then east
+					GamePlan.lcd.drawString("East SOUTH WEST", 0, 6);
 					goToSRLowerLeft();
 					goToSRLowerRight();
 					break;
@@ -1059,22 +1125,26 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is south of the east bridge entry
 					// go east a bit
+					GamePlan.lcd.drawString("East NORTH NORTH", 0, 6);
 					goToSRLowerRight();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is south of the east bridge entry
 					// go north by the east bound
+					GamePlan.lcd.drawString("East NORTH SOUTH", 0, 6);
 					goToSRLowerRight();
 					goToSRUpperRight();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is south of the east bridge entry
 					// go north using east bound
+					GamePlan.lcd.drawString("East NORTH EAST", 0, 6);
 					goToSRUpperRight();
 					break;
 				case WEST:
 					// robot is west of the search zone, which is south of the east bridge entry
 					// go north by the west bound and then east
+					GamePlan.lcd.drawString("East NORTH WEST", 0, 6);
 					goToSRUpperLeft();
 					goToSRUpperRight();
 					break;
@@ -1090,16 +1160,18 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is east of the east bridge entry
 					// goes west
+					GamePlan.lcd.drawString("East WEST NORTH", 0, 6);
 					goToSRUpperLeft();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is east of the east bridge entry
 					// go west
+					GamePlan.lcd.drawString("East WEST SOUTH", 0, 6);
 					goToSRLowerLeft();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is east of the east bridge entry
-
+					GamePlan.lcd.drawString("East WEST EAST", 0, 6);
 					if (lowerLeftY < odometer.getY()) {
 						// go south by the east bound and then west
 						goToSRLowerRight();
@@ -1110,6 +1182,7 @@ public class GamePlan {
 					}
 					break;
 				case WEST:
+					GamePlan.lcd.drawString("East WEST WEST", 0, 6);
 					// robot is west of the search zone, which is east of the east bridge entry
 					// rush for it
 					break;
@@ -1140,23 +1213,27 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is north of the west bridge entry
 					// goes south around by the west bound
+					GamePlan.lcd.drawString("West SOUTH NORTH", 0, 6);
 					goToSRUpperLeft();
 					goToSRLowerLeft();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is north of the west bridge entry
 					// go west a bit
+					GamePlan.lcd.drawString("West SOUTH SOUTH", 0, 6);
 					goToSRLowerLeft();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is north of the west bridge entry
 					// go south by the east bound and then west
+					GamePlan.lcd.drawString("West SOUTH EAST", 0, 6);
 					goToSRLowerRight();
 					goToSRLowerLeft();
 					break;
 				case WEST:
 					// robot is west of the search zone, which is north of the west bridge entry
 					// go south by the west bound
+					GamePlan.lcd.drawString("West SOUTH WEST", 0, 6);
 					goToSRLowerLeft();
 					break;
 				}
@@ -1171,21 +1248,25 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is south of the west bridge entry
 					// go west a bit
+					GamePlan.lcd.drawString("West NORTH NORTH", 0, 6);
 					goToSRLowerLeft();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is south of the west bridge entry
 					// go north by the west bound
+					GamePlan.lcd.drawString("West NORTH SOUTH", 0, 6);
 					goToSRLowerLeft();
 					goToSRUpperLeft();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is south of the west bridge entry
 					// go for it
+					GamePlan.lcd.drawString("West NORTH EAST", 0, 6);
 					break;
 				case WEST:
 					// robot is west of the search zone, which is south of the west bridge entry
 					// go north by the west bound
+					GamePlan.lcd.drawString("West NORTH WEST", 0, 6);
 					goToSRUpperLeft();
 					break;
 				}
@@ -1200,20 +1281,23 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is west of the west bridge entry
 					// goes east
+					GamePlan.lcd.drawString("West EAST NORTH", 0, 6);
 					goToSRUpperRight();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is west of the west bridge entry
 					// go east
+					GamePlan.lcd.drawString("West EAST SOUTH", 0, 6);
 					goToSRLowerRight();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is west of the west bridge entry
 					// rush for it
-
+					GamePlan.lcd.drawString("West EAST EAST", 0, 6);
 					break;
 				case WEST:
 					// robot is west of the search zone, which is west of the west bridge entry
+					GamePlan.lcd.drawString("West EAST WEST", 0, 6);
 					if (lowerLeftY < odometer.getY()) {
 						// go south by the west bound and then east
 						goToSRLowerLeft();
@@ -1251,21 +1335,25 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is south of the south bridge entry
 					// rush for it
+					GamePlan.lcd.drawString("South North NORTH", 0, 6);
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is south of the south bridge entry
 					// go north using the west bound
+					GamePlan.lcd.drawString("South North SOUTH", 0, 6);
 					goToSRLowerLeft();
 					goToSRUpperLeft();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is south of the south bridge entry
 					// go north by the east bound
+					GamePlan.lcd.drawString("South North EAST", 0, 6);
 					goToSRUpperRight();
 					break;
 				case WEST:
 					// robot is west of the search zone, which is south of the south bridge entry
 					// go north by the west bound
+					GamePlan.lcd.drawString("South North WEST", 0, 6);
 					goToSRUpperLeft();
 					break;
 				}
@@ -1280,21 +1368,25 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is west of the south bridge entry
 					// go east a bit
+					GamePlan.lcd.drawString("South EAST NORTH", 0, 6);
 					goToSRUpperRight();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is west of the south bridge entry
 					// go north using the east bound
+					GamePlan.lcd.drawString("South EAST SOUTH", 0, 6);
 					goToSRLowerRight();
 					goToSRUpperRight();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is west of the south bridge entry
 					// rush for it
+					GamePlan.lcd.drawString("South EAST EAST", 0, 6);
 					break;
 				case WEST:
 					// robot is west of the search zone, which is west of the south bridge entry
 					// go north by the west bound and then east
+					GamePlan.lcd.drawString("South EAST WEST", 0, 6);
 					goToSRUpperLeft();
 					goToSRUpperRight();
 					break;
@@ -1310,23 +1402,27 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is east of the south bridge entry
 					// go west a bit
+					GamePlan.lcd.drawString("South WEST NORTH", 0, 6);
 					goToSRUpperLeft();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is east of the south bridge entry
 					// go north using the west bound
+					GamePlan.lcd.drawString("South WEST SOUTH", 0, 6);
 					goToSRLowerLeft();
 					goToSRUpperLeft();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is east of the south bridge entry
 					// go north by the east bound and then west
+					GamePlan.lcd.drawString("South WEST EAST", 0, 6);
 					goToSRUpperRight();
 					goToSRUpperLeft();
 					break;
 				case WEST:
 					// robot is west of the search zone, which is east of the south bridge entry
 					// rush for it
+					GamePlan.lcd.drawString("South WEST WEST", 0, 6);
 					break;
 				}
 				break;
@@ -1376,18 +1472,20 @@ public class GamePlan {
 					break;
 				case NORTH:
 					// robot is north of the search zone, which is north of the north tunnel entry
-					// goes south around by the west bound
-					
-					goToSGUpperLeft();
+					// goes south around by the east bound
+					GamePlan.lcd.drawString("North SOUTH NORTH", 0, 4);
+					goToSGLowerRight();
 					goToSGLowerLeft();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is north of the north tunnel entry
 					// rush for it
+					GamePlan.lcd.drawString("North SOUTH SOUTH", 0, 4);
 					break;
 				case EAST:
 					// robot is east of the search zone, which is north of the north tunnel entry
 					// go south by the east bound
+					GamePlan.lcd.drawString("North SOUTH EAST", 0, 4);
 					Sound.beepSequenceUp();
 					Sound.beepSequence();
 					goToSGLowerRight();
@@ -1395,6 +1493,7 @@ public class GamePlan {
 				case WEST:
 					// robot is west of the search zone, which is north of the north tunnel entry
 					// go south by the west bound
+					GamePlan.lcd.drawString("North SOUTH WEST", 0, 4);
 					goToSGLowerLeft();
 					break;
 				}
@@ -1408,22 +1507,26 @@ public class GamePlan {
 					break;
 				case NORTH:
 					// robot is north of the search zone, which is west of the north tunnel entry
-					// goes south around by the east bound
-					goToSGUpperRight();
+					// goes south around by the west bound
+					GamePlan.lcd.drawString("North EAST NORTH", 0, 4);
+					goToSGLowerLeft();
 					goToSGLowerRight();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is west of the north tunnel entry
 					// go west
+					GamePlan.lcd.drawString("North EAST SOUTH", 0, 4);
 					goToSGLowerRight();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is west of the north tunnel entry
 					// rush for it
+					GamePlan.lcd.drawString("North EAST EAST", 0, 4);
 					break;
 				case WEST:
 					// robot is west of the search zone, which is west of the north tunnel entry
 					// go south by the west bound and then east
+					GamePlan.lcd.drawString("North EAST WEST", 0, 4);
 					goToSGLowerLeft();
 					goToSGLowerRight();
 					break;
@@ -1438,24 +1541,28 @@ public class GamePlan {
 					break;
 				case NORTH:
 					// robot is north of the search zone, which is east of the north tunnel entry
-					// goes south around by the west bound
-					goToSGUpperLeft();
+					// goes south around by the east bound
+					GamePlan.lcd.drawString("North WEST NORTH", 0, 4);
+					goToSGLowerRight();
 					goToSGLowerLeft();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is east of the north tunnel entry
 					// go west
+					GamePlan.lcd.drawString("North WEST SOUTH", 0, 4);
 					goToSGLowerLeft();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is east of the north tunnel entry
 					// go south by the east bound and then west
+					GamePlan.lcd.drawString("North WEST EAST", 0, 4);
 					goToSGLowerRight();
 					goToSGLowerLeft();
 					break;
 				case WEST:
 					// robot is west of the search zone, which is east of the north tunnel entry
 					// rush for it
+					GamePlan.lcd.drawString("North WEST WEST", 0, 4);
 					break;
 				}
 				break;
@@ -1484,22 +1591,26 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is north of the east tunnel entry
 					// goes south around by the east bound
+					GamePlan.lcd.drawString("EAST SOUTH NORTH", 0, 4);
 					goToSGUpperRight();
 					goToSGLowerRight();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is north of the east tunnel entry
 					// go east a bit
+					GamePlan.lcd.drawString("EAST SOUTH SOUTH", 0, 4);
 					goToSGLowerRight();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is north of the east tunnel entry
 					// go south by the east bound
+					GamePlan.lcd.drawString("EAST SOUTH EAST", 0, 4);
 					goToSGLowerRight();
 					break;
 				case WEST:
 					// robot is west of the search zone, which is north of the east tunnel entry
 					// go south by the west bound and then east
+					GamePlan.lcd.drawString("EAST SOUTH WEST", 0, 4);
 					goToSGLowerLeft();
 					goToSGLowerRight();
 					break;
@@ -1515,22 +1626,26 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is south of the east tunnel entry
 					// go east a bit
+					GamePlan.lcd.drawString("EAST NORTH NORTH", 0, 4);
 					goToSGLowerRight();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is south of the east tunnel entry
 					// go north by the east bound
+					GamePlan.lcd.drawString("EAST NORTH SOUTH", 0, 4);
 					goToSGLowerRight();
 					goToSGUpperRight();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is south of the east tunnel entry
 					// go north using east bound
+					GamePlan.lcd.drawString("EAST SOUTH EAST", 0, 4);
 					goToSGUpperRight();
 					break;
 				case WEST:
 					// robot is west of the search zone, which is south of the east tunnel entry
 					// go north by the west bound and then east
+					GamePlan.lcd.drawString("EAST SOUTH WEST", 0, 4);
 					goToSGUpperLeft();
 					goToSGUpperRight();
 					break;
@@ -1546,16 +1661,18 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is east of the east tunnel entry
 					// goes west
+					GamePlan.lcd.drawString("EAST WEST NORTH", 0, 4);
 					goToSGUpperLeft();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is east of the east tunnel entry
 					// go west
+					GamePlan.lcd.drawString("EAST WEST SOUTH", 0, 4);
 					goToSGLowerLeft();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is east of the east tunnel entry
-
+					GamePlan.lcd.drawString("EAST WEST EAST", 0, 4);
 					if (lowerLeftY < odometer.getY()) {
 						// go south by the east bound and then west
 						goToSGLowerRight();
@@ -1568,6 +1685,7 @@ public class GamePlan {
 				case WEST:
 					// robot is west of the search zone, which is east of the east tunnel entry
 					// rush for it
+					GamePlan.lcd.drawString("EAST WEST WEST", 0, 4);
 					break;
 				}
 				break;
@@ -1596,23 +1714,27 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is north of the west tunnel entry
 					// goes south around by the west bound
+					GamePlan.lcd.drawString("WEST SOUTH NORTH", 0, 4);
 					goToSGUpperLeft();
 					goToSGLowerLeft();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is north of the west tunnel entry
 					// go west a bit
+					GamePlan.lcd.drawString("WEST SOUTH SOUTH", 0, 4);
 					goToSGLowerLeft();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is north of the west tunnel entry
 					// go south by the east bound and then west
+					GamePlan.lcd.drawString("WEST SOUTH EAST", 0, 4);
 					goToSGLowerRight();
 					goToSGLowerLeft();
 					break;
 				case WEST:
 					// robot is west of the search zone, which is north of the west tunnel entry
 					// go south by the west bound
+					GamePlan.lcd.drawString("WEST SOUTH WEST", 0, 4);
 					goToSGLowerLeft();
 					break;
 				}
@@ -1627,21 +1749,25 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is south of the west tunnel entry
 					// go west a bit
+					GamePlan.lcd.drawString("WEST NORTH NORTH", 0, 4);
 					goToSGLowerLeft();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is south of the west tunnel entry
 					// go north by the west bound
+					GamePlan.lcd.drawString("WEST NORTH SOUTH", 0, 4);
 					goToSGLowerLeft();
 					goToSGUpperLeft();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is south of the west tunnel entry
 					// go for it
+					GamePlan.lcd.drawString("WEST NORTH EAST", 0, 4);
 					break;
 				case WEST:
 					// robot is west of the search zone, which is south of the west tunnel entry
 					// go north by the west bound
+					GamePlan.lcd.drawString("WEST NORTH WEST", 0, 4);
 					goToSGUpperLeft();
 					break;
 				}
@@ -1656,20 +1782,23 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is west of the west tunnel entry
 					// goes east
+					GamePlan.lcd.drawString("WEST EAST NORTH", 0, 4);
 					goToSGUpperRight();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is west of the west tunnel entry
 					// go east
+					GamePlan.lcd.drawString("WEST EAST SOUTH", 0, 4);
 					goToSGLowerRight();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is west of the west tunnel entry
 					// rush for it
-
+					GamePlan.lcd.drawString("WEST EAST EAST", 0, 4);
 					break;
 				case WEST:
 					// robot is west of the search zone, which is west of the west tunnel entry
+					GamePlan.lcd.drawString("WEST EAST WEST", 0, 4);
 					if (lowerLeftY < odometer.getY()) {
 						// go south by the west bound and then east
 						goToSGLowerLeft();
@@ -1707,21 +1836,25 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is south of the south tunnel entry
 					// rush for it
+					GamePlan.lcd.drawString("SOUTH NORTH NORTH", 0, 4);
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is south of the south tunnel entry
 					// go north using the west bound
+					GamePlan.lcd.drawString("SOUTH NORTH SOUTH", 0, 4);
 					goToSGLowerLeft();
 					goToSGUpperLeft();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is south of the south tunnel entry
 					// go north by the east bound
+					GamePlan.lcd.drawString("SOUTH NORTH EAST", 0, 4);
 					goToSGUpperRight();
 					break;
 				case WEST:
 					// robot is west of the search zone, which is south of the south tunnel entry
 					// go north by the west bound
+					GamePlan.lcd.drawString("SOUTH NORTH WEST", 0, 4);
 					goToSGUpperLeft();
 					break;
 				}
@@ -1736,21 +1869,25 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is west of the south tunnel entry
 					// go east a bit
+					GamePlan.lcd.drawString("SOUTH EAST NORTH", 0, 4);
 					goToSGUpperRight();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is west of the south tunnel entry
 					// go north using the east bound
+					GamePlan.lcd.drawString("SOUTH EAST SOUTH", 0, 4);
 					goToSGLowerRight();
 					goToSGUpperRight();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is west of the south tunnel entry
 					// rush for it
+					GamePlan.lcd.drawString("SOUTH EAST EAST", 0, 4);
 					break;
 				case WEST:
 					// robot is west of the search zone, which is west of the south tunnel entry
 					// go north by the west bound and then east
+					GamePlan.lcd.drawString("SOUTH EAST WEST", 0, 4);
 					goToSGUpperLeft();
 					goToSGUpperRight();
 					break;
@@ -1766,23 +1903,27 @@ public class GamePlan {
 				case NORTH:
 					// robot is north of the search zone, which is east of the south tunnel entry
 					// go west a bit
+					GamePlan.lcd.drawString("SOUTH WEST NORTH", 0, 4);
 					goToSGUpperLeft();
 					break;
 				case SOUTH:
 					// robot is south of the search zone, which is east of the south tunnel entry
 					// go north using the west bound
+					GamePlan.lcd.drawString("SOUTH WEST SOUTH", 0, 4);
 					goToSGLowerLeft();
 					goToSGUpperLeft();
 					break;
 				case EAST:
 					// robot is east of the search zone, which is east of the south tunnel entry
 					// go north by the east bound and then west
+					GamePlan.lcd.drawString("SOUTH WEST EAST", 0, 4);
 					goToSGUpperRight();
 					goToSGUpperLeft();
 					break;
 				case WEST:
 					// robot is west of the search zone, which is east of the south tunnel entry
 					// rush for it
+					GamePlan.lcd.drawString("SOUTH WEST WEST", 0, 4);
 					break;
 				}
 				break;
@@ -2110,8 +2251,8 @@ public class GamePlan {
 	 */
 	private boolean goToSRLowerLeft() {
 		navigation.travelTo(
-				(serverData.getCoordParam(CoordParameter.SR_LL_x) -0.5)* Navigation.TILE_SIZE ,
-				(serverData.getCoordParam(CoordParameter.SR_LL_y) -0.5)* Navigation.TILE_SIZE );
+				(serverData.getCoordParam(CoordParameter.SR_LL_x) -0.25)* Navigation.TILE_SIZE ,
+				(serverData.getCoordParam(CoordParameter.SR_LL_y) -0.25)* Navigation.TILE_SIZE );
 		return true;
 	}
 
@@ -2123,8 +2264,8 @@ public class GamePlan {
 	 */
 	private boolean goToSRLowerRight() {
 		navigation.travelTo(
-				(serverData.getCoordParam(CoordParameter.SR_UR_x) +0.5) * Navigation.TILE_SIZE ,
-				(serverData.getCoordParam(CoordParameter.SR_LL_y) -0.5)* Navigation.TILE_SIZE );
+				(serverData.getCoordParam(CoordParameter.SR_UR_x) +0.25) * Navigation.TILE_SIZE ,
+				(serverData.getCoordParam(CoordParameter.SR_LL_y) -0.25)* Navigation.TILE_SIZE );
 		return true;
 	}
 
@@ -2136,8 +2277,8 @@ public class GamePlan {
 	 */
 	private boolean goToSRUpperLeft() {
 		navigation.travelTo(
-				(serverData.getCoordParam(CoordParameter.SR_LL_x)-0.5) * Navigation.TILE_SIZE ,
-				(serverData.getCoordParam(CoordParameter.SR_UR_y)+0.5) * Navigation.TILE_SIZE );
+				(serverData.getCoordParam(CoordParameter.SR_LL_x)-0.25) * Navigation.TILE_SIZE ,
+				(serverData.getCoordParam(CoordParameter.SR_UR_y)+0.25) * Navigation.TILE_SIZE );
 		return true;
 	}
 
@@ -2149,8 +2290,8 @@ public class GamePlan {
 	 */
 	private boolean goToSRUpperRight() {
 		navigation.travelTo(
-				(serverData.getCoordParam(CoordParameter.SR_UR_x) +0.5)* Navigation.TILE_SIZE,
-				(serverData.getCoordParam(CoordParameter.SR_UR_y) +0.5)* Navigation.TILE_SIZE );
+				(serverData.getCoordParam(CoordParameter.SR_UR_x) +0.25)* Navigation.TILE_SIZE,
+				(serverData.getCoordParam(CoordParameter.SR_UR_y) +0.25)* Navigation.TILE_SIZE );
 		return true;
 	}
 
@@ -2162,8 +2303,8 @@ public class GamePlan {
 	 */
 	private boolean goToSGLowerLeft() {
 		navigation.travelTo(
-				(serverData.getCoordParam(CoordParameter.SG_LL_x) -0.5) * Navigation.TILE_SIZE ,
-				(serverData.getCoordParam(CoordParameter.SG_LL_y) -0.5)* Navigation.TILE_SIZE);
+				(serverData.getCoordParam(CoordParameter.SG_LL_x) -0.25) * Navigation.TILE_SIZE ,
+				(serverData.getCoordParam(CoordParameter.SG_LL_y) -0.25)* Navigation.TILE_SIZE);
 		return true;
 	}
 
@@ -2175,8 +2316,8 @@ public class GamePlan {
 	 */
 	private boolean goToSGLowerRight() {
 		navigation.travelTo(
-				(serverData.getCoordParam(CoordParameter.SG_UR_x) +0.5)* Navigation.TILE_SIZE  ,
-				(serverData.getCoordParam(CoordParameter.SG_LL_y) -0.5) * Navigation.TILE_SIZE );
+				(serverData.getCoordParam(CoordParameter.SG_UR_x) +0.25)* Navigation.TILE_SIZE  ,
+				(serverData.getCoordParam(CoordParameter.SG_LL_y) -0.25) * Navigation.TILE_SIZE );
 		return true;
 	}
 
@@ -2188,8 +2329,8 @@ public class GamePlan {
 	 */
 	private boolean goToSGUpperLeft() {
 		navigation.travelTo(
-				(serverData.getCoordParam(CoordParameter.SG_LL_x) -0.5)* Navigation.TILE_SIZE ,
-				(serverData.getCoordParam(CoordParameter.SG_UR_y) +0.5)* Navigation.TILE_SIZE );
+				(serverData.getCoordParam(CoordParameter.SG_LL_x) -0.25)* Navigation.TILE_SIZE ,
+				(serverData.getCoordParam(CoordParameter.SG_UR_y) +0.25)* Navigation.TILE_SIZE );
 		return true;
 	}
 
@@ -2201,8 +2342,8 @@ public class GamePlan {
 	 */
 	private boolean goToSGUpperRight() {
 		navigation.travelTo(
-				(serverData.getCoordParam(CoordParameter.SG_UR_x) +0.5) * Navigation.TILE_SIZE ,
-				(serverData.getCoordParam(CoordParameter.SG_UR_y) +0.5)* Navigation.TILE_SIZE );
+				(serverData.getCoordParam(CoordParameter.SG_UR_x) +0.25) * Navigation.TILE_SIZE ,
+				(serverData.getCoordParam(CoordParameter.SG_UR_y) +0.25)* Navigation.TILE_SIZE );
 		return true;
 	}
 	
