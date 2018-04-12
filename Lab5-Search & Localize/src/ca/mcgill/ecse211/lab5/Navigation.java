@@ -1,11 +1,7 @@
 package ca.mcgill.ecse211.lab5;
 
-import ca.mcgill.ecse211.lab5.*;
-import ca.mcgill.ecse211.localizer.*;
 import ca.mcgill.ecse211.odometer.*;
-import lejos.hardware.Sound;
 import lejos.hardware.motor.EV3LargeRegulatedMotor;
-import lejos.robotics.SampleProvider;
 
 /**
  * Class to navigate with the robot on the map Holds every method for wheel
@@ -23,9 +19,7 @@ public class Navigation {
 	public static final int LOCALIZATION_SPEED = 400;
 	public static final int ROTATE_SPEED = 300;
 	public static final int SLOW_ROTATE_SPEED = 175;
-	private static final int ACCELERATION = 1000;
-	private static final int DECELERATION = 2000;
-	private static final int CORRECTION_MAX = 1;
+	private static final int ACCELERATION = 3000;
 	public static final double TILE_SIZE = 30.48;
 	private Odometer odo;
 	private double lastX;
@@ -38,7 +32,7 @@ public class Navigation {
 	private boolean enableGyroscopeCorrection = false;
 
 	private static Navigation nav; // Holds the used instance of this class
-	private GamePlan.RobotConfig config;
+	private TrackExpansion.RobotConfig config;
 
 	public static enum Turn {
 		CLOCK_WISE, COUNTER_CLOCK_WISE
@@ -48,20 +42,20 @@ public class Navigation {
 	 * Constructs a navigation object
 	 * 
 	 * @param map
-	 *            : map used
+	 *             map used
 	 * @param odo
-	 *            : Odometer used
+	 *             Odometer used
 	 * @param us
-	 *            : UltrasonicPoller used
-	 * @param config
-	 *            The Lab5.RobotConfig, i.e. the wheel positioning
+	 *             UltrasonicPoller used
+	 * @param dynamicTrack
+	 *            TrackExpansion used
 	 */
-	public Navigation(Odometer odo, TrackExpansion dynamicTrack, GamePlan.RobotConfig config) {
+	public Navigation(Odometer odo, TrackExpansion dynamicTrack) {
 		this.odo = odo;
 		this.dynamicTrack = dynamicTrack;
-		this.config = config;
+		this.config = dynamicTrack.getConfig();
 		nav = this;
-		setAcceleration(1000);
+		setAcceleration(ACCELERATION);
 		setForwardSpeed(FORWARD_SPEED);
 		setRotateSpeed(ROTATE_SPEED);
 	}
@@ -89,10 +83,10 @@ public class Navigation {
 	 * @param acceleration
 	 *            The desired acceleration
 	 */
-	private void setAcceleration(int acceleration) {
+	public void setAcceleration(int acceleration) {
 		for (EV3LargeRegulatedMotor motor : new EV3LargeRegulatedMotor[] { GamePlan.leftMotor, GamePlan.rightMotor }) {
 			motor.stop();
-			motor.setAcceleration(3000);
+			motor.setAcceleration(acceleration);
 		}
 	}
 
@@ -100,9 +94,9 @@ public class Navigation {
 	 * Travels a certain amount of cm (with coordinates) Does not turn when given
 	 * negative coordinates
 	 * 
-	 * @param dX
+	 * @param totalX
 	 *            absolute displacement in cm
-	 * @param dY
+	 * @param totalY
 	 *            absolute displacement in cm
 	 */
 	public void travel(double totalX, double totalY) {
@@ -289,7 +283,7 @@ public class Navigation {
 			double angleDifference;
 			double referenceAngle = odo.getGyroTheta();
 			actualTheta = odo.getTheta();
-			angleDifference = getDiffAngle(referenceAngle, actualTheta);
+			angleDifference = Math.toDegrees(getDiffAngle(Math.toRadians(referenceAngle), Math.toRadians(actualTheta)));
 			if (angleDifference > Odometer.MIN_ANGLE_ERROR) {
 				odo.correctAngle();
 				actualTheta = odo.getTheta();
@@ -412,7 +406,7 @@ public class Navigation {
 	 * 
 	 * @return the used odometer
 	 */
-	private Odometer getUsedOdometer() {
+	public Odometer getUsedOdometer() {
 		return odo;
 	}
 
@@ -479,7 +473,7 @@ public class Navigation {
 	 * 
 	 * @param angle1 first angle in rad
 	 * @param angle2 second angle in rad
-	 * @return
+	 * @return the absolute difference in angle (in radians)
 	 */
 	public static double getDiffAngle(double angle1, double angle2) {
 		//acos(cos(a1-a2))=acos(cos(a1)*cos(a2)+sin(a1)*sin(a2))--trig identity

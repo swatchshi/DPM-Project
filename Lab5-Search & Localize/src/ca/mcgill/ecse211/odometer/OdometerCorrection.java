@@ -3,7 +3,6 @@ package ca.mcgill.ecse211.odometer;
 import ca.mcgill.ecse211.lab5.Navigation;
 import ca.mcgill.ecse211.lab5.TrackExpansion;
 import ca.mcgill.ecse211.localizer.ColorSensor;
-import ca.mcgill.ecse211.localizer.LightLocalizer;
 import lejos.hardware.Sound;
 
 /**
@@ -33,7 +32,7 @@ public class OdometerCorrection extends Thread {
 		this.lightSensor = sensor;
 		this.odo = odo;
 		this.dynamicTrack = dynamicTrack;
-		this.ERROR_THRESHOLD = Math.abs(dynamicTrack.getLightSensorDistance()) * 0.5; // to make sure no error occurs at crossings
+		this.ERROR_THRESHOLD = Math.abs(dynamicTrack.getLightSensorDistance()) * 1; // to make sure no error occurs at crossings
 																			// normally is times 1
 	}
 

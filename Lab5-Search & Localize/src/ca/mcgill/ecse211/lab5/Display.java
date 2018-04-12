@@ -2,19 +2,27 @@ package ca.mcgill.ecse211.lab5;
 
 import java.text.DecimalFormat;
 
-import ca.mcgill.ecse211.localizer.UltrasonicSensor;
 import ca.mcgill.ecse211.odometer.Gyroscope;
 import ca.mcgill.ecse211.odometer.Odometer;
 import ca.mcgill.ecse211.odometer.OdometerExceptions;
 import lejos.hardware.lcd.TextLCD;
-import lejos.hardware.motor.EV3LargeRegulatedMotor;
 
 /**
  * This class is used to display the content of the odometer variables (x, y,
  * Theta), ultrasonic distance and gyroscope angle.
+ * 
+ * @author Xavier Pellemans
+ * @author Thomas Bahen
+ * @author Zhang Guangyi
+ * @author Zhang Cara
+ * @author Shi WenQi
  */
 public class Display {
 
+	/**
+	 * Objects for holding the data
+	 * and writing
+	 */
 	private Odometer odo;
 	private Gyroscope gyroscope;
 	private TextLCD lcd;
@@ -60,7 +68,7 @@ public class Display {
 	}
 
 	/**
-	 * Threading method for the display of odometer variables
+	 * Printing method for the display of odometer variables
 	 */
 	public void printData() {
 
@@ -70,7 +78,7 @@ public class Display {
 		position = odo.getXYT();
 		try {
 
-			// Print x,y, and theta information
+			// Print x, y, theta and gyroscope information
 
 			DecimalFormat numberFormat = new DecimalFormat("######0.00");
 			lcd.drawString("X: " + numberFormat.format(position[0]), 0, 0);

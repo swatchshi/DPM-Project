@@ -2,15 +2,17 @@ package ca.mcgill.ecse211.localizer;
 
 import ca.mcgill.ecse211.lab5.*;
 import ca.mcgill.ecse211.odometer.*;
-import lejos.hardware.Button;
 import lejos.hardware.Sound;
 import lejos.utility.Delay;
 
 /**
- * Class for handling the light localization procedure at any crossing
+ * Class for handling the light localization procedure at any crossing and at any wall
  * 
  * @author Xavier Pellemans
  * @author Thomas Bahen
+ * @author Zhang Guangyi
+ * @author Zhang Cara
+ * @author Shi WenQi
  */
 public class LightLocalizer {
 
@@ -199,7 +201,7 @@ public class LightLocalizer {
 		// so like theta=0 in corner 0
 		
 		//makes it think its in the middle of the tile in corner 0
-		odo.setXYT(navigation.TILE_SIZE/2, navigation.TILE_SIZE/2, 0);
+		odo.setXYT(Navigation.TILE_SIZE/2, Navigation.TILE_SIZE/2, 0);
 		Delay.msDelay(500);
 		//back up into the back wall
 		crashIntoWall(GamePlan.Direction.SOUTH);
@@ -230,18 +232,18 @@ public class LightLocalizer {
 		//updates the odometer values to their right values
 		switch (corner) {		
 		case 0:
-			odo.setXYT(navigation.TILE_SIZE, navigation.TILE_SIZE, 0);
+			odo.setXYT(Navigation.TILE_SIZE, Navigation.TILE_SIZE, 0);
 			break;
 		case 1:
-			odo.setXYT(EV3WifiClient.X_GRID_LINES*navigation.TILE_SIZE, navigation.TILE_SIZE, 270); //(7,1)
+			odo.setXYT((EV3WifiClient.X_GRID_LINES-1)*Navigation.TILE_SIZE, Navigation.TILE_SIZE, 270); //(7,1)
 			gyroscope.setAngle(270);
 			break;
 		case 2:
-			odo.setXYT(EV3WifiClient.X_GRID_LINES*navigation.TILE_SIZE, EV3WifiClient.Y_GRID_LINES*navigation.TILE_SIZE, 180);//(7,7)
+			odo.setXYT((EV3WifiClient.X_GRID_LINES-1)*Navigation.TILE_SIZE, (EV3WifiClient.Y_GRID_LINES-1)*Navigation.TILE_SIZE, 180);//(7,7)
 			gyroscope.setAngle(180);
 			break;
 		case 3:
-			odo.setXYT(navigation.TILE_SIZE, EV3WifiClient.Y_GRID_LINES*navigation.TILE_SIZE, 90);//(1,7)
+			odo.setXYT(Navigation.TILE_SIZE, (EV3WifiClient.Y_GRID_LINES-1)*Navigation.TILE_SIZE, 90);//(1,7)
 			gyroscope.setAngle(90);
 			break;
 		}
@@ -260,6 +262,7 @@ public class LightLocalizer {
 			//do nothing
 			break;
 		case EAST:
+			//crash the east wall by backing up facing west
 			navigation.turnTo(270);
 			navigation.backUp((EV3WifiClient.X_GRID_LINES+0.5)*Navigation.TILE_SIZE-odo.getX());
 			odo.setTheta(270);
@@ -267,6 +270,7 @@ public class LightLocalizer {
 			odo.setX(EV3WifiClient.X_GRID_LINES*Navigation.TILE_SIZE-Math.abs(dynamicTrack.getLightSensorDistance())-CRASH_LOC_ERROR);
 			break;
 		case NORTH:
+			//crash the north wall by backing up facing south
 			navigation.turnTo(180);
 			navigation.backUp((EV3WifiClient.Y_GRID_LINES+0.5)*Navigation.TILE_SIZE-odo.getY());
 			odo.setTheta(180);
@@ -274,6 +278,7 @@ public class LightLocalizer {
 			odo.setY(EV3WifiClient.Y_GRID_LINES*Navigation.TILE_SIZE-Math.abs(dynamicTrack.getLightSensorDistance())-CRASH_LOC_ERROR);
 			break;
 		case WEST:
+			//crash the west wall by backing up facing east
 			navigation.turnTo(90);
 			navigation.backUp((0.5)*Navigation.TILE_SIZE+odo.getX());
 			odo.setTheta(90);
@@ -281,6 +286,7 @@ public class LightLocalizer {
 			odo.setX(Math.abs(dynamicTrack.getLightSensorDistance())+CRASH_LOC_ERROR);
 			break;
 		case SOUTH:
+			//crash the south wall by backing up facing north
 			navigation.turnTo(0);
 			navigation.backUp((0.5)*Navigation.TILE_SIZE+odo.getY());
 			odo.setTheta(0);
@@ -288,7 +294,6 @@ public class LightLocalizer {
 			odo.setY(Math.abs(dynamicTrack.getLightSensorDistance())+CRASH_LOC_ERROR);
 			break;
 		}
-		
 	}
 	
 	

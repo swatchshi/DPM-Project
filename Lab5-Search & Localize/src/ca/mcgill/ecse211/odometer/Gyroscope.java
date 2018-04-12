@@ -34,13 +34,17 @@ public class Gyroscope {
 		previousAngle=0;
 	}
 	
+	/**
+	 * Saves an angle as the previous angle
+	 * @param previousAngle The angle to save (in degrees)
+	 */
 	public void setPreviousAngle(double previousAngle) {
 		previousAngle = this.previousAngle;
 	}
 	/**
 	 * Sets the angle by adding an offset to the gyroscope angle
 	 * 
-	 * @param angle Angle at which to reset the gyroscope
+	 * @param angle Angle at which to reset the gyroscope (in degrees)
 	 */
 	public void setAngle(double angle) {
 		angle=(angle+360)%360;
@@ -59,7 +63,7 @@ public class Gyroscope {
 	
 	/**
 	 * Method to get the angle displacement using the previous angle saved
-	 * @return The angle displacement (positive clockwise)
+	 * @return The angle displacement (positive clockwise) (in degrees)
 	 */
 	public double getAngleDisplacement() {
 		double dTheta;
@@ -74,7 +78,7 @@ public class Gyroscope {
 	 * Gets the angle of the gyroscope (with offset)
 	 * Positively defined clockwise
 	 * 
-	 * @return The angle with its offset
+	 * @return The angle with its offset (in degrees)
 	 */
 	public double getAngle() {
 		float[] sample=new float[gyro.sampleSize()];
@@ -87,7 +91,7 @@ public class Gyroscope {
 	 * (no offset)
 	 * Positively defined clockwise
 	 * 
-	 * @return The angle with no offset
+	 * @return The angle with no offset (in degrees)
 	 */
 	public double getCalculatedAngle() {
 		float[] sample=new float[gyro.sampleSize()];
@@ -100,7 +104,7 @@ public class Gyroscope {
 	 * (no offset)
 	 * Positively defined counter clockwise
 	 * 
-	 * @return The angle with no offset
+	 * @return The angle with no offset (in degrees)
 	 */
 	public double getRawAngle() {
 		float[] sample=new float[gyro.sampleSize()];
@@ -108,6 +112,10 @@ public class Gyroscope {
 		return (double) ((sample[0]) % 360);
 	}
 	
+	/**
+	 * Gets the offset added to the gyroscope value
+	 * @return The offset (in degrees)
+	 */
 	public double getOffset() {
 		return angleOffset;
 	}

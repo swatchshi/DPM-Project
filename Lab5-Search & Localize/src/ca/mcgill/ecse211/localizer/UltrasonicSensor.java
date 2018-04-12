@@ -2,7 +2,6 @@ package ca.mcgill.ecse211.localizer;
 
 import lejos.hardware.sensor.EV3UltrasonicSensor;
 import lejos.robotics.SampleProvider;
-import lejos.utility.Delay;
 
 /**
  * Class for handling the ultrasonic sensor sampling
@@ -59,7 +58,6 @@ public class UltrasonicSensor {
 	 * @return the normalized distance seen (as an integer)
 	 */
 	public  int rawDistance() {
-		int filterCount = 0;
 		us.fetchSample(usData, 0); // acquire data
 		distance=(int) (usData[0] * 100.0);// extract from buffer, cast to int and add to total
 			

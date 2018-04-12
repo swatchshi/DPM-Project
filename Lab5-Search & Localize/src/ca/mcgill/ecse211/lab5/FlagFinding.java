@@ -1,6 +1,7 @@
 package ca.mcgill.ecse211.lab5;
 
-import ca.mcgill.ecse211.lab5.EV3WifiClient.CoordParameter;
+
+import ca.mcgill.ecse211.lab5.GamePlan.Direction;
 import ca.mcgill.ecse211.localizer.ColorSensor;
 import ca.mcgill.ecse211.localizer.UltrasonicSensor;
 import ca.mcgill.ecse211.odometer.Odometer;
@@ -19,13 +20,18 @@ import lejos.utility.Delay;
  *
  */
 public class FlagFinding {
-
+	/**
+	 * Flag finding and sensor constants
+	 */
 	private static final int US_ROTATION_AMPLITUDE = 90;
 	private static final int SUCCESSFUL_BEEPING = 3;
 	private static final int NOT_IT_BEEPING = 2;
 	private static final int FAILURE_BEEPING = 6;
 	private static final int BLOCK_WIDTH = 10;
 	
+	/**
+	 * Variables and objects for the search
+	 */
 	private double LLx, LLy, URx, URy;
 	private double xRange, yRange;
 	private boolean headTurned = false;
@@ -42,10 +48,13 @@ public class FlagFinding {
 	/**
 	 * Constructor of the FlagFinding class
 	 * 
-	 * @param colorSensor
-	 *            ColorSensor used
-	 * @param usSensor
-	 *            UltrasonicSensor used
+	 * @param dynamicTrack TrackExpansion used, holding all the info
+	 * 						about the robot
+	 * @param colorSensor ColorSensor used
+	 *            
+	 * @param usSensor  UltrasonicSensor used
+	 *           
+	 * @param internalClock Timer used for the search and game
 	 *
 	 * @throws OdometerExceptions
 	 *             Throws an OdometerExceptions error back to the main if error in
@@ -64,8 +73,8 @@ public class FlagFinding {
 	/**
 	 * Method to turn the ultrasonic sensor to the left
 	 * 
-	 * @param usSensorTurned
-	 *            true if the ultrasonic sensor should turn to face left
+	 * @param usSensorTurned true if the ultrasonic sensor should turn to face left
+	 *           
 	 *         
 	 * @return true if the ultrasonic sensor faces left
 	 */
@@ -179,10 +188,11 @@ public class FlagFinding {
 
 			case SOUTH: // x-axis
 				Delay.msDelay(500);
-				navigation.turnTo(90);
+				navigation.turnTo(90); //looks east
 				Sound.beepSequenceUp();
-				rotateUltrasonicSensor(true);
+				rotateUltrasonicSensor(true); //us sensor pointing left
 				navigation.travelForward();
+				//go and stop when you found a block
 				while (usSensor.readDistance() > yRange + dynamicTrack.getTrack()
 						&& odo.getX() < this.URx + dynamicTrack.getTrack()) {
 					// continue going forward until end of search zone
@@ -227,9 +237,10 @@ public class FlagFinding {
 				break;
 			case EAST: // y-axis
 				Delay.msDelay(500);
-				navigation.turnTo(0);
-				rotateUltrasonicSensor(true);
+				navigation.turnTo(0);//look north
+				rotateUltrasonicSensor(true); //us sensor pointing left
 				navigation.travelForward();
+				//go and stop when you find a block
 				while (usSensor.readDistance() > xRange + dynamicTrack.getTrack()
 						&& odo.getY() < URy + dynamicTrack.getTrack()) {
 					// continue going forward until end of search zone
@@ -275,10 +286,10 @@ public class FlagFinding {
 				break;
 			case NORTH: // x-axis on the top
 				Delay.msDelay(500);
-				navigation.turnTo(270);
-				rotateUltrasonicSensor(true);
+				navigation.turnTo(270); //look west
+				rotateUltrasonicSensor(true);//us sensor pointing left
 				navigation.travelForward();
-				
+				//go and stop when detecting a block
 				while (usSensor.readDistance() > yRange + dynamicTrack.getTrack()
 						&& odo.getX() > LLx - dynamicTrack.getTrack()) {
 					// continue going forward until end of search zone
@@ -324,9 +335,10 @@ public class FlagFinding {
 				break;
 			case WEST: // y-axis back to starting point
 				Delay.msDelay(500);
-				navigation.turnTo(180);
-				rotateUltrasonicSensor(true);
+				navigation.turnTo(180); //look south
+				rotateUltrasonicSensor(true); //us sensor pointing to the left
 				navigation.travelForward();
+				//go and stop when detecting a block
 				while (usSensor.readDistance() > xRange + dynamicTrack.getTrack()
 						&& odo.getY() > LLy - dynamicTrack.getTrack()) {
 					// continue going forward until end of search zone
@@ -369,6 +381,9 @@ public class FlagFinding {
 				if (odo.getY() <= LLy - dynamicTrack.getTrack()) { // end of WEST side
 					side=GamePlan.Direction.SOUTH; // next side
 				}
+				break;
+			case CENTER:
+				side=Direction.SOUTH; //default
 				break;
 			}
 		}

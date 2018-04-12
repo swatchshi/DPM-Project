@@ -19,27 +19,40 @@ public class ColorSensor {
 	private static final long PING_PERIOD = 5;
 	private float[] baseSample;
 	private static final int COLOR_FILTER=4;
+	
+	/**
+	 * Gaussian RGB parameters for red color
+	 */
 	private final static double RED_R_MEAN=0.12396416;
 	private final static double RED_G_MEAN=0.02064270;
 	private final static double RED_B_MEAN=0.01372543;
 	private final static double RED_R_STD=0.050752937;
 	private final static double RED_G_STD=0.007693734;
 	private final static double RED_B_STD=0.005220381;
-	
+
+	/**
+	 * Gaussian RGB parameters for yellow color
+	 */
 	private final static double YELLOW_R_MEAN=0.215953659;
 	private final static double YELLOW_G_MEAN=0.12932264;
 	private final static double YELLOW_B_MEAN=0.022103387;
 	private final static double YELLOW_R_STD=0.089106906;
 	private final static double YELLOW_G_STD=0.060347026;
 	private final static double YELLOW_B_STD=0.009508931;
-	
+
+	/**
+	 * Gaussian RGB parameters for white color
+	 */
 	private final static double WHITE_R_MEAN=0.18946119;
 	private final static double WHITE_G_MEAN=0.18917648;
 	private final static double WHITE_B_MEAN=0.12824939;
 	private final static double WHITE_R_STD=0.095847914;
 	private final static double WHITE_G_STD=0.089227586;
 	private final static double WHITE_B_STD=0.056484251;
-	
+
+	/**
+	 * Gaussian RGB parameters for blue color
+	 */
 	private final static double BLUE_R_MEAN=0.02340686;
 	private final static double BLUE_G_MEAN=0.04534314;
 	private final static double BLUE_B_MEAN=0.05202206;
@@ -133,6 +146,7 @@ public class ColorSensor {
 	    while(true) {
 	    	correctionStart = System.currentTimeMillis();
 		    //tries to detect the line with its ID
+	    	//The black line of the boards has an ID of 13
 		    if(lightSensor.getColorID()==13){
 		       lineSeen=true;
 		       break;

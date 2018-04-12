@@ -5,6 +5,7 @@ import java.util.Map;
 import ca.mcgill.ecse211.WiFiClient.WifiConnection;
 import ca.mcgill.ecse211.localizer.ColorSensor;
 import lejos.hardware.Button;
+import lejos.hardware.Sound;
 
 /**
  * Class using WifiConnection to communicate with a server and receive data
@@ -112,7 +113,7 @@ public class EV3WifiClient {
 	}
 
 	// ** Set these as appropriate for your team and current situation **
-	private static final String SERVER_IP = "192.168.2.41"; // put your ipv4 here (go to cmd and write ipconfig)
+	private static final String SERVER_IP = "192.168.2.3"; // put your ipv4 here (go to cmd and write ipconfig)
 	// "192.168.2.3"
 	private static final int TEAM_NUMBER = 1; // Best team ever, will definitely win the competition
 	public static final int X_GRID_LINES = 12; // according to predefined convention for x
@@ -159,7 +160,19 @@ public class EV3WifiClient {
 
 		data = conn.getData();
 
-		// validateData();
+		
+		/*
+		 * This method is there to warn the user about error in the server data.
+		 * The warning can be discarded by simply pressing a button on the EV3
+		 */
+		try {
+			validateData();  
+		}catch(Exception exc) {
+			Sound.buzz();
+			System.err.println(exc.getMessage());
+			Button.waitForAnyPress();
+			GamePlan.lcd.clear();
+		}
 
 
 	}
@@ -194,13 +207,9 @@ public class EV3WifiClient {
 
 	/**
 	 * Gets the desired coordinate parameter representing the desired grid
-	 * coordinate specified to this method
+	 * coordinate specified to this method.
 	 * 
-	 * @param the
-	 *            CoordParameter desired
-	 * @return the desired coordinate parameter (as an int)
-	 * 
-	 *         This method only accepts name of variables contained in the
+	 * This method only accepts name of variables contained in the
 	 *         CoordParameter enum in this class Here is the description of each:
 	 * 
 	 *         Red_LL_x, Red_LL_y: lower left grid coordinates of the Red zone with
@@ -239,6 +248,12 @@ public class EV3WifiClient {
 	 *         TN_UR_x, TN_UR_y: upper right grid coordinates of the tunnel with
 	 *         respect to the 0,0
 	 * 
+	 * 
+	 * @param the CoordParameter desired
+	 *            
+	 * @return the desired coordinate parameter (as an int)
+	 * 
+	 *         
 	 */
 	public int getCoordParam(CoordParameter param) {
 		return ((Long) data.get(param.toString())).intValue();
@@ -256,7 +271,7 @@ public class EV3WifiClient {
 	 */
 	public int getStartingCorner() throws Exception {
 		TeamColor teamColor = getTeamColor();
-		if (teamColor == teamColor.RED) {
+		if (teamColor == TeamColor.RED) {
 			// Red team
 			return ((Long) data.get(QualParameter.RedCorner.toString())).intValue();
 		} else {
@@ -280,7 +295,7 @@ public class EV3WifiClient {
 	 */
 	public ColorSensor.BlockColor getFlagColor() throws Exception {
 		TeamColor teamColor = getTeamColor();
-		if (teamColor == teamColor.RED) {
+		if (teamColor == TeamColor.RED) {
 			// Red team
 			// looks for flag of green team
 			switch (((Long) data.get(QualParameter.OG.toString())).intValue()) {
@@ -470,9 +485,12 @@ public class EV3WifiClient {
 		 * 
 		 * 			|	South	  |
 		 */
-		GamePlan.Direction side;
+		
 		double lowerLeftX = 0, lowerLeftY = 0, upperRightX = 0, upperRightY = 0;
 		switch (zone) {
+		case WATER:
+			//not relevant
+			break;
 		case BRIDGE:
 			lowerLeftX = getCoordParam(CoordParameter.BR_LL_x)*Navigation.TILE_SIZE;
 			lowerLeftY = getCoordParam(CoordParameter.BR_LL_y)*Navigation.TILE_SIZE;

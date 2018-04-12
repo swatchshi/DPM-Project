@@ -8,20 +8,27 @@ import lejos.hardware.motor.EV3LargeRegulatedMotor;
 /**
  * Class responsible for keeping track of the movements of the robot Runs on a
  * thread
+ * 
+ * @author Xavier Pellemans
+ * @author Thomas Bahen
+ * @author Zhang Guangyi
+ * @author Zhang Cara
+ * @author Shi WenQi
  */
 public class Odometer extends OdometerData implements Runnable {
-
-	// private OdometerData odoData;
+	
 	private static Odometer odo = null; // Returned as singleton
 
-	// Motors and related variables
+	/**
+	 *  Motors and related variables
+	 */
 	private int leftMotorTachoCount;
 	private int rightMotorTachoCount;
 	private int leftMotorLastTachoCount;
 	private int rightMotorLastTachoCount;
 	private EV3LargeRegulatedMotor leftMotor;
 	private EV3LargeRegulatedMotor rightMotor;
-	private GamePlan.RobotConfig config;
+	private TrackExpansion.RobotConfig config;
 	private TrackExpansion dynamicTrack;
 
 	private double[] position;
@@ -41,7 +48,7 @@ public class Odometer extends OdometerData implements Runnable {
 	 * @throws OdometerExceptions
 	 */
 	private Odometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor, TrackExpansion dynamicTrack,
-			Gyroscope gyroscope, GamePlan.RobotConfig config) throws OdometerExceptions {
+			Gyroscope gyroscope, TrackExpansion.RobotConfig config) throws OdometerExceptions {
 		// manipulation methods
 		super(gyroscope); // creates OdometerData object
 		this.config = config;
@@ -83,7 +90,7 @@ public class Odometer extends OdometerData implements Runnable {
 	 * @throws OdometerExceptions
 	 */
 	public synchronized static Odometer getOdometer(EV3LargeRegulatedMotor leftMotor, EV3LargeRegulatedMotor rightMotor,
-			TrackExpansion dynamicTrack, Gyroscope gyroscope, GamePlan.RobotConfig config) throws OdometerExceptions {
+			TrackExpansion dynamicTrack, Gyroscope gyroscope, TrackExpansion.RobotConfig config) throws OdometerExceptions {
 
 		if (odo != null) { // Return existing object
 			return odo;
@@ -153,14 +160,17 @@ public class Odometer extends OdometerData implements Runnable {
 																													// displacement
 
 			dTheta = (distL - distR) / dynamicTrack.getTrack(); // Calculating the instantaneous rotation magnitude
-
-			if (config == GamePlan.RobotConfig.PROPULSION) {
+			
+			//orientation of the motors on the robot
+			if (config == TrackExpansion.RobotConfig.PROPULSION) {
+				//motorized wheels are at the back of the robot
 				dTheta = -Math.toDegrees(dTheta); // conversion to degrees
 				position[2] += dTheta;
 
 				dX = -0.5 * (distL + distR) * Math.sin(Math.toRadians(position[2])); // displacement in X with new angle
 				dY = -0.5 * (distL + distR) * Math.cos(Math.toRadians(position[2])); // displacement in Y with new angle
 			} else { // TRACTION
+				//motorized wheels are at the front of the robot
 				dTheta = Math.toDegrees(dTheta); // conversion to degrees
 				position[2] += dTheta;
 
@@ -173,6 +183,7 @@ public class Odometer extends OdometerData implements Runnable {
 
 			// Update odometer values with new calculated values
 			update(dX, dY, dTheta);
+			//print new values if enabled
 			if (enablePrint) {
 				try {
 					display.printData();

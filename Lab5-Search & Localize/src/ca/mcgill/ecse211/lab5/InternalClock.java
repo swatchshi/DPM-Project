@@ -4,6 +4,7 @@ package ca.mcgill.ecse211.lab5;
 /**
  * Class responsible to hold and manage time related variables
  * such as the total time elapsed and the time duration of the search.
+ * 
  * @author Xavier Pellemans
  *
  */

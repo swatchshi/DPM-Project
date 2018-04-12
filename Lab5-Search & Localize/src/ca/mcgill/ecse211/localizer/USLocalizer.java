@@ -1,12 +1,8 @@
 package ca.mcgill.ecse211.localizer;
 
-import java.util.ArrayList;
-import java.util.Stack;
 
 import ca.mcgill.ecse211.lab5.*;
 import ca.mcgill.ecse211.odometer.*;
-import lejos.hardware.Button;
-import lejos.hardware.Sound;
 
 /**
  * Class for handling the ultrasonic localization procedure
@@ -34,7 +30,6 @@ public class USLocalizer{
 	private boolean usLocalizerDone;
 	private boolean doneTurning;
 	private int filterControl;
-	private int corner;
 	
 	
 	/**

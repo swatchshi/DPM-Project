@@ -4,7 +4,6 @@ import ca.mcgill.ecse211.lab5.EV3WifiClient.CoordParameter;
 import ca.mcgill.ecse211.lab5.EV3WifiClient.Zone;
 import ca.mcgill.ecse211.lab5.Navigation.Turn;
 import ca.mcgill.ecse211.localizer.*;
-import ca.mcgill.ecse211.localizer.ColorSensor.BlockColor;
 import ca.mcgill.ecse211.odometer.*;
 import lejos.hardware.Button;
 import lejos.hardware.Sound;
@@ -15,8 +14,6 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
 import lejos.hardware.sensor.EV3ColorSensor;
 import lejos.hardware.sensor.EV3GyroSensor;
 import lejos.hardware.sensor.EV3UltrasonicSensor;
-import lejos.utility.Delay;
-import ca.mcgill.ecse211.WiFiClient.*;
 
 /**
  * Class responsible for the game play. This class creates instances of a game,
@@ -24,24 +21,37 @@ import ca.mcgill.ecse211.WiFiClient.*;
  * robot.
  * 
  * @author Xavier Pellemans
+ * @author Thomas Bahen
+ * @author Zhang Guangyi
+ * @author Zhang Cara
+ * @author Shi WenQi
  *
  */
 public class GamePlan {
+	
 	/**
-	 * Enum for the wheel configuration of the robot TRACTION: wheels are in front
-	 * of the robot PROPULSION: wheels are at the back of the robot
-	 * (motor.backward() is forward)
-	 */
-	public enum RobotConfig {
-		TRACTION, PROPULSION
-	}
-
-	/**
-	 * Enum for the chosen robot SCREW_DESIGN: design with the expanding track and
-	 * screw TANK: design with the tank tracks
+	 * Enum for the chosen robot 
+	 * 
+	 * SCREW_DESIGN: design with the expanding track and screw
+	 * TANK: design with the tank tracks
+	 * 
+	 * To add more designs, first add its name here,
+	 * then make sure to follow the instructions in the TrackExpansion class
 	 */
 	public enum Robot {
 		SCREW_DESIGN, TANK
+	}
+	
+	/**
+	 * Enum describing the cardinal point. Used to describe the side of a region.
+	 * NORTH: side with the highest y 
+	 * EAST: side with the highest x 
+	 * SOUTH: side with the lowest y 
+	 * WEST: side with the lowest x 
+	 * CENTER: in the middle
+	 */
+	public enum Direction {
+		NORTH, EAST, SOUTH, WEST, CENTER
 	}
 
 	// Motor Objects, and Robot related parameters
@@ -78,25 +88,13 @@ public class GamePlan {
 	 * Screen of the EV3
 	 */
 	public static final TextLCD lcd = LocalEV3.get().getTextLCD();
-	/**
-	 * Configuration of the wheel base of the robot
-	 */
-	public static final RobotConfig CONFIG = RobotConfig.PROPULSION;
+	
 	/**
 	 * Type of the robot used
+	 * Choose from the enum Robot
 	 */
 	public static final Robot robot = Robot.TANK;
 	
-
-	/**
-	 * Enum describing the cardinal point. Used to describe the side of a region.
-	 * NORTH: side with the highest y EAST: side with the highest x SOUTH: side with
-	 * the lowest y WEST: side with the lowest x CENTER: in the middle
-	 */
-	public enum Direction {
-		NORTH, EAST, SOUTH, WEST, CENTER
-	}
-
 	/**
 	 * Object to help with where the robot is
 	 */
@@ -118,6 +116,11 @@ public class GamePlan {
 	 * detects distances
 	 */
 	private UltrasonicSensor ultraSensor;
+	/**
+	 * Object in charge of detecting the color of the block ahead of the front 
+	 * light sensor
+	 */
+	private ColorSensor cSensor;
 	/**
 	 * Object to help with how the Gyroscope sensor on top of the robot detects
 	 * angle changes
@@ -146,6 +149,12 @@ public class GamePlan {
 	private InternalClock internalClock;
 	
 	/**
+	 * Boolean to determine if the robot will allow Odometer
+	 * correction when running
+	 */
+	private boolean canOdometerCorrect=true;
+	
+	/**
 	 * Creates an object of the GamePlan class. Initializes all instances needed in
 	 * the game
 	 * 
@@ -153,33 +162,38 @@ public class GamePlan {
 	 *             error with Odometer instances or with data server retrieval
 	 */
 	public GamePlan() throws Exception {
-
+		//initializing sensors
 		lSensor = new ColorSensor(lightSensor);
 		ultraSensor = new UltrasonicSensor(ultraSSensor);
+		cSensor=new ColorSensor(armSensor);
 		gyroscope = new Gyroscope(gyroSensor);
 		// track related object
 		dynamicTrack = new TrackExpansion();
 		dynamicTrack.setDesignConstants(robot); // sets the values for the chosen robot
 
 		// Odometer related objects
-		odometer = Odometer.getOdometer(leftMotor, rightMotor, dynamicTrack, gyroscope, CONFIG);
+		odometer = Odometer.getOdometer(leftMotor, rightMotor, dynamicTrack, gyroscope, dynamicTrack.getConfig());
 		//odometryDisplay = new Display(lcd, ultraSensor, gyroscope);
 		odoCorrect = new OdometerCorrection(lSensor, odometer, dynamicTrack);
-		navigation = new Navigation(odometer, dynamicTrack, CONFIG);
+		navigation = new Navigation(odometer, dynamicTrack);
 		//procedure objects
 		usLoc = new USLocalizer(odometer, navigation, ultraSensor);
 		lightLoc = new LightLocalizer(navigation, dynamicTrack, lSensor, odometer, gyroscope);
 		internalClock=new InternalClock();
 		
 		
-		Thread odoThread = new Thread(odometer);
 		
+		//enabling or disabling thread functions
 		odoCorrect.setDoCorrection(false);
 		odometer.setDoThetaCorrection(false);
 		odometer.setEnablePrint(false);
-		serverData = new EV3WifiClient(); //////////////////////////////////////////// uncomment to enable data
-											//////////////////////////////////////////// retrieval
-		odoThread.start();
+		
+		//retrieving server data
+		serverData = new EV3WifiClient(); 
+		
+		//Starting odometer thread
+		Thread odoThread = new Thread(odometer);
+		odoThread.start(); //starting the count of wheel rotations
 	}
 
 	/**
@@ -191,6 +205,7 @@ public class GamePlan {
 		dynamicTrack.adjustToMin();
 	}
 	
+	
 	/**
 	 * Calculates the track experimentally by detecting 5 lines of a crossing
 	 * and calculating the track needed to do a 360 turn (going back to the same line)
@@ -199,29 +214,34 @@ public class GamePlan {
 	 * The method will then wait for user input to finish its procedure.
 	 */
 	public void calculateTrack() {
+		//variables for calculating the track
 		int lineCount=5, i=0;
 		int leftMotorLastTachoCount=0, rightMotorLastTachoCount=0,leftMotorTachoCount, rightMotorTachoCount;
-	    double distL, distR, theta, track;
+	    double distL, distR, track;
+	    odometer.setEnablePrint(false);
+	    //Rotational movement (360 degree rotation)
 	    navigation.setRotateSpeed(Navigation.SLOW_ROTATE_SPEED);
 	    navigation.rotate(Turn.CLOCK_WISE);
-	    while(i<lineCount) {
+	    while(i<lineCount) { //counts the lines seen
 	    	if(lSensor.lineDetected()) {
 	    		i++;
 	    	}
-	    	if(i==1) {
+	    	if(i==1) { //if it is the first line seen
+	    		//save the initial amount of rotation of the wheels
 	    		leftMotorLastTachoCount = leftMotor.getTachoCount();
 	    		rightMotorLastTachoCount = rightMotor.getTachoCount();
 	    	}
 	    }
 	    navigation.stopMotors();
+	    //save the final amount of wheel rotation
 	    leftMotorTachoCount = leftMotor.getTachoCount();
 	    rightMotorTachoCount = rightMotor.getTachoCount();
 		      
+	    //Compute the track
 		distL=Math.PI*dynamicTrack.getWheelRad()*(leftMotorTachoCount-leftMotorLastTachoCount)/180; 	//convert left rotation to wheel displacement
 		distR=Math.PI*dynamicTrack.getWheelRad()*(rightMotorTachoCount-rightMotorLastTachoCount)/180;	//convert right rotation to wheel displacement
-		      
-		track=(distR-distL)/(2*Math.PI); //Calculating the instantaneous rotation magnitude
-		lcd.drawString("Track: "+ track, 0, 6);
+		track=(distR-distL)/(2*Math.PI); //Calculating the track by knowing the rotation of the wheels
+		lcd.drawString("Track: "+ track, 0, 6); //display the track on the screen
 		Button.waitForAnyPress();
 		lcd.clear();
 		navigation.setRotateSpeed(Navigation.ROTATE_SPEED);
@@ -236,25 +256,34 @@ public class GamePlan {
 	public void colorTest() {
 		lcd.clear();
 		int buttonID;
-		/*
+		//displays the color seen
 		do {
 			lcd.drawString(cSensor.getColorSeen().toString(), 0, 0);
 			buttonID=Button.waitForAnyPress();
 		}while(buttonID!=Button.ID_ESCAPE);
 		lcd.clear();
-		odometer.setEnablePrint(true); */
+		odometer.setEnablePrint(true); 
 	}
 	
 	/**
 	 * Drives the robot in squares 
-	 * Waits for user input after
-	 * Continues of user presses any button but the enter button
+	 * Waits for user input after the completion
+	 * of the square.
+	 * 
+	 * -Escapes when the enter button is pressed
+	 * -Increases the track value by 0.05 when up is pressed
+	 * -Decreases the track value by 0.05 when down is pressed
+	 * -Increases the wheel radius by 0.01 when right is pressed
+	 * -Decreases the wheel radius by 0.01 when left is pressed
 	 * 
 	 * @param tiles Number of tiles per side
 	 * @return True when the user ends the procedure
 	 */
 	public boolean squareDrive(int tiles) {
 		int buttonID=0;
+		lcd.clear();
+		lcd.drawString("Initial track: "+dynamicTrack.getTrack(), 0, 1);
+		lcd.drawString("Initial w-rad: "+dynamicTrack.getTrack(), 0, 2);
 		do {
 			navigation.travel(tiles*Navigation.TILE_SIZE);
 			navigation.turn(90);
@@ -266,28 +295,38 @@ public class GamePlan {
 			navigation.turn(90);
 			buttonID=Button.waitForAnyPress();
 			if(buttonID==Button.ID_UP) {
+				//increase the track
 				dynamicTrack.setTrack(dynamicTrack.getTrack()+0.05);
+				lcd.drawString("New track: "+dynamicTrack.getTrack(), 0, 3);
 			}else if(buttonID==Button.ID_DOWN) {
+				//decrease the track
 				dynamicTrack.setTrack(dynamicTrack.getTrack()-0.05);
+				lcd.drawString("New track: "+dynamicTrack.getTrack(), 0, 3);
+			}else if(buttonID==Button.ID_LEFT) {
+				//decrease the wheel radius
+				dynamicTrack.setWheelRad(dynamicTrack.getWheelRad()-0.01);
+				lcd.drawString("New w-rad: "+dynamicTrack.getWheelRad(), 0, 4);
+			}else if(buttonID==Button.ID_LEFT) {
+				//increase the wheel radius
+				dynamicTrack.setWheelRad(dynamicTrack.getWheelRad()+0.01);
+				lcd.drawString("New w-rad: "+dynamicTrack.getWheelRad(), 0, 4);
 			}
 		}while(buttonID!=Button.ID_ENTER);
-		System.exit(0);
 		return true;
 	}
 	
 	
 
 	/**
-	 * Procedure to determine what Team color plan should be followed
+	 * Beginning of the game!
+	 * Determines what Team color plan should be followed
+	 * Also starts the timer for the game
 	 * 
 	 * @throws Exception
 	 *             Exception thrown if the robot is not playing
 	 */
 	public void play() throws Exception {
-		
-				
 		internalClock.startClock();
-		
 		
 		switch (serverData.getTeamColor()) {
 		case RED:
@@ -297,7 +336,6 @@ public class GamePlan {
 			greenPlan();
 			break;
 		}
-		
 	}
 
 	
@@ -327,10 +365,15 @@ public class GamePlan {
 	
 	
 	/**
-	 * Game plan of the red team. 1- Localize (USLocalizer) 2-
-	 * Localize(LightLocalizer) 3- Travels to the bridge 4- Crosses the bridge 5-
-	 * Search the Green search zone for the OG flag 6- Travels to the tunnel 7-
-	 * Crosses the tunnel 8- finishes in its starting corner
+	 * Game plan of the red team. 
+	 * 1- Localize (USLocalizer) 
+	 * 2- Localize(LightLocalizer) 
+	 * 3- Travels to the bridge 
+	 * 4- Crosses the bridge 
+	 * 5- Search the Green search zone for the OG flag 
+	 * 6- Travels to the tunnel 
+	 * 7- Crosses the tunnel 
+	 * 8- finishes in its starting corner
 	 * 
 	 * @throws Exception
 	 *             When there is a problem with the data from the EV3WifiClass
@@ -341,7 +384,7 @@ public class GamePlan {
 		navigation.setForwardSpeed(Navigation.LOCALIZATION_SPEED);
 				
 		usLoc.doLocalization(); 
-		usLoc=null;
+		usLoc=null; //garbage collect will automatically dispose it
 		
 		Sound.beepSequenceUp();
 				
@@ -354,18 +397,22 @@ public class GamePlan {
 		Thread odoCorrectionThread = new Thread(odoCorrect);
 		odoCorrectionThread.start();
 		navigation.setForwardSpeed(Navigation.FORWARD_SPEED);
-		odoCorrect.setDoCorrection(false);
+		odoCorrect.setDoCorrection(canOdometerCorrect);
 		navigation.setEnableGyroscopeCorrection(true);
 				
 		//Going to the bridge
 		goToBridge(getBridgeEntry());
+		Sound.beepSequenceUp();
 		crossBridge();
 		Sound.beepSequenceUp();
 				
 				
-		//find the flag in the green search zone
-		
-		(new FlagFinding(dynamicTrack, new ColorSensor(armSensor), ultraSensor, internalClock)).findBlock(getSearchStartSide(Zone.SG, directionSwitch(getTunnelEntry())),
+		//Find the flag in the green search zone
+		//Creates a FlagFinding instance and immediately asks it to find the block
+		//given the search zone to look inside, the side of the search zone the robot will start at,
+		//the lower left corner and upper right corner line coordinates of the search zone
+		// and the color of the flag desired
+		(new FlagFinding(dynamicTrack, cSensor, ultraSensor, internalClock)).findBlock(getSearchStartSide(Zone.SG, directionSwitch(getTunnelEntry())),
 				serverData.getCoordParam(CoordParameter.SG_LL_x), serverData.getCoordParam(CoordParameter.SG_LL_y),
 				serverData.getCoordParam(CoordParameter.SG_UR_x), serverData.getCoordParam(CoordParameter.SG_UR_y), 
 				serverData.getFlagColor());
@@ -374,7 +421,7 @@ public class GamePlan {
 				
 				
 		//Going to the tunnel
-		goToTunnel(getTunnelEntry());
+		goToBridge(getTunnelEntry());
 		Sound.beepSequenceUp();
 		crossTunnel();
 		Sound.beepSequenceUp();
@@ -400,7 +447,7 @@ public class GamePlan {
 		navigation.setForwardSpeed(Navigation.LOCALIZATION_SPEED);
 		
 		usLoc.doLocalization(); 
-		usLoc=null;
+		usLoc=null; //garbage collect will automatically dispose it
 		
 		Sound.beepSequenceUp();
 		
@@ -413,7 +460,7 @@ public class GamePlan {
 		Thread odoCorrectionThread = new Thread(odoCorrect);
 		odoCorrectionThread.start();
 		navigation.setForwardSpeed(Navigation.FORWARD_SPEED);
-		odoCorrect.setDoCorrection(false);
+		odoCorrect.setDoCorrection(canOdometerCorrect);
 		navigation.setEnableGyroscopeCorrection(true);
 		
 		//Going to the tunnel
@@ -423,16 +470,20 @@ public class GamePlan {
 		Sound.beepSequenceUp();
 		
 		
-		//find the flag in the red search zone
-		/*
-		(new FlagFinding(dynamicTrack, new ColorSensor(armSensor), ultraSensor, internalClock)).findBlock(getSearchStartSide(Zone.SR, directionSwitch(getTunnelEntry())),
+		//Find the flag in the red search zone
+		//Creates a FlagFinding instance and immediately asks it to find the block
+		//given the search zone to look inside, the side of the search zone the robot will start at,
+		//the lower left corner and upper right corner line coordinates of the search zone
+		// and the color of the flag desired
+		
+		(new FlagFinding(dynamicTrack, new ColorSensor(armSensor), ultraSensor, internalClock)).findBlock(Direction.EAST,
 				serverData.getCoordParam(CoordParameter.SR_LL_x), serverData.getCoordParam(CoordParameter.SR_LL_y),
 				serverData.getCoordParam(CoordParameter.SR_UR_x), serverData.getCoordParam(CoordParameter.SR_UR_y), 
 				serverData.getFlagColor());
-		*/
+		
 		
 		//Going to the bridge
-		goToBridge(getBridgeEntry());
+		localizeBeforeBridge(getBridgeEntry());
 		Sound.beepSequenceUp();
 		crossBridge();
 		Sound.beepSequenceUp();
@@ -445,6 +496,9 @@ public class GamePlan {
 	
 	/**
 	 * Procedure to cross the bridge
+	 * Takes into account the length of the bridge
+	 * Will try to end up in the middle of the tile
+	 * after the bridge
 	 * 
 	 * @return True when the bridge has been crossed
 	 * @throws Exception
@@ -452,14 +506,17 @@ public class GamePlan {
 	 */
 	private boolean crossBridge() throws Exception { // expansion method, travel directly
 		odoCorrect.setDoCorrection(false);
-		navigation.travel(navigation.TILE_SIZE * (1 + serverData.getBridgeWidth(getBridgeEntry())));
+		navigation.travel(Navigation.TILE_SIZE * (1 + serverData.getBridgeWidth(getBridgeEntry())));
 		// travels the width of the bridge plus an extra tile
-		odoCorrect.setDoCorrection(true);
+		odoCorrect.setDoCorrection(canOdometerCorrect);
 		return true;
 	}
 
 	/**
 	 * Procedure to cross the tunnel
+	 * Takes into account the length of the tunnel
+	 * Will try to end up in the middle of the tile
+	 * after the tunnel
 	 * 
 	 * @return True when the tunnel has been crossed
 	 * @throws Exception
@@ -467,9 +524,9 @@ public class GamePlan {
 	 */
 	private boolean crossTunnel() throws Exception {
 		odoCorrect.setDoCorrection(false);
-		navigation.travel(navigation.TILE_SIZE * (1 + serverData.getTunnelWidth(getTunnelEntry())));
+		navigation.travel(Navigation.TILE_SIZE * (1 + serverData.getTunnelWidth(getTunnelEntry())));
 		// travels the width of the tunnel plus an extra tile
-		odoCorrect.setDoCorrection(true);
+		odoCorrect.setDoCorrection(canOdometerCorrect);
 		return true;
 	}
 
@@ -492,7 +549,7 @@ public class GamePlan {
 		//Algorithm works for any bridge length
 		//Looks North of the bridge, to see what zone is there
 		//The robot has to enter the bridge from the RED zone no matter what its team color
-		switch(serverData.getZone(lowerLeftX + (upperRightX-lowerLeftX)/2, upperRightY+Navigation.TILE_SIZE/2)) {
+		switch(serverData.getZone((upperRightX+lowerLeftX)/2, upperRightY+Navigation.TILE_SIZE/2)) {
 		case BRIDGE:
 		case TUNNEL:
 			//Cases where the getZone method gives nonsense
@@ -510,7 +567,7 @@ public class GamePlan {
 		case WATER:
 			//Water is North of the bridge
 			//look EAST of the bridge, to see what zone is there
-			switch(serverData.getZone(upperRightX+Navigation.TILE_SIZE/2, lowerLeftY+ (upperRightY-lowerLeftY)/2)) {
+			switch(serverData.getZone(upperRightX+Navigation.TILE_SIZE/2, (upperRightY+lowerLeftY)/2)) {
 			case BRIDGE:
 			case TUNNEL:
 			case WATER:
@@ -550,7 +607,7 @@ public class GamePlan {
 		//Algorithm works for any tunnel length
 		//Looks North of the tunnel, to see what zone is there
 		//The robot has to enter the tunnel from the GREEN zone no matter what its team color
-		switch(serverData.getZone(lowerLeftX + (upperRightX-lowerLeftX)/2, upperRightY+Navigation.TILE_SIZE/2)) {
+		switch(serverData.getZone((upperRightX+lowerLeftX)/2, upperRightY+Navigation.TILE_SIZE/2)) {
 		case BRIDGE:
 		case TUNNEL:
 			//cases where getZone gives nonsense
@@ -568,7 +625,7 @@ public class GamePlan {
 		case WATER:
 			//Water is North of the tunnel
 			//look EAST of the tunnel, to see what zone is there
-			switch(serverData.getZone(upperRightX+Navigation.TILE_SIZE/2, lowerLeftY+ (upperRightY-lowerLeftY)/2)) {
+			switch(serverData.getZone(upperRightX+Navigation.TILE_SIZE/2,(upperRightY+lowerLeftY)/2)) {
 			case BRIDGE:
 			case TUNNEL:
 			case WATER:
@@ -621,9 +678,11 @@ public class GamePlan {
 			switch(serverData.getSide(searchZone, odometer.getX(), odometer.getY())) {
 			case CENTER:
 			case WEST:
+				//if closer to the south side
 				flagSearchStartSide=Direction.SOUTH;
 				break;
 			default:
+				//else go look at your side
 				flagSearchStartSide=serverData.getSide(searchZone, odometer.getX(), odometer.getY());
 				break;
 			}
@@ -633,9 +692,11 @@ public class GamePlan {
 			switch(serverData.getSide(searchZone, odometer.getX(), odometer.getY())) {
 			case CENTER:
 			case NORTH:
+				//if closer to the west side
 				flagSearchStartSide=Direction.WEST;
 				break;
 			default:
+				//else go look at your side
 				flagSearchStartSide=serverData.getSide(searchZone, odometer.getX(), odometer.getY());
 				break;
 			}
@@ -645,9 +706,11 @@ public class GamePlan {
 			switch(serverData.getSide(searchZone, odometer.getX(), odometer.getY())) {
 			case CENTER:
 			case EAST:
+				//if closer to the north side
 				flagSearchStartSide=Direction.NORTH;
 				break;
 			default:
+				//else go look at your side
 				flagSearchStartSide=serverData.getSide(searchZone, odometer.getX(), odometer.getY());
 				break;
 			}
@@ -657,39 +720,54 @@ public class GamePlan {
 			switch(serverData.getSide(searchZone, odometer.getX(), odometer.getY())) {
 			case CENTER:
 			case SOUTH:
+				//if closer to the east side
 				flagSearchStartSide=Direction.EAST;
 				break;
 			default:
+				//else go look at your side
 				flagSearchStartSide=serverData.getSide(searchZone, odometer.getX(), odometer.getY());
 				break;
 			}
 			break;
-		default: flagSearchStartSide=Direction.SOUTH;
+		default: flagSearchStartSide=Direction.SOUTH; //will start the search on the south side of the zone
 		}
 		return flagSearchStartSide;
 	}
 	
-	/**
-	 * Method for localizing before crossing the bridge
-	 * Also goes to the bridge entry after doing the localization
+	/** 
+	 * Prepares the robot to cross the bridge by
+	 * going to the entry tile and localizing before crossing the bridge
+	 * 
+	 * Will get to the tile in front of the entry of the bridge,
+	 * detect the borders of the tile which are parallel to the bridge
+	 * and place the robot in its center, facing the bridge.
+	 * 
+	 * Does not avoid the search zone.
+	 * 
 	 * 
 	 * @param direction Entry direction of the bridge
 	 * @throws Exception if unable to retrieve the bridge data
 	 */
 	private void localizeBeforeBridge(Direction direction) throws Exception {
 		//Saving coordinates of the bridge to local variables to make the code more readable
-		
 		int lowerLeftXLine = serverData.getCoordParam(CoordParameter.BR_LL_x);
 		int lowerLeftYLine = serverData.getCoordParam(CoordParameter.BR_LL_y);
 		int upperRightXLine = serverData.getCoordParam(CoordParameter.BR_UR_x);
 		int upperRightYLine = serverData.getCoordParam(CoordParameter.BR_UR_y);
+		
+		//local variables for localizing
 		double first, second;
+		
+		//Direction of the bridge entry
 		switch(direction) {
 		case NORTH:
+			//Entry of bridge is in the North part of the bridge
+			//Localizes in the tile North of it
 			GamePlan.lcd.drawString("North loc", 0, 7);
-			odoCorrect.setDoCorrection(true);
+			odoCorrect.setDoCorrection(false);
 			
-			
+			//Determines if there is a danger of falling in the water when localizing
+			//by looking if the tile west of the tile just north of the bridge is water 
 			if(serverData.getZone((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
 				navigation.travelTo((lowerLeftXLine+0.55)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
 				navigation.turnTo(90); //look east
@@ -698,29 +776,34 @@ public class GamePlan {
 				navigation.turnTo(270); //look west
 			}
 			
+			//localize
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
 			while(!lSensor.lineDetected());
-			first=odometer.getX();
-			navigation.stopMotors();
+			navigation.stopMotors();//detected the first line
+			first=odometer.getX(); 
 			
 			navigation.backUp(Navigation.TILE_SIZE/2);
 			navigation.travelBackward();
 			while(!lSensor.lineDetected());
-			second=odometer.getX();
-			navigation.stopMotors();
-			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
+			navigation.stopMotors();//detected the second line
+			second=odometer.getX(); 
+			
+			//go to the middle of the tile
+			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance()); 
 			navigation.turnTo(180);
 			
 			
 			break;
 		case SOUTH:
-			//Entry of tunnel is in the South part of the tunnel
+			//Entry of bridge is in the South part of the bridge
+			//Localizes in the tile South of it
 			GamePlan.lcd.drawString("South loc", 0, 7);
-			odoCorrect.setDoCorrection(true);
+			odoCorrect.setDoCorrection(false);
 			
-			
+			//Determines if there is a danger of falling in the water when localizing
+			//by looking if the tile west of the tile just south of the bridge is water 
 			if(serverData.getZone((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
 				navigation.travelTo((lowerLeftXLine+0.55)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
 				navigation.turnTo(90); //look east
@@ -728,26 +811,30 @@ public class GamePlan {
 				navigation.travelTo((lowerLeftXLine+0.45)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
 				navigation.turnTo(270); //look west
 			}
+			//localize
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
 			while(!lSensor.lineDetected());
 			navigation.stopMotors();
-			first=odometer.getX();
+			first=odometer.getX(); //first line detected
 			navigation.backUp(Navigation.TILE_SIZE/2);
 			navigation.travelBackward();
 			while(!lSensor.lineDetected());
-			navigation.stopMotors();
+			navigation.stopMotors(); //second line detected
 			second=odometer.getX();
+			//go to the middle of the tile
 			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(0);
 			break;
 		case EAST:
-			//Entry of tunnel is in the East part of the tunnel
+			//Entry of bridge is in the East part of the bridge
+			//Localizes in the tile East of it
 			GamePlan.lcd.drawString("EAST loc", 0, 7);
-			odoCorrect.setDoCorrection(true);
+			odoCorrect.setDoCorrection(false);
 			
-			
+			//Determines if there is a danger of falling in the water when localizing
+			//by looking if the tile north of the tile just east of the bridge is water 
 			if(serverData.getZone((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
 				navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.55)*Navigation.TILE_SIZE);
 				navigation.turnTo(180); //look south
@@ -755,26 +842,30 @@ public class GamePlan {
 				navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.45)*Navigation.TILE_SIZE);
 				navigation.turnTo(0); //look north
 			}
+			//localize
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
 			while(!lSensor.lineDetected());
-			navigation.stopMotors();
+			navigation.stopMotors(); //first line detected
 			first=odometer.getY();
 			navigation.backUp(Navigation.TILE_SIZE/2);
 			navigation.travelBackward();
 			while(!lSensor.lineDetected());
-			navigation.stopMotors();
+			navigation.stopMotors(); //second line detected
 			second=odometer.getY();
+			//go to the middle of the tile
 			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(270);
 			break;
 		case WEST:
-			//Entry of tunnel is in the West part of the tunnel
+			//Entry of bridge is in the West part of the bridge
+			//Localizes in the tile West of it
 			GamePlan.lcd.drawString("West loc", 0, 7);
-			odoCorrect.setDoCorrection(true);
+			odoCorrect.setDoCorrection(false);
 			
-			
+			//Determines if there is a danger of falling in the water when localizing
+			//by looking if the tile north of the tile just west of the bridge is water 
 			if(serverData.getZone((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
 				navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.45)*Navigation.TILE_SIZE);
 				navigation.turnTo(180); //look south
@@ -782,16 +873,17 @@ public class GamePlan {
 				navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.55)*Navigation.TILE_SIZE);
 				navigation.turnTo(0); //look north
 			}
+			//localize
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
 			while(!lSensor.lineDetected());
-			navigation.stopMotors();
+			navigation.stopMotors(); //first line detected
 			first=odometer.getY();
 			navigation.backUp(Navigation.TILE_SIZE/2);
 			navigation.travelBackward();
 			while(!lSensor.lineDetected());
-			navigation.stopMotors();
+			navigation.stopMotors();//second line detected
 			second=odometer.getY();
 			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(90);
@@ -803,8 +895,14 @@ public class GamePlan {
 	}
 	
 	/**
-	 * Method for localizing before crossing the tunnel
-	 * Also goes to the tunnel entry after doing the localization
+	 * Prepares the robot to cross the tunnel by
+	 * going to the entry tile and localizing before crossing the tunnel
+	 * 
+	 * Will get to the tile in front of the entry of the tunnel,
+	 * detect the borders of the tile which are parallel to the tunnel
+	 * and place the robot in its center, facing the tunnel.
+	 * 
+	 * Does not avoid the search zone.
 	 * 
 	 * @param direction Entry direction of the tunnel
 	 * @throws Exception if unable to retrieve the tunnel data
@@ -815,12 +913,20 @@ public class GamePlan {
 		int lowerLeftYLine = serverData.getCoordParam(CoordParameter.TN_LL_y);
 		int upperRightXLine = serverData.getCoordParam(CoordParameter.TN_UR_x);
 		int upperRightYLine = serverData.getCoordParam(CoordParameter.TN_UR_y);
+		
+		//local variables for localizing
 		double first, second;
+		
+		//direction of the tunnel entry
 		switch(direction) {
 		case NORTH:
+			//Entry of tunnel is in the North part of the tunnel
+			//Localizes in the tile North of it
 			GamePlan.lcd.drawString("North loc", 0, 5);
-			odoCorrect.setDoCorrection(true);
+			odoCorrect.setDoCorrection(false);
 			
+			//Determines if there is a danger of falling in the water when localizing
+			//by looking if the tile west of the tile just north of the tunnel is water 
 			if(serverData.getZone((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
 				navigation.travelTo((lowerLeftXLine+0.55)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
 				navigation.turnTo(90); //look east
@@ -828,28 +934,33 @@ public class GamePlan {
 				navigation.travelTo((lowerLeftXLine+0.45)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE);
 				navigation.turnTo(270); //look west
 			}
+			
+			//localize
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
 			while(!lSensor.lineDetected());
+			navigation.stopMotors(); //first line detected
 			first=odometer.getX();
-			navigation.stopMotors();
 			
 			navigation.backUp(Navigation.TILE_SIZE/2);
 			navigation.travelBackward();
 			while(!lSensor.lineDetected());
+			navigation.stopMotors(); //second line detected
 			second=odometer.getX();
-			navigation.stopMotors();
+			//go in the middle of the tile
 			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(180);
 			
 			break;
 		case SOUTH:
 			//Entry of tunnel is in the South part of the tunnel
+			//Localizes in the tile South of it
 			GamePlan.lcd.drawString("South loc", 0, 5);
-			odoCorrect.setDoCorrection(true);
+			odoCorrect.setDoCorrection(false);
 			
-			
+			//Determines if there is a danger of falling in the water when localizing
+			//by looking if the tile west of the tile just south of the tunnel is water 
 			if(serverData.getZone((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
 				navigation.travelTo((lowerLeftXLine+0.55)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
 				navigation.turnTo(90); //look east
@@ -857,26 +968,32 @@ public class GamePlan {
 				navigation.travelTo((lowerLeftXLine+0.45)*Navigation.TILE_SIZE, (lowerLeftYLine-0.5)*Navigation.TILE_SIZE);
 				navigation.turnTo(270); //look west
 			}
+			
+			//localize
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
 			while(!lSensor.lineDetected());
-			navigation.stopMotors();
+			navigation.stopMotors(); //first line detected
 			first=odometer.getX();
 			navigation.backUp(Navigation.TILE_SIZE/2);
 			navigation.travelBackward();
 			while(!lSensor.lineDetected());
-			navigation.stopMotors();
+			navigation.stopMotors(); //second line detected
 			second=odometer.getX();
+			//go to the middle of the tile
 			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(0);
 			break;
 		case EAST:
 			//Entry of tunnel is in the East part of the tunnel
+			//Localizes in the tile East of it
 			GamePlan.lcd.drawString("East loc", 0, 5);
-			odoCorrect.setDoCorrection(true);
+			odoCorrect.setDoCorrection(false);
+			navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.55)*Navigation.TILE_SIZE);
 			
-			
+			//Determines if there is a danger of falling in the water when localizing
+			//by looking if the tile north of the tile just east of the tunnel is water 
 			if(serverData.getZone((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
 				navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.55)*Navigation.TILE_SIZE);
 				navigation.turnTo(180); //look south
@@ -884,25 +1001,31 @@ public class GamePlan {
 				navigation.travelTo((upperRightXLine+0.5)*Navigation.TILE_SIZE, (upperRightYLine-0.45)*Navigation.TILE_SIZE);
 				navigation.turnTo(0); //look north
 			}
+			
+			//localize
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
 			while(!lSensor.lineDetected());
-			navigation.stopMotors();
+			navigation.stopMotors(); //first line detected
 			first=odometer.getY();
 			navigation.backUp(Navigation.TILE_SIZE/2);
 			navigation.travelBackward();
 			while(!lSensor.lineDetected());
-			navigation.stopMotors();
+			navigation.stopMotors(); //second line detected
 			second=odometer.getY();
+			//go to the middle of the tile
 			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(270);
 			break;
 		case WEST:
 			//Entry of tunnel is in the West part of the tunnel
+			//Localizes in the tile West of it
 			GamePlan.lcd.drawString("West loc", 0, 5);
-			odoCorrect.setDoCorrection(true);
+			odoCorrect.setDoCorrection(false);
 			
+			//Determines if there is a danger of falling in the water when localizing
+			//by looking if the tile north of the tile just west of the tunnel is water 
 			if(serverData.getZone((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (upperRightYLine+0.5)*Navigation.TILE_SIZE)==Zone.WATER) {
 				navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.45)*Navigation.TILE_SIZE);
 				navigation.turnTo(180); //look south
@@ -910,17 +1033,20 @@ public class GamePlan {
 				navigation.travelTo((lowerLeftXLine-0.5)*Navigation.TILE_SIZE, (lowerLeftYLine+0.55)*Navigation.TILE_SIZE);
 				navigation.turnTo(0); //look north
 			}
+			
+			//localize
 			navigation.travelForward();
 			
 			navigation.setEnableGyroscopeCorrection(true);
 			while(!lSensor.lineDetected());
-			navigation.stopMotors();
+			navigation.stopMotors(); //first line detected
 			first=odometer.getY();
 			navigation.backUp(Navigation.TILE_SIZE/2);
 			navigation.travelBackward();
 			while(!lSensor.lineDetected());
-			navigation.stopMotors();
+			navigation.stopMotors(); //second line detected
 			second=odometer.getY();
+			//go to the middle of the tile
 			navigation.travel(Math.abs(first-second)/2+dynamicTrack.getLightSensorDistance());
 			navigation.turnTo(90);
 			break;
@@ -934,6 +1060,17 @@ public class GamePlan {
 	/**
 	 * Procedure method to avoid the search zone and water areas and go to the
 	 * specified side of the bridge.
+	 * 
+	 * WARNING: this method contains a lot of cases which are all the cases
+	 * 			possible for the configuration of the entry point of the bridge
+	 * 			the search zone in the red zone and the position of the robot at 
+	 * 			that time.
+	 * 			Keep in mind that it finds the shortest path to avoid the search zone,
+	 * 			goes around by going to its corners: goToSRLowerLeft() ,
+	 * 			goToSRLowerRight() , goToSRUpperLeft() , goToSRUpperRight() 
+	 * 
+	 * 			After, it will call the localizeBeforeBridge(direction) method
+	 * 			
 	 * 
 	 * @param direction
 	 *            Direction (side) of the bridge entry
@@ -1428,6 +1565,10 @@ public class GamePlan {
 				break;
 			}
 			break;
+		case CENTER:
+			//cannot avoid SR to the go to center of bridge
+			//so don't do anything
+			break;
 		}
 		//go to the bridge and localize
 		localizeBeforeBridge(direction);
@@ -1436,6 +1577,17 @@ public class GamePlan {
 	/**
 	 * Procedure method to avoid the search zone and water areas to go to the
 	 * specified side of the tunnel.
+	 * 
+	 * WARNING: this method contains a lot of cases which are all the cases
+	 * 			possible for the configuration of the entry point of the tunne;
+	 * 			the search zone in the green zone and the position of the robot at 
+	 * 			that time.
+	 * 			Keep in mind that it finds the shortest path to avoid the search zone,
+	 * 			goes around by going to its corners: goToSGLowerLeft() ,
+	 * 			goToSGLowerRight() , goToSGUpperLeft() , goToSGUpperRight() 
+	 * 
+	 * 			After, it will call the localizeBeforeTunnel(direction) method
+	 * 			
 	 * 
 	 * @param direction
 	 *            Direction (side) of the tunnel entry
@@ -1929,6 +2081,10 @@ public class GamePlan {
 				break;
 			}
 			break;
+		case CENTER:
+			//cannot avoid SR to the go to center of bridge
+			//so don't do anything
+			break;
 		}
 		//finally localize and go to the tunnel
 		localizeBeforeTunnel(direction);
@@ -1937,6 +2093,22 @@ public class GamePlan {
 	/**
 	 * Procedure method to avoid the search zone and water areas and go to the
 	 * starting corner.
+	 * 
+	 * WARNING: this method contains a lot of cases which are all the cases
+	 * 			possible for the configuration of the search zone in the 
+	 * 			zone of the robot and the position of the robot at 
+	 * 			that time.
+	 * 			Keep in mind that it finds the shortest path to avoid the search zone
+	 * 			of its team color, goes around by going to its corners:
+	 * 			RED: goToSRLowerLeft() ,
+	 * 			goToSRLowerRight() , goToSRUpperLeft() , goToSRUpperRight() 
+	 * 
+	 * 			GREEN:
+	 * 			goToSGLowerLeft() ,
+	 * 			goToSGLowerRight() , goToSGUpperLeft() , goToSGUpperRight() 
+	 * 
+	 * 			After, it will directly travel to where it started (in its corner)
+	 * 			
 	 * 
 	 * @return True when reached
 	 * @throws Exception
@@ -1964,7 +2136,6 @@ public class GamePlan {
 			startingY = EV3WifiClient.Y_GRID_LINES * Navigation.TILE_SIZE - Navigation.TILE_SIZE/2 ;
 			break;
 		}
-		
 		//Going back to the starting corner of its team color
 		switch (serverData.getTeamColor()) {
 		case GREEN:
@@ -2245,7 +2416,7 @@ public class GamePlan {
 
 	/**
 	 * Makes the robot navigate to the lower left corner of the search zone in the
-	 * red zone The robot will be outside of the zone
+	 * red zone The robot will be a quarter of a tile outside of the zone
 	 * 
 	 * @return True when reached
 	 */
@@ -2258,7 +2429,7 @@ public class GamePlan {
 
 	/**
 	 * Makes the robot navigate to the lower right corner of the search zone in the
-	 * red zone The robot will be outside of the zone
+	 * red zone The robot will be a quarter of a tile outside of the zone
 	 * 
 	 * @return True when reached
 	 */
@@ -2271,7 +2442,7 @@ public class GamePlan {
 
 	/**
 	 * Makes the robot navigate to the upper left corner of the search zone in the
-	 * red zone The robot will be outside of the zone
+	 * red zone The robot will be a quarter of a tile outside of the zone
 	 * 
 	 * @return True when reached
 	 */
@@ -2284,7 +2455,7 @@ public class GamePlan {
 
 	/**
 	 * Makes the robot navigate to the upper right corner of the search zone in the
-	 * red zone The robot will be outside of the zone
+	 * red zone The robot will be a quarter of a tile outside of the zone
 	 * 
 	 * @return True when reached
 	 */
@@ -2297,7 +2468,7 @@ public class GamePlan {
 
 	/**
 	 * Makes the robot navigate to the lower left corner of the search zone in the
-	 * green zone The robot will be outside of the zone
+	 * green zone The robot will be a quarter of a tile outside of the zone
 	 * 
 	 * @return True when reached
 	 */
@@ -2310,7 +2481,7 @@ public class GamePlan {
 
 	/**
 	 * Makes the robot navigate to the lower right corner of the search zone in the
-	 * green zone The robot will be outside of the zone
+	 * green zone The robot will be a quarter of a tile outside of the zone
 	 * 
 	 * @return True when reached
 	 */
@@ -2323,7 +2494,7 @@ public class GamePlan {
 
 	/**
 	 * Makes the robot navigate to the upper left corner of the search zone in the
-	 * green zone The robot will be outside of the zone
+	 * green zone The robot will be a quarter of a tile outside of the zone
 	 * 
 	 * @return True when reached
 	 */
@@ -2336,7 +2507,7 @@ public class GamePlan {
 
 	/**
 	 * Makes the robot navigate to the upper right corner of the search zone in the
-	 * green zone The robot will be outside of the zone
+	 * green zone The robot will be a quarter of a tile outside of the zone
 	 * 
 	 * @return True when reached
 	 */

@@ -1,7 +1,6 @@
 package ca.mcgill.ecse211.lab5;
 
 import lejos.hardware.Button;
-import lejos.hardware.Sound;
 import lejos.hardware.ev3.LocalEV3;
 import lejos.hardware.lcd.TextLCD;
 import lejos.hardware.motor.EV3MediumRegulatedMotor;
@@ -9,12 +8,49 @@ import lejos.hardware.motor.EV3MediumRegulatedMotor;
 /**
  * Class responsible for expanding the track and providing methods to regulate
  * the width of the robot.
+ * This class is also responsible for holding all the information about the
+ * design used, thus makes the code work for all types of designs.
+ * 
+ * To add a design, 
+ * 1- go to GamePlan.Robot enum
+ * in the GamePlan class and add the design to the list.
+ * 2- Add the constants for your design below (4 constants needed,
+ * 		see javadoc below)
+ * 3- Add your design to setDesignConstants(GamePlan.Robot robotUsed, boolean expanded) 
+ * 		(Initialize the variables listed in the javadoc of that method)
+ * 
+ * 4- Change the used design in the GamePlan class
  * 
  * @author Xavier Pellemans
+ * @author Thomas Bahen
+ * @author Zhang Guangyi
+ * @author Zhang Cara
+ * @author Shi WenQi
  *
  */
 public class TrackExpansion {
+	
+	/**
+	 * Enum for the wheel configuration of the robot 
+	 * 
+	 * TRACTION: wheels are in frontof the robot
+	 *  
+	 * PROPULSION: wheels are at the back of the robot
+	 * (motor.backward() is forward)
+	 */
+	public enum RobotConfig {
+		TRACTION, PROPULSION
+	}
+	
 
+	/**
+	 * Constants for the different designs
+	 * Each design must specify the
+	 * (1) wheel radius
+	 * (2) track
+	 * (3) light sensor distance
+	 * (4) propulsion type
+	 */
 	// free space between wheels: 13.7 cm
 	// wheel width 2.2 (EACH)
 	// wheel diameter: 4.4
@@ -39,6 +75,11 @@ public class TrackExpansion {
 	private EV3MediumRegulatedMotor trackExpansionMotor;
 
 	/**
+	 * Configuration of the wheel base of the robot
+	 */
+	private RobotConfig config;
+	
+	/**
 	 * Constructor of the TrackExpansion Considers default values to be of the screw
 	 * design Considers the initial track to be at its minimum when starting
 	 */
@@ -46,6 +87,7 @@ public class TrackExpansion {
 		this.track = MIN_SCREW_TRACK;
 		this.wheelRad = SCREW_WHEEL_RAD;
 		this.lightSensorDistance = LIGHT_SENSOR_DISTANCE_SCREW;
+		this.config=RobotConfig.PROPULSION;
 	}
 
 	/**
@@ -201,6 +243,18 @@ public class TrackExpansion {
 	}
 
 	/**
+	 * Gets the position of the motorized wheels.
+	 * 
+	 * PROPULSION: the motorized wheels are at the back 
+	 * 		of the robot
+	 * TRACTION: the motorized wheels are at the front 
+	 * 		of the robot
+	 * @return The configuration of the robot used
+	 */
+	public RobotConfig getConfig() {
+		return config;
+	}
+	/**
 	 * Gets the current track of the robot
 	 * 
 	 * @return The size of the track (in cm)
@@ -209,8 +263,23 @@ public class TrackExpansion {
 		return track;
 	}
 	
+	/**
+	 * Sets the track (distance between right and left wheels) 
+	 * for the robot design used
+	 * 
+	 * @param track The track used (in cm)
+	 */
 	public void setTrack (double track) {
 		this.track = track;
+	}
+	
+	/**
+	 * Sets the wheel radius for the robot design used
+	 * 
+	 * @param wheelRad The radius of the wheels (in cm)
+	 */
+	public void setWheelRad(double wheelRad) {
+		this.wheelRad = wheelRad;
 	}
 
 	/**
@@ -230,9 +299,6 @@ public class TrackExpansion {
 	 */
 	public void setExpandable(boolean expandable) {
 		this.expandable = expandable;
-		if (!expandable) {
-
-		}
 	}
 
 	/**
@@ -259,26 +325,12 @@ public class TrackExpansion {
 	 * Method to set the robot parameters according to the design used. If the
 	 * SCREW_DESIGN is given, considers the track is at its minimum.
 	 * 
+	 * 
 	 * @param robotUsed
 	 *            Robot design used
 	 */
 	public void setDesignConstants(GamePlan.Robot robotUsed) {
-		switch (robotUsed) {
-		case SCREW_DESIGN:
-			this.track = MIN_SCREW_TRACK;
-			this.wheelRad = SCREW_WHEEL_RAD;
-			this.lightSensorDistance = LIGHT_SENSOR_DISTANCE_SCREW;
-			this.expandable = true;
-			this.trackExpansionMotor = new EV3MediumRegulatedMotor(LocalEV3.get().getPort("B"));
-			break;
-		case TANK:
-			this.track = TANK_TRACK;
-			this.wheelRad = TANK_WHEEL_RAD;
-			this.lightSensorDistance = LIGHT_SENSOR_DISTANCE_TANK;
-			this.expandable = false;
-			break;
-
-		}
+		setDesignConstants(robotUsed, false);
 	}
 
 	/**
@@ -292,12 +344,23 @@ public class TrackExpansion {
 	 *            to its maximum
 	 */
 	public void setDesignConstants(GamePlan.Robot robotUsed, boolean expanded) {
+		/**
+		 * To add robot designs, simply add the name of the design
+		 * to the Robot enum in GamePlan class,
+		 * create new constants holding 
+		 * (1) the track
+		 * (2) the wheel radius
+		 * (3) the light sensor distance
+		 * (4) its configuration
+		 * (5) if it is expandable
+		 */
 		switch (robotUsed) {
 		case SCREW_DESIGN:
 			this.wheelRad = SCREW_WHEEL_RAD;
 			this.lightSensorDistance = LIGHT_SENSOR_DISTANCE_SCREW;
 			this.expandable = true;
 			this.trackExpansionMotor = new EV3MediumRegulatedMotor(LocalEV3.get().getPort("B"));
+			this.config=RobotConfig.PROPULSION;
 			if (expanded) {
 				this.track = MAX_SCREW_TRACK;
 			} else {
@@ -309,6 +372,7 @@ public class TrackExpansion {
 			this.wheelRad = TANK_WHEEL_RAD;
 			this.lightSensorDistance = LIGHT_SENSOR_DISTANCE_TANK;
 			this.expandable = false;
+			this.config=RobotConfig.PROPULSION;
 			break;
 		}
 	}
@@ -327,8 +391,8 @@ public class TrackExpansion {
 	/**
 	 * Converts rotation in degrees into the track expansion displacement
 	 * 
-	 * @param The
-	 *            rotation of the screw (in degrees)
+	 * @param rotation  The rotation of the screw (in degrees)
+	 *          
 	 * @return distance The displacement of the track
 	 */
 	private double convertRotation(int rotation) {

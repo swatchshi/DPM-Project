@@ -26,12 +26,6 @@ public class OdometerData {
 	private volatile double y; // y-axis position
 	private volatile double theta; // Head angle
 
-	// Class control variables
-	private volatile static int numberOfIntances = 0; // Number of OdometerData
-														// objects instantiated
-														// so far
-	private static final int MAX_INSTANCES = 1; // Maximum number of
-												// OdometerData instances
 
 	// Thread control tools
 	private static Lock lock = new ReentrantLock(true); // Fair lock for
@@ -254,11 +248,13 @@ public class OdometerData {
 	 */
 	public void correctAngle() {
 		double gyroAngle = gyroscope.getAngle();
+		
+		//Verifies that the error is not too small nor too big to correct
 		if (Math.abs(theta - gyroAngle) < MAX_ANGLE_ERROR && Math.abs(theta - gyroAngle) > MIN_ANGLE_ERROR) {
 			this.theta = theta * 0.2 + gyroAngle * 0.8; // change proportions to get more accurate correction
 			gyroscope.setAngle(this.theta);
 		}else {
-			//do nothing
+			//if error is too small or too big, do nothing
 		}
 	}
 
@@ -280,5 +276,8 @@ public class OdometerData {
 	 */
 	public void setEnablePrint(boolean enablePrint) {
 		this.enablePrint = enablePrint;
+		if(!enablePrint) { //if false, erase everything that was written before
+			GamePlan.lcd.clear();
+		}
 	}
 }
